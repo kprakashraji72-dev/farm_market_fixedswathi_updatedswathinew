@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Categories | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner with Add Category Action #}
+        <div class="ft-mgmt-hero green d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-tags"></i></div>
+                <div>
+                    <h2 class="mb-1">Category Management</h2>
+                    <p class="mb-0">Manage produce categories (Fruits, Vegetables, Herbs, Greens) used across the marketplace.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="ft-mini-stat">
+                    <div class="num">{{ categories.count }}</div>
+                    <div class="label">Categories</div>
+                </div>
+                <button type="button" class="btn btn-success text-white rounded-pill px-4 py-2 fw-semibold shadow-sm" id="toggleAddCategoryBtn">
+                    <i class="fa-solid fa-circle-plus me-1"></i> Add New Category
+                </button>
+            </div>
+        </div>
+
+        {# ============ LANDSCAPE FORMAT: ADD CATEGORY FORM ============ #}
+        <div class="ft-landscape-form-card green {% if not form.errors %}d-none{% endif %} mb-4" id="addCategoryCard">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-tag text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Create Category (Landscape Format)</h5>
+                </div>
+                <button type="button" class="btn-close" id="closeAddCategoryBtn" aria-label="Close form"></button>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Category Name <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {% for e in form.name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">E.g., "Leafy Greens", "Organic Fruits", "Root Vegetables".</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">FontAwesome Icon Class</label>
+                            {{ form.icon }}
+                            {% for e in form.icon.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">Optional class like <code>fa-carrot</code>, <code>fa-apple-whole</code>, <code>fa-leaf</code>.</div>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="cancelAddCategoryBtn">Cancel</button>
+                            <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold text-white shadow-sm">
+                                <i class="fa-solid fa-plus me-1"></i> Save Category
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH CATEGORIES TABLE ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-list text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Active Categories Directory</h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-2">{{ categories.count }} Total</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">Icon</th>
+                            <th>Category Name</th>
+                            <th>Slug</th>
+                            <th>Associated Products</th>
+                            <th class="text-end" style="width: 100px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <td>
+                                <div class="ft-avatar-sm" style="background:#dcfce7; color:#15803d;">
+                                    {% if category.icon %}<i class="fa-solid {{ category.icon }}"></i>{% else %}<i class="fa-solid fa-tag"></i>{% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">{{ category.name }}</span>
+                            </td>
+                            <td>
+                                <code class="text-muted small">{{ category.slug }}</code>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ category.products.count }} produce items</span>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'dashboard:category_delete' category.id %}" onsubmit="return confirm('Delete category \'{{ category.name }}\'?');" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle py-1 px-2" title="Delete Category">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-tags text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No categories created yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAddCategoryBtn');
+    const closeBtn = document.getElementById('closeAddCategoryBtn');
+    const cancelBtn = document.getElementById('cancelAddCategoryBtn');
+    const addCard = document.getElementById('addCategoryCard');
+
+    function toggleForm() {
+        if (addCard.classList.contains('d-none')) {
+            addCard.classList.remove('d-none');
+            addCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            toggleBtn.innerHTML = '<i class="fa-solid fa-minus me-1"></i> Hide Form';
+        } else {
+            addCard.classList.add('d-none');
+            toggleBtn.innerHTML = '<i class="fa-solid fa-circle-plus me-1"></i> Add New Category';
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleForm);
+    if (closeBtn) closeBtn.addEventListener('click', toggleForm);
+    if (cancelBtn) cancelBtn.addEventListener('click', toggleForm);
+});
+</script>
+{% endblock %}
+

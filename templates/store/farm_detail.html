@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ farm.name }} | Fresh Trace Farm Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4 pb-5">
+
+    {# ============ BREADCRUMBS ============ #}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventory:product_list' %}" class="text-decoration-none text-muted">Marketplace</a></li>
+            <li class="breadcrumb-item active fw-semibold text-success" aria-current="page">{{ farm.name }}</li>
+        </ol>
+    </nav>
+
+    {# ============ FARM HERO BANNER ============ #}
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 text-white mb-4 position-relative overflow-hidden" style="background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);">
+        <div class="row align-items-center g-4">
+            <div class="{% if farm.cover_image %}col-lg-8{% else %}col-12{% endif %}">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge bg-white text-success rounded-pill px-3 py-1.5 fw-bold extra-small">
+                        <i class="fa-solid fa-tractor me-1"></i> Partner Farm
+                    </span>
+                    {% if farm.owner and farm.owner.is_verified %}
+                    <span class="badge bg-success-subtle text-white border border-white border-opacity-50 rounded-pill px-3 py-1.5 fw-bold extra-small">
+                        <i class="fa-solid fa-circle-check text-warning me-1"></i> Verified Grower
+                    </span>
+                    {% endif %}
+                    {% if farm.is_active %}
+                    <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-50 rounded-pill px-3 py-1.5 fw-bold extra-small">
+                        <i class="fa-solid fa-circle-dot text-light me-1"></i> Live Harvest
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="display-6 fw-bold mb-2 text-white">{{ farm.name }}</h1>
+                
+                <p class="text-white-50 mb-3 small d-flex align-items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-warning"></i>
+                    <span>{{ farm.location|default:"Local Agricultural Zone" }}</span>
+                </p>
+
+                <div class="d-flex flex-wrap gap-2 pt-2">
+                    <div class="badge bg-white bg-opacity-15 text-white rounded-pill px-3 py-2 fw-normal small border border-white border-opacity-25">
+                        <i class="fa-solid fa-basket-shopping text-warning me-1"></i>
+                        <span><strong>{{ products.count }}</strong> Fresh Item{{ products.count|pluralize }}</span>
+                    </div>
+                    <div class="badge bg-white bg-opacity-15 text-white rounded-pill px-3 py-2 fw-normal small border border-white border-opacity-25">
+                        <i class="fa-solid fa-calendar-check text-info me-1"></i>
+                        <span>Growing since <strong>{{ farm.created_at|date:"M Y" }}</strong></span>
+                    </div>
+                    {% if farm.owner %}
+                    <div class="badge bg-white bg-opacity-15 text-white rounded-pill px-3 py-2 fw-normal small border border-white border-opacity-25">
+                        <i class="fa-solid fa-user-check text-success me-1"></i>
+                        <span>Grower: <strong>{{ farm.owner.first_name|default:farm.owner.username }}</strong></span>
+                    </div>
+                    {% endif %}
+                    {% if farm.video_url %}
+                    <a href="#farm-video-section" class="badge bg-danger text-white rounded-pill px-3 py-2 fw-semibold text-decoration-none shadow-sm">
+                        <i class="fa-solid fa-circle-play me-1"></i>
+                        <span>Watch Video Tour</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if farm.cover_image %}
+            <div class="col-lg-4 text-center text-lg-end">
+                <div class="rounded-4 overflow-hidden shadow-lg border border-3 border-white d-inline-block bg-light w-100" style="max-width: 360px; height: 210px;">
+                    <img src="{{ farm.cover_image.url }}" alt="{{ farm.name }} Cover Photo" class="w-100 h-100 object-fit-cover hover-scale transition-all">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ============ FARM STORY & SNAPSHOT ROW ============ #}
+    <div class="row g-4 mb-5">
+        
+        {# Left Column: Farm Story & Trust Guarantees #}
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white p-4" style="border: 1px solid #e2ece5 !important;">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success" style="width: 38px; height: 38px;">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold text-dark">About {{ farm.name }}</h4>
+                        <small class="text-muted">Origin &amp; Farming Practices</small>
+                    </div>
+                </div>
+
+                {% if farm.description %}
+                    <p class="text-secondary lh-lg mb-4">
+                        {{ farm.description|linebreaksbr }}
+                    </p>
+                {% else %}
+                    <p class="text-muted fst-italic mb-4">
+                        {{ farm.name }} is dedicated to cultivating crisp, fresh, and nutrient-dense farm produce harvested at peak ripeness and dispatched directly to your doorstep with full cold-chain traceability.
+                    </p>
+                {% endif %}
+
+                {# 4 Trust Guarantee Pillars #}
+                <div class="row g-3 pt-3 border-top mt-auto">
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center rounded-3 bg-light h-100 border" style="border-color: #e2ece5 !important;">
+                            <i class="fa-solid fa-leaf text-success fs-4 mb-2 d-block"></i>
+                            <h6 class="fw-bold small mb-1">100% Fresh</h6>
+                            <p class="text-muted extra-small mb-0">Harvested to order</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center rounded-3 bg-light h-100 border" style="border-color: #e2ece5 !important;">
+                            <i class="fa-solid fa-shield-halved text-primary fs-4 mb-2 d-block"></i>
+                            <h6 class="fw-bold small mb-1">Traceable</h6>
+                            <p class="text-muted extra-small mb-0">Direct from farm</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center rounded-3 bg-light h-100 border" style="border-color: #e2ece5 !important;">
+                            <i class="fa-solid fa-snowflake text-info fs-4 mb-2 d-block"></i>
+                            <h6 class="fw-bold small mb-1">Cold-Chain</h6>
+                            <p class="text-muted extra-small mb-0">Live GPS tracking</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center rounded-3 bg-light h-100 border" style="border-color: #e2ece5 !important;">
+                            <i class="fa-solid fa-handshake-angle text-warning fs-4 mb-2 d-block"></i>
+                            <h6 class="fw-bold small mb-1">Fair Price</h6>
+                            <p class="text-muted extra-small mb-0">Supports growers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Right Column: Farm Profile Snapshot #}
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white p-4 d-flex flex-column" style="border: 1px solid #e2ece5 !important;">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                    <i class="fa-solid fa-id-card-clip text-success"></i> Farm Snapshot
+                </h5>
+
+                <ul class="list-unstyled mb-4 flex-grow-1">
+                    <li class="d-flex justify-content-between align-items-center py-2.5 border-bottom small">
+                        <span class="text-muted"><i class="fa-solid fa-location-dot me-2 text-success"></i>Location</span>
+                        <strong class="text-dark text-end">{{ farm.location|default:"Verified Region" }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between align-items-center py-2.5 border-bottom small">
+                        <span class="text-muted"><i class="fa-solid fa-circle-check me-2 text-success"></i>Status</span>
+                        <span>
+                            {% if farm.is_active %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">Active &amp; Harvesting</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill">Seasonal Pause</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="d-flex justify-content-between align-items-center py-2.5 border-bottom small">
+                        <span class="text-muted"><i class="fa-solid fa-boxes-stacked me-2 text-success"></i>Catalog</span>
+                        <strong class="text-dark">{{ products.count }} Listed Produce</strong>
+                    </li>
+                    <li class="d-flex justify-content-between align-items-center py-2.5 small">
+                        <span class="text-muted"><i class="fa-solid fa-truck-fast me-2 text-success"></i>Dispatch</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill">Same-Day Dispatch</span>
+                    </li>
+                </ul>
+
+                {% if farm.owner %}
+                <div class="p-3 bg-light rounded-3 d-flex align-items-center gap-3 border" style="border-color: #e2ece5 !important;">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 44px; height: 44px; font-size: 1.1rem;">
+                        {{ farm.owner.username|make_list|first|upper }}
+                    </div>
+                    <div class="overflow-hidden">
+                        <span class="extra-small text-uppercase text-muted fw-bold d-block" style="font-size: 0.68rem; letter-spacing: 0.5px;">Partner Grower</span>
+                        <strong class="text-dark d-block text-truncate">{{ farm.owner.first_name|default:farm.owner.username }}</strong>
+                        {% if farm.owner.is_verified %}
+                            <span class="badge bg-success text-white extra-small px-2 py-0.5 mt-0.5"><i class="fa-solid fa-certificate me-1"></i>Verified Grower</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    {# ============ OPTIONAL VIDEO TOUR & GALLERY ============ #}
+    {% if farm.video_url or farm.gallery_images.all %}
+    <div class="row g-4 mb-5" id="farm-video-section">
+        {% if farm.video_url %}
+        <div class="{% if farm.gallery_images.all %}col-lg-7{% else %}col-12{% endif %}">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100" style="border: 1px solid #e2ece5 !important;">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                    <i class="fa-solid fa-circle-play text-danger"></i> Farm Video Tour
+                </h5>
+                <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm">
+                    <iframe src="{{ farm.video_url }}" title="{{ farm.name }} Tour" allowfullscreen class="rounded-3"></iframe>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if farm.gallery_images.all %}
+        <div class="{% if farm.video_url %}col-lg-5{% else %}col-12{% endif %}">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100" style="border: 1px solid #e2ece5 !important;">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
+                    <i class="fa-solid fa-images text-success"></i> Farm Photo Gallery
+                </h5>
+                <div class="row g-2">
+                    {% for img in farm.gallery_images.all %}
+                    <div class="col-6">
+                        <div class="rounded-3 overflow-hidden border position-relative" style="height: 125px; border-color: #e2ece5 !important;">
+                            <img src="{{ img.image.url }}" class="w-100 h-100 object-fit-cover hover-scale transition-all" alt="{{ img.caption|default:farm.name }}">
+                            {% if img.caption %}
+                                <span class="position-absolute bottom-0 start-0 w-100 p-1 text-center text-white extra-small" style="background: rgba(0,0,0,0.65);">{{ img.caption }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# ============ PRODUCE CATALOG / PRODUCTS GRID ============ #}
+    <section class="mt-4" id="produce-catalog">
+        
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div>
+                <h3 class="fw-bold mb-1 d-flex align-items-center gap-2 text-dark">
+                    <i class="fa-solid fa-carrot text-success"></i> Fresh Harvest from {{ farm.name }}
+                </h3>
+                <p class="text-muted small mb-0">Browse fresh fruits, vegetables, and seasonal crops grown at this farm.</p>
+            </div>
+            <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-semibold border border-success-subtle">
+                {{ products.count }} Available Product{{ products.count|pluralize }}
+            </div>
+        </div>
+
+        {# Category Filter Chips #}
+        {% if farm_categories %}
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+            <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-filter text-success me-1"></i> Filter:</span>
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-success text-white shadow-sm farm-cat-chip active" data-cat="all">
+                All Produce ({{ products.count }})
+            </button>
+            {% for cat in farm_categories %}
+            <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary bg-white farm-cat-chip" data-cat="{{ cat.slug }}">
+                {% if cat.icon %}<i class="fa-solid {{ cat.icon }} me-1"></i>{% endif %} {{ cat.name|title }}
+            </button>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Products Grid #}
+        <div class="row g-3 g-md-4" id="farm-products-grid">
+            {% for product in products %}
+            <div class="col-6 col-md-4 col-lg-3 farm-product-item reveal-on-scroll reveal-delay-{{ forloop.counter0|divisibleby:4|yesno:'1,2' }}" data-cat="{{ product.category.slug }}">
+                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white hover-elevate transition-all position-relative" style="border: 1px solid #e2ece5 !important;">
+                    
+                    {# Product Image Container #}
+                    <a href="{{ product.get_absolute_url }}" class="text-decoration-none position-relative d-block overflow-hidden bg-light" style="height: 185px;">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-100 h-100 object-fit-cover transition-all hover-scale" loading="lazy">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                <i class="fa-solid fa-carrot text-success opacity-50" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+
+                        {# Stock Badge #}
+                        <div class="position-absolute top-0 start-0 m-2" style="z-index: 5;">
+                            {% if product.in_stock %}
+                                <span class="badge bg-success text-white rounded-pill extra-small shadow-sm px-2 py-1">
+                                    <i class="fa-solid fa-circle-check me-1"></i> In Stock
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger text-white rounded-pill extra-small shadow-sm px-2 py-1">
+                                    Sold Out
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if product.category %}
+                        <div class="position-absolute bottom-0 start-0 m-2" style="z-index: 5;">
+                            <span class="badge bg-white text-dark rounded-pill extra-small shadow-sm px-2 py-1 border">
+                                {{ product.category.name|title }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </a>
+
+                    {# Card Body #}
+                    <div class="card-body p-3 d-flex flex-column">
+                        <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark mb-1">
+                            <h6 class="fw-bold mb-0 text-truncate" title="{{ product.name }}">{{ product.name|title }}</h6>
+                        </a>
+
+                        {# Pricing #}
+                        <div class="d-flex align-items-baseline gap-1 my-2">
+                            <span class="fs-5 fw-bold text-success">₹{{ product.display_price }}</span>
+                            <span class="small text-muted">/{{ product.display_unit }}</span>
+                        </div>
+
+                        {# Action Buttons #}
+                        <div class="mt-auto pt-2">
+                            {% if product.in_stock %}
+                                <button class="btn btn-sm btn-success w-100 rounded-pill fw-semibold add-to-cart-btn btn-add-cart shadow-sm btn-zoom" data-product-id="{{ product.id }}" data-variant-id="" data-add-url="{% url 'orders:add_to_cart' product.id %}">
+                                    <span class="btn-default-label"><i class="fa-solid fa-cart-plus me-1"></i> Add to Cart</span>
+                                    <span class="btn-success-label"><i class="fa-solid fa-check me-1"></i> Added</span>
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill" disabled>Sold Out</button>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5 text-muted">
+                <div class="card border-0 shadow-sm rounded-4 p-5 bg-white mx-auto" style="max-width: 500px; border: 1px solid #e2ece5 !important;">
+                    <i class="fa-solid fa-seedling text-success opacity-50 mb-3" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold text-dark">No Products Currently Listed</h5>
+                    <p class="text-muted small mb-3">This farm has not listed harvest items yet or is currently restocking.</p>
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-outline-success rounded-pill px-4 align-self-center fw-semibold">
+                        Browse Marketplace
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </section>
+
+    {# Bottom Shopping CTA #}
+    <div class="card border-0 shadow-sm rounded-4 p-4 mt-5 text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h5 class="fw-bold mb-1"><i class="fa-solid fa-truck-ramp-box me-2"></i>Enjoy Farm-Fresh Produce</h5>
+                <p class="mb-0 text-white-50 small">Every order from {{ farm.name }} is picked fresh and dispatched with live GPS tracking.</p>
+            </div>
+            <a href="{% url 'inventory:product_list' %}" class="btn btn-light rounded-pill px-4 fw-bold text-success shadow-sm btn-zoom">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chips = document.querySelectorAll('.farm-cat-chip');
+    const items = document.querySelectorAll('.farm-product-item');
+
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chips.forEach(c => {
+                c.classList.remove('btn-success', 'text-white', 'shadow-sm', 'active');
+                c.classList.add('btn-outline-secondary', 'bg-white');
+            });
+            chip.classList.remove('btn-outline-secondary', 'bg-white');
+            chip.classList.add('btn-success', 'text-white', 'shadow-sm', 'active');
+
+            const cat = chip.dataset.cat;
+            items.forEach(function (item) {
+                if (cat === 'all' || item.dataset.cat === cat) {
+                    item.style.display = '';
+                    item.style.opacity = '1';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

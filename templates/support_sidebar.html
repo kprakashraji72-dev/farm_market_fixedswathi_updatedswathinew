@@ -1,0 +1,101 @@
+{% comment %}
+Customer Support Staff Portal Sidebar Component.
+Light, modern, sticky-docked (100vh) on desktop (lg+); smooth native Bootstrap 5.3 Offcanvas on mobile.
+{% endcomment %}
+<aside class="offcanvas-lg offcanvas-start ft-sidebar ft-support-sidebar bg-white" tabindex="-1" id="supportSidebar" aria-labelledby="supportSidebarLabel" style="z-index: 1050;">
+    
+    {# Mobile Offcanvas Header #}
+    <div class="d-lg-none d-flex align-items-center justify-content-between p-3 border-bottom bg-light">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-headset text-teal" style="color: #0f766e;"></i>
+            <span class="fw-bold text-dark" id="supportSidebarLabel">Support Console</span>
+        </div>
+        <button type="button" class="btn-close text-reset ft-sidebar-close" data-bs-dismiss="offcanvas" data-bs-target="#supportSidebar" aria-label="Close"></button>
+    </div>
+
+    {# Sidebar Header #}
+    <div class="ft-sidebar-brand-wrap">
+        <a href="{% url 'customer_support:console' %}" class="d-flex align-items-center text-decoration-none ft-sidebar-brand">
+            <div class="ft-sidebar-icon-badge me-2" style="background: linear-gradient(135deg, #0f766e, #115e59); box-shadow: 0 4px 10px rgba(15, 118, 110, 0.28); color: #fff;">
+                <i class="fa-solid fa-headset"></i>
+            </div>
+            <div>
+                <span class="fs-6 fw-bold d-block lh-1 text-dark">Fresh Trace</span>
+                <span class="ft-badge-role" style="background: rgba(15, 118, 110, 0.12); color: #0f766e;">SUPPORT CONSOLE</span>
+            </div>
+        </a>
+        <div class="mt-2">
+            <span class="badge bg-success-soft text-success w-100 py-1 d-inline-flex align-items-center justify-content-center gap-1 border border-success-subtle">
+                <i class="fa-solid fa-circle-check"></i> Verified Support Agent
+            </span>
+        </div>
+    </div>
+
+    {# Nav Body #}
+    <div class="ft-sidebar-scroll-body flex-grow-1 p-3">
+        
+        <div class="ft-sidebar-section-title">Support Operations</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'customer_support:console' %}" class="nav-link {% if request.resolver_match.url_name == 'console' or request.resolver_match.url_name == 'detail' %}active{% endif %}">
+                    <i class="fa-solid fa-ticket me-2"></i>Tickets Console
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'customer_support:reports' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie me-2"></i>Support Analytics
+                </a>
+            </li>
+            {% if request.user.is_superuser %}
+            <li class="nav-item">
+                <a href="{% url 'customer_support:manage_staff' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_staff' %}active{% endif %}">
+                    <i class="fa-solid fa-users-gear me-2"></i>Manage Staff
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <div class="ft-sidebar-section-title">Account &amp; Profile</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'profile_edit' %}active text-white bg-primary{% endif %}">
+                    <i class="fa-solid fa-user-gear me-2"></i>My Profile
+                </a>
+            </li>
+        </ul>
+
+        <div class="ft-sidebar-section-title">Storefront</div>
+        <ul class="nav nav-pills flex-column mb-2">
+            <li class="nav-item">
+                <a href="{% url 'store:home' %}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>View Public Store
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+    {# User Footer #}
+    <div class="ft-sidebar-user-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                <div class="ft-avatar-sm" style="background: linear-gradient(135deg, #0f766e, #115e59); color: #fff;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+                <div class="overflow-hidden">
+                    <span class="d-block fw-semibold text-truncate small text-dark">{{ request.user.first_name|default:request.user.username }}</span>
+                    <span class="badge bg-teal-soft ft-role-badge" style="background: rgba(15, 118, 110, 0.12); color: #0f766e;">
+                        Support Staff
+                    </span>
+                </div>
+            </div>
+            <form method="post" action="{% url 'customer_support:logout' %}" class="m-0 p-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm ft-logout-btn" title="Log out of Support Console" aria-label="Log out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</aside>

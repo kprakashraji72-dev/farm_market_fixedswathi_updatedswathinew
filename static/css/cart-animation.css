@@ -1,0 +1,77 @@
+/* =========================================================
+   Cart Animation Styles — Flying Dot, Badge Pulse, Added State
+   ========================================================= */
+
+/* Button label states */
+.btn-add-cart {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-add-cart .btn-default-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-add-cart .btn-success-label {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-add-cart.is-added .btn-default-label,
+.btn-add-cart.btn-cart-added .btn-default-label {
+    display: none !important;
+}
+
+.btn-add-cart.is-added .btn-success-label,
+.btn-add-cart.btn-cart-added .btn-success-label {
+    display: inline-flex !important;
+}
+
+/* Flying Dot Animation */
+.flying-dot,
+.cart-flying-dot {
+    position: fixed !important;
+    z-index: 999999 !important;
+    pointer-events: none !important;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.7), 0 0 0 2px #ffffff;
+    will-change: transform, opacity;
+    transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.65s ease;
+}
+
+/* Badge Pulse / Bounce Animation */
+@keyframes badgePulse {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.6); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.cart-badge.pulse,
+.cart-badge.badge-pulse,
+.cart-badge.badge-bounce {
+    animation: badgePulse 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+/* Cart Icon Bounce */
+@keyframes cartIconHop {
+    0% { transform: scale(1) translateY(0); }
+    30% { transform: scale(1.25) translateY(3px) rotate(-8deg); }
+    60% { transform: scale(0.95) translateY(-2px) rotate(6deg); }
+    100% { transform: scale(1) translateY(0) rotate(0deg); }
+}
+
+.cart-icon-wrap.bounce i,
+.cart-icon-wrap.cart-icon-bounce i {
+    display: inline-block;
+    animation: cartIconHop 0.6s ease-in-out forwards;
+}

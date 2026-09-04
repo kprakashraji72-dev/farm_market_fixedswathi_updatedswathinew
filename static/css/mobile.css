@@ -1,0 +1,647 @@
+/* =========================================================
+   Fresh Trace — Mobile Responsive Fixes
+   Comprehensive mobile-first overrides for all pages
+   ========================================================= */
+
+
+/* =========================================================
+   GLOBAL MOBILE RESETS
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    .container,
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 100%;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .card-body {
+        padding: 0.9rem;
+    }
+}
+
+
+/* =========================================================
+   NAVBAR — MOBILE OVERRIDES
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+    /* Collapsed menu stacks properly */
+    .navbar-collapse.show,
+    .navbar-collapse.collapsing {
+        background: #ffffff;
+        border-top: 1px solid #e2ece5;
+        padding: 0.75rem 1rem;
+        margin: 0 -1rem;
+    }
+
+    /* Override single-line-nav horizontal-only behavior for mobile */
+    .navbar .navbar-nav.ft-single-line-nav,
+    .navbar .ft-single-line-nav {
+        flex-direction: column !important;
+        flex-wrap: wrap !important;
+        white-space: normal !important;
+        gap: 0.2rem !important;
+    }
+
+    .navbar .ft-single-line-nav .nav-item {
+        width: 100%;
+        flex-shrink: 1 !important;
+        white-space: normal !important;
+    }
+
+    .navbar .ft-single-line-nav .nav-link {
+        justify-content: flex-start !important;
+        padding: 0.6rem 0.75rem !important;
+        border-radius: 0.5rem !important;
+        white-space: normal !important;
+        font-size: 0.9rem;
+    }
+
+    /* Right nav (cart + user) – clean vertical stack on mobile collapse */
+    .navbar-nav.ft-nav-right {
+        flex-direction: column !important;
+        width: 100% !important;
+        margin-top: 0.75rem !important;
+        padding-top: 0.75rem !important;
+        border-top: 1px solid #e2ece5;
+        gap: 0.5rem !important;
+        align-items: stretch !important;
+    }
+
+    .navbar-nav.ft-nav-right .nav-item {
+        width: 100% !important;
+    }
+
+    .ft-desktop-user-menu {
+        display: none !important;
+    }
+
+    .navbar-nav.ft-nav-right .btn {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0.6rem 0.85rem !important;
+        border-radius: 0.75rem !important;
+    }
+
+    /* Dropdown menu full-width strictly in-flow BELOW toggle on mobile */
+    .navbar .dropdown,
+    .navbar .nav-item.dropdown {
+        position: relative !important;
+        width: 100% !important;
+    }
+
+    .navbar .dropdown-menu,
+    .navbar .dropdown-menu-end,
+    .navbar .ft-user-dropdown-menu,
+    .navbar [data-bs-popper],
+    .navbar .dropdown-menu[data-bs-popper],
+    .navbar .dropdown-menu-end[data-bs-popper],
+    .navbar-nav .dropdown-menu,
+    .navbar-nav .dropdown-menu-end,
+    .dropdown-menu[data-bs-popper] {
+        position: static !important;
+        float: none !important;
+        transform: none !important;
+        top: auto !important;
+        bottom: auto !important;
+        left: 0 !important;
+        right: 0 !important;
+        inset: auto !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: calc(100vw - 24px) !important;
+        box-sizing: border-box !important;
+        margin: 0.35rem 0 0 0 !important;
+        box-shadow: none !important;
+        border: 1px solid #e2ece5 !important;
+        border-radius: 0.5rem !important;
+        background: #ffffff !important;
+        padding: 0.4rem !important;
+        overflow: visible !important;
+    }
+
+    .navbar-nav .dropdown-menu li {
+        width: 100% !important;
+        display: block !important;
+    }
+
+    .navbar-nav .dropdown-menu .dropdown-item {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        padding: 0.55rem 0.85rem !important;
+        border-radius: 0.4rem !important;
+        font-size: 0.88rem !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow: visible !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1rem !important;
+    }
+
+    .navbar .dropdown-menu,
+    .navbar .dropdown-menu-end,
+    .navbar .ft-user-dropdown-menu {
+        min-width: 100% !important;
+        max-width: calc(100vw - 24px) !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
+}
+
+
+/* =========================================================
+   HERO SECTION — MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    .ft-hero-clean {
+        border-radius: 0 0 1.5rem 1.5rem;
+    }
+
+    /* Hero heading size */
+    .ft-hero-clean h1.display-4,
+    .ft-hero-clean .display-4 {
+        font-size: 1.75rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .ft-hero-clean .lead {
+        font-size: 0.95rem !important;
+        line-height: 1.55 !important;
+    }
+
+    /* Hero search form */
+    .ft-hero-clean .input-group {
+        max-width: 100% !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .ft-hero-clean .input-group input {
+        font-size: 0.88rem !important;
+    }
+
+    /* Hero CTA buttons */
+    .ft-hero-clean .btn-lg {
+        padding: 0.55rem 1.1rem !important;
+        font-size: 0.88rem !important;
+    }
+
+    /* Hide floating badges on mobile (they overlap and overflow) */
+    .ft-floating-badge,
+    .ft-floating-badge-reverse {
+        display: none !important;
+    }
+
+    /* Hero right column image height */
+    .ft-hero-clean .col-lg-6 .rounded-4 img {
+        min-height: 200px !important;
+        max-height: 250px !important;
+    }
+
+    /* Trust micro-stats */
+    .ft-hero-clean .d-flex.flex-wrap.gap-4 {
+        gap: 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .ft-hero-clean h1.display-4,
+    .ft-hero-clean .display-4 {
+        font-size: 1.5rem !important;
+    }
+}
+
+
+/* =========================================================
+   HOME PAGE — TRUST HIGHLIGHTS & SECTIONS
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    /* Trust highlights negative margin fix on mobile */
+    .row[style*="margin-top: -3.5rem"] {
+        margin-top: -1rem !important;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Section header row — allow wrap on mobile */
+    .d-flex.align-items-center.justify-content-between.mb-3 {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    /* Farm ecosystem banner image */
+    .row.g-0.align-items-center .col-lg-6[style*="min-height"] {
+        min-height: 170px !important;
+        max-height: 210px !important;
+    }
+
+    /* Farm ecosystem banner text column */
+    .row.g-0.align-items-center .col-lg-6.p-4.p-md-5 {
+        padding: 1.25rem !important;
+    }
+}
+
+
+/* =========================================================
+   PRODUCT CARD IMAGE HEIGHTS — MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    /* Product image containers */
+    a[style*="height: 190px"],
+    a[style*="height: 185px"] {
+        height: 155px !important;
+    }
+    a[style*="height: 140px"] {
+        height: 120px !important;
+    }
+    a[style*="height: 120px"] {
+        height: 100px !important;
+    }
+    div[style*="height: 320px"].ft-zoom-container {
+        height: 240px !important;
+    }
+}
+
+@media (max-width: 400px) {
+    a[style*="height: 190px"],
+    a[style*="height: 185px"] {
+        height: 130px !important;
+    }
+
+    /* Product card grid compact padding */
+    .col-6 {
+        padding-left: 0.35rem !important;
+        padding-right: 0.35rem !important;
+    }
+}
+
+
+/* =========================================================
+   PRODUCT LIST — FILTER BAR HORIZONTAL SCROLL
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    /* Shop header banner */
+    .card.border-0.shadow-sm.rounded-4.p-4.p-md-5.text-white.mb-4 {
+        padding: 1.25rem !important;
+    }
+
+    .card.border-0.shadow-sm.rounded-4.p-4.p-md-5.text-white.mb-4 h1.display-6 {
+        font-size: 1.4rem !important;
+    }
+
+    /* Search input group in banner */
+    .card .input-group.input-group-lg {
+        flex-wrap: nowrap !important;
+    }
+
+    /* Category filter bar — horizontal scroll instead of wrap */
+    .d-flex.flex-wrap.align-items-center.gap-2.mb-4 {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-bottom: 0.3rem;
+    }
+
+    .d-flex.flex-wrap.align-items-center.gap-2.mb-4::-webkit-scrollbar {
+        display: none;
+    }
+
+    .d-flex.flex-wrap.align-items-center.gap-2.mb-4 .btn {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+    }
+}
+
+
+/* =========================================================
+   PRODUCT DETAIL PAGE — MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    /* Product name heading */
+    .container .card .col-lg-7 .display-6 {
+        font-size: 1.35rem !important;
+    }
+
+    /* Quantity input group */
+    .input-group[style*="max-width: 160px"],
+    .input-group[style*="max-width: 140px"] {
+        max-width: 130px !important;
+    }
+
+    /* Farm origin chip wrapping */
+    .d-inline-flex.align-items-center.gap-2.bg-light.px-3.py-2.rounded-pill.border {
+        font-size: 0.85rem;
+    }
+}
+
+
+/* =========================================================
+   FOOTER — MOBILE LAYOUT
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    /* Footer columns spacing */
+    footer .col-lg-4,
+    footer .col-lg-2,
+    footer .col-lg-3 {
+        margin-bottom: 1rem;
+    }
+
+    /* Bottom copyright row */
+    footer .border-top.pt-3.d-flex.flex-column.flex-md-row {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+        gap: 0.6rem;
+    }
+
+    footer .border-top .d-flex.align-items-center.gap-3 {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem !important;
+    }
+
+    /* Footer track order form */
+    footer form.d-flex.gap-2 {
+        flex-wrap: nowrap !important;
+    }
+}
+
+
+/* =========================================================
+   DASHBOARD LAYOUT — SIDEBAR & MAIN CONTENT
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+    /* Sidebar toggle always visible */
+    .ft-sidebar-toggle {
+        display: inline-flex !important;
+    }
+
+    /* Full width main content on mobile */
+    .d-flex:has(.ft-sidebar) > .flex-grow-1 {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: hidden;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Management hero compact */
+    .ft-mgmt-hero {
+        padding: 1rem 1.1rem;
+    }
+
+    .ft-mgmt-hero h2 {
+        font-size: 1.1rem !important;
+    }
+
+    .ft-mgmt-hero .d-flex.gap-3 {
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Dashboard inner padding */
+    .py-4 {
+        padding-top: 1.25rem !important;
+        padding-bottom: 1.25rem !important;
+    }
+}
+
+
+/* =========================================================
+   TABLES — HORIZONTAL SCROLL
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+    .ft-table-card .table-responsive,
+    .card .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .ft-table-card tbody td {
+        font-size: 0.8rem;
+        padding: 0.6rem 0.7rem;
+        white-space: nowrap;
+    }
+
+    .ft-table-card thead th {
+        font-size: 0.65rem;
+        padding: 0.6rem 0.7rem;
+        white-space: nowrap;
+    }
+}
+
+
+/* =========================================================
+   DRIVER & TRACKING PAGES — MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    .ft-driver-banner {
+        padding: 1.1rem !important;
+    }
+
+    .ft-driver-banner h3 {
+        font-size: 1.05rem !important;
+    }
+
+    /* Order tracking stepper */
+    .ft-step-circle {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.7rem !important;
+    }
+
+    .ft-step-label {
+        font-size: 0.62rem !important;
+    }
+
+    .ft-stepper::before {
+        left: 25px;
+        right: 25px;
+        top: 15px;
+    }
+
+    /* Map HUD */
+    .ft-map-hud-card {
+        padding: 0.5rem 0.75rem !important;
+    }
+}
+
+
+/* =========================================================
+   FARM PROFILE PAGE — MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    .ft-farm-hero {
+        min-height: 220px !important;
+        border-radius: 1rem !important;
+    }
+
+    .ft-farm-hero-title {
+        font-size: 1.5rem !important;
+    }
+
+    .ft-farm-hero .ft-farm-hero-content {
+        padding: 1.25rem 1rem 1rem !important;
+    }
+
+    .ft-farm-hero-stats {
+        gap: 0.35rem !important;
+        margin-top: 0.6rem !important;
+    }
+
+    .ft-hero-stat-chip {
+        font-size: 0.72rem !important;
+        padding: 0.3rem 0.7rem !important;
+    }
+
+    .ft-gallery-thumb-wrap {
+        height: 80px !important;
+    }
+}
+
+
+/* =========================================================
+   PORTAL PAGE — MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+    .ft-portal-grid {
+        margin-top: -1rem !important;
+    }
+
+    .ft-portal-card {
+        padding: 1.2rem 0.9rem !important;
+    }
+
+    .ft-portal-card .ft-portal-icon {
+        width: 54px !important;
+        height: 54px !important;
+        font-size: 1.3rem !important;
+        margin-bottom: 0.75rem;
+    }
+}
+
+
+/* =========================================================
+   AUTH PAGES — MOBILE
+   ========================================================= */
+
+@media (max-width: 575.98px) {
+    /* Auth container full width */
+    .container .col-md-6,
+    .container .col-lg-5,
+    .container .col-md-7,
+    .container .col-xl-4,
+    .container .col-md-8 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+
+/* =========================================================
+   PRODUCT CARD TEXT — VERY SMALL SCREENS
+   ========================================================= */
+
+@media (max-width: 480px) {
+    .card-body .fw-bold.text-truncate {
+        font-size: 0.8rem !important;
+    }
+
+    .card-body .fs-5.fw-bold.text-success {
+        font-size: 0.95rem !important;
+    }
+
+    .card-body .btn.btn-sm.w-100 {
+        font-size: 0.76rem !important;
+        padding: 0.38rem 0.5rem !important;
+    }
+}
+
+
+/* =========================================================
+   TOUCH DEVICE: DISABLE HOVER TRANSFORMS
+   (Prevents sticky hover states on mobile)
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+    .hover-elevate:hover,
+    .ft-product-card:hover,
+    .card-lift:hover {
+        transform: none !important;
+        box-shadow: var(--ft-shadow-sm) !important;
+        border-color: var(--ft-border) !important;
+    }
+
+    .ft-cat-card-zoom:hover,
+    .ft-portal-card:hover {
+        transform: none !important;
+    }
+
+    .hover-elevate:hover .hover-scale,
+    .ft-product-card:hover img,
+    .hover-scale:hover {
+        transform: none !important;
+        filter: none !important;
+    }
+
+    .btn-zoom:hover,
+    .btn-success:hover,
+    .btn-outline-success:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .ft-cat-card-zoom:hover .ft-cat-icon {
+        transform: none !important;
+    }
+}
+
+
+/* =========================================================
+   BREADCRUMB — MOBILE
+   ========================================================= */
+
+@media (max-width: 576px) {
+    .breadcrumb {
+        flex-wrap: wrap !important;
+        font-size: 0.78rem;
+    }
+}
+
+

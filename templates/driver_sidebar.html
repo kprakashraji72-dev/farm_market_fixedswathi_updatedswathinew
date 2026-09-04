@@ -1,0 +1,131 @@
+{% comment %}
+Delivery Driver Portal Sidebar Component.
+Light, modern, sticky-docked (100vh) on desktop (lg+); smooth native Bootstrap 5.3 Offcanvas on mobile.
+Includes instant Mobile Bottom Navigation Dock for drivers.
+{% endcomment %}
+<aside class="offcanvas-lg offcanvas-start ft-sidebar ft-driver-sidebar bg-white" tabindex="-1" id="driverSidebar" aria-labelledby="driverSidebarLabel" style="z-index: 1050;">
+    
+    {# Mobile Offcanvas Header #}
+    <div class="d-lg-none d-flex align-items-center justify-content-between p-3 border-bottom bg-light">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-truck-fast text-primary"></i>
+            <span class="fw-bold text-dark" id="driverSidebarLabel">Driver Console</span>
+        </div>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" data-bs-target="#driverSidebar" aria-label="Close"></button>
+    </div>
+
+    {# Sidebar Header #}
+    <div class="ft-sidebar-brand-wrap">
+        <a href="{% url 'tracking:driver_dashboard' %}" class="d-flex align-items-center text-decoration-none ft-sidebar-brand">
+            <div class="ft-sidebar-icon-badge driver-badge me-2" style="background: rgba(59, 130, 246, 0.12); color: #2563eb;">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <div>
+                <span class="fs-6 fw-bold d-block lh-1 text-dark">Fresh Trace</span>
+                <span class="ft-badge-role driver" style="background: rgba(59, 130, 246, 0.12); color: #1d4ed8;">DRIVER CONSOLE</span>
+            </div>
+        </a>
+        <div class="mt-2">
+            {% if request.user.is_verified %}
+                <span class="badge bg-success-soft text-success w-100 py-1 d-inline-flex align-items-center justify-content-center gap-1 border border-success-subtle">
+                    <i class="fa-solid fa-circle-check"></i> Verified Driver
+                </span>
+            {% else %}
+                <span class="badge bg-warning-soft text-dark w-100 py-1 d-inline-flex align-items-center justify-content-center gap-1 border border-warning-subtle">
+                    <i class="fa-solid fa-clock text-warning"></i> KYC Verification Pending
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Nav Body #}
+    <div class="ft-sidebar-scroll-body flex-grow-1 p-3">
+        
+        <div class="ft-sidebar-section-title">Fleet Dispatch</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'tracking:driver_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'driver_dashboard' %}active text-white{% endif %}" style="{% if request.resolver_match.url_name == 'driver_dashboard' %}background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);{% endif %}">
+                    <i class="fa-solid fa-truck-ramp-box me-2"></i>Assigned Deliveries
+                </a>
+            </li>
+        </ul>
+
+        <div class="ft-sidebar-section-title">Driver Compliance &amp; Account</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'accounts:driver_documents' %}" class="nav-link {% if request.resolver_match.url_name == 'driver_documents' %}active text-white bg-primary{% endif %}">
+                    <i class="fa-solid fa-id-card me-2"></i>My Documents &amp; License
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'profile_edit' %}active text-white bg-primary{% endif %}">
+                    <i class="fa-solid fa-user-gear me-2"></i>Account Profile
+                </a>
+            </li>
+        </ul>
+
+        <div class="ft-sidebar-section-title">Live GPS Stream</div>
+        <div class="card border-0 bg-light p-2 mb-3 rounded-3">
+            <div class="d-flex align-items-center gap-2 small">
+                <span class="spinner-grow spinner-grow-sm text-primary" role="status"></span>
+                <span class="text-dark fw-semibold" id="sidebar-geo-status">GPS Active</span>
+            </div>
+        </div>
+
+        <div class="ft-sidebar-section-title">Storefront</div>
+        <ul class="nav nav-pills flex-column mb-2">
+            <li class="nav-item">
+                <a href="{% url 'store:home' %}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>View Public Store
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+    {# User Footer #}
+    <div class="ft-sidebar-user-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                <div class="ft-avatar-sm" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+                <div class="overflow-hidden">
+                    <span class="d-block fw-semibold text-truncate small text-dark">{{ request.user.first_name|default:request.user.username }}</span>
+                    <span class="badge bg-primary-soft ft-role-badge" style="background: rgba(59, 130, 246, 0.12); color: #1d4ed8;">
+                        Delivery Driver
+                    </span>
+                </div>
+            </div>
+            <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm ft-logout-btn" title="Log out" aria-label="Log out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</aside>
+
+{# ═════════════════════════════════════════════════════════════ #}
+{# Mobile Bottom Navigation Dock (App-Style Thumb Navigation)    #}
+{# ═════════════════════════════════════════════════════════════ #}
+<nav class="d-lg-none position-fixed bottom-0 start-0 end-0 bg-white border-top shadow-lg py-2 px-3 d-flex align-items-center justify-content-around" style="z-index: 1040; border-top: 1px solid #e2e8f0;">
+    <a href="{% url 'tracking:driver_dashboard' %}" class="d-flex flex-column align-items-center text-decoration-none {% if request.resolver_match.url_name == 'driver_dashboard' %}text-primary fw-bold{% else %}text-muted{% endif %}" style="font-size: 0.72rem;">
+        <i class="fa-solid fa-truck-fast fs-5 mb-1 {% if request.resolver_match.url_name == 'driver_dashboard' %}text-primary{% endif %}"></i>
+        <span>Deliveries</span>
+    </a>
+    <a href="{% url 'accounts:driver_documents' %}" class="d-flex flex-column align-items-center text-decoration-none {% if request.resolver_match.url_name == 'driver_documents' %}text-primary fw-bold{% else %}text-muted{% endif %}" style="font-size: 0.72rem;">
+        <i class="fa-solid fa-id-card fs-5 mb-1 {% if request.resolver_match.url_name == 'driver_documents' %}text-primary{% endif %}"></i>
+        <span>KYC / Docs</span>
+    </a>
+    <a href="{% url 'accounts:profile' %}" class="d-flex flex-column align-items-center text-decoration-none {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'profile_edit' %}text-primary fw-bold{% else %}text-muted{% endif %}" style="font-size: 0.72rem;">
+        <i class="fa-solid fa-user-gear fs-5 mb-1 {% if request.resolver_match.url_name == 'profile' %}text-primary{% endif %}"></i>
+        <span>Profile</span>
+    </a>
+    <button type="button" class="btn p-0 d-flex flex-column align-items-center text-decoration-none text-muted border-0 bg-transparent" style="font-size: 0.72rem;" data-bs-toggle="offcanvas" data-bs-target="#driverSidebar" aria-controls="driverSidebar">
+        <i class="fa-solid fa-bars-staggered fs-5 mb-1 text-primary"></i>
+        <span class="text-dark fw-semibold">Menu</span>
+    </button>
+</nav>

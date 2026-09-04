@@ -1,0 +1,154 @@
+{% load static %}
+<style>
+.ft-floating-support-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1040;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #15803d;
+    color: #ffffff;
+    box-shadow: 0 10px 25px -5px rgba(21, 128, 61, 0.4), 0 8px 10px -6px rgba(21, 128, 61, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ft-floating-support-btn:hover {
+    transform: scale(1.08) translateY(-2px);
+    background: #166534;
+    color: #ffffff;
+}
+.ft-floating-support-btn:active {
+    transform: scale(0.95);
+}
+.ft-support-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    z-index: 1045;
+    display: none;
+    overflow: hidden;
+    animation: panelPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes panelPop {
+    from { opacity: 0; transform: translateY(15px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ft-support-panel-header {
+    background: #15803d;
+    color: #ffffff;
+    padding: 1rem 1.15rem;
+}
+</style>
+
+<div id="ftFloatingSupportContainer">
+    {# Floating Trigger Button #}
+    <button type="button" class="ft-floating-support-btn" id="ftSupportToggleBtn" aria-label="Customer Support" title="Live Customer Support">
+        <i class="fa-solid fa-headset" id="ftSupportIcon"></i>
+    </button>
+
+    {# Floating Support Window #}
+    <div class="ft-support-panel" id="ftSupportPanel">
+        <div class="ft-support-panel-header d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
+                    <i class="fa-solid fa-headset small"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem;">Fresh Trace Support</h6>
+                    <div class="d-flex align-items-center gap-1.5 extra-small text-white-50">
+                        <span class="live-pulse-dot" style="width:6px; height:6px; background:#4ade80;"></span>
+                        <span class="text-white">Real-Time Live Support</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white extra-small" id="ftSupportCloseBtn" aria-label="Close"></button>
+        </div>
+
+        <div class="p-3">
+            {% if request.user.is_authenticated %}
+                <p class="text-dark small mb-3">
+                    Hello <strong>{{ request.user.first_name|default:request.user.username }}</strong>! How can our support team help you today?
+                </p>
+
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{% url 'support:create' %}" class="btn btn-success btn-sm rounded-pill fw-bold py-2 shadow-sm text-white">
+                        <i class="fa-solid fa-plus me-1"></i> Start New Support Ticket
+                    </a>
+                    <a href="{% url 'support:my_tickets' %}" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-2">
+                        <i class="fa-solid fa-comments me-1"></i> View My Support Tickets
+                    </a>
+                </div>
+
+                <div class="border-top pt-2.5 extra-small text-muted">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="fa-solid fa-envelope text-success"></i>
+                        <a href="mailto:support@freshtrace.local" class="text-dark fw-semibold text-decoration-none">support@freshtrace.local</a>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clock text-success"></i>
+                        <span>Live daily 7:00 AM – 9:00 PM</span>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-dark small mb-3">
+                    Have questions about your organic produce orders or deliveries? Sign in to chat live with our support specialists.
+                </p>
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{% url 'accounts:login' %}?next={% url 'support:create' %}" class="btn btn-success btn-sm rounded-pill fw-bold py-2 shadow-sm text-white">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Sign In to Contact Support
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('ftSupportToggleBtn');
+    const closeBtn = document.getElementById('ftSupportCloseBtn');
+    const panel = document.getElementById('ftSupportPanel');
+    const icon = document.getElementById('ftSupportIcon');
+
+    if (toggleBtn && panel) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+                icon.className = 'fa-solid fa-headset';
+            } else {
+                panel.style.display = 'block';
+                icon.className = 'fa-solid fa-xmark';
+            }
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                panel.style.display = 'none';
+                icon.className = 'fa-solid fa-headset';
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (panel && panel.style.display === 'block' && !panel.contains(e.target) && !toggleBtn.contains(e.target)) {
+                panel.style.display = 'none';
+                icon.className = 'fa-solid fa-headset';
+            }
+        });
+    }
+});
+</script>

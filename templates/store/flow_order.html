@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farm Fresh Order | Fresh Trace Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f2d1a 0%, #1a4a2e 40%, #0d3320 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* Floating leaves background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(76,175,80,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(56,142,60,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+      animation: fadeDown 0.6s ease;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50px;
+      padding: 8px 20px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .logo-badge span { font-size: 22px; }
+
+    .logo-badge p {
+      color: #a5d6a7;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .page-header h1 {
+      color: #ffffff;
+      font-size: clamp(22px, 5vw, 32px);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .page-header h1 span { color: #69f0ae; }
+
+    .page-header p {
+      color: #a5d6a7;
+      font-size: 14px;
+      margin-top: 8px;
+      opacity: 0.85;
+    }
+
+    /* Phone frame wrapper */
+    .phone-wrapper {
+      position: relative;
+      animation: fadeUp 0.7s ease;
+    }
+
+    .phone-frame {
+      background: #1a1a1a;
+      border-radius: 44px;
+      padding: 14px;
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.08),
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 60px rgba(105,240,174,0.08);
+      position: relative;
+    }
+
+    /* Notch */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 26px;
+      background: #1a1a1a;
+      border-radius: 0 0 18px 18px;
+      z-index: 10;
+    }
+
+    .phone-screen {
+      width: 340px;
+      height: 680px;
+      border-radius: 32px;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+    }
+
+    /* WhatsApp top bar */
+    .wa-bar {
+      background: #075e54;
+      padding: 44px 16px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wa-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #69f0ae, #00c853);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .wa-info p { color: #fff; font-size: 13px; font-weight: 600; }
+    .wa-info span { color: #b2dfdb; font-size: 11px; }
+
+    .flow-iframe {
+      width: 100%;
+      height: calc(680px - 76px);
+      border: none;
+      display: block;
+    }
+
+    /* Steps below phone */
+    .steps {
+      display: flex;
+      gap: 8px;
+      margin-top: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 380px;
+    }
+
+    .step {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+      min-width: 80px;
+      backdrop-filter: blur(6px);
+      transition: transform 0.2s ease;
+    }
+
+    .step:hover { transform: translateY(-2px); }
+
+    .step .icon { font-size: 18px; margin-bottom: 4px; }
+    .step p { color: #c8e6c9; font-size: 10px; font-weight: 500; line-height: 1.3; }
+
+    .arrow {
+      color: #69f0ae;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      opacity: 0.6;
+    }
+
+    .powered {
+      margin-top: 24px;
+      color: rgba(255,255,255,0.3);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 420px) {
+      .phone-screen { width: 300px; height: 600px; }
+      .flow-iframe  { height: calc(600px - 76px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="logo-badge">
+      <span>🌿</span>
+      <p>FRESH TRACE MARKET</p>
+    </div>
+    <h1>Order <span>Farm Fresh</span> Produce</h1>
+    <p>Select, schedule & confirm your delivery below</p>
+  </div>
+
+  <!-- Phone Frame with Embedded Flow -->
+  <div class="phone-wrapper">
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <!-- WhatsApp-style top bar -->
+        <div class="wa-bar">
+          <div class="wa-avatar">🌾</div>
+          <div class="wa-info">
+            <p>Fresh Trace Market</p>
+            <span>Farm Fresh Delivery</span>
+          </div>
+        </div>
+        <!-- Embedded WhatsApp Flow in interactive mode -->
+        <iframe
+          class="flow-iframe"
+          src="https://business.facebook.com/wa/manage/flows/1081930417655056/preview/?token=d189c4f5-5461-4353-ae3c-a4eb70b83bdd&interactive=true&flow_token=farm_order_live&flow_action=data_exchange&phone_number=1297443690119359"
+          allow="clipboard-write"
+          title="Farm Fresh Order Flow"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step">
+      <div class="icon">🥕</div>
+      <p>Pick Category</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="icon">⚖️</div>
+      <p>Set Quantity</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="icon">📍</div>
+      <p>Your Address</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="icon">✅</div>
+      <p>Confirm Order</p>
+    </div>
+  </div>
+
+  <p class="powered">Powered by WhatsApp Flows · Fresh Trace © 2026</p>
+
+</body>
+</html>

@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ product.name|title }} | Farm-Fresh Produce{% endblock %}
+
+{% block content %}
+<div class="container py-4 pb-5">
+
+    {# ============ BREADCRUMB ============ #}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb extra-small">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}" class="text-decoration-none text-muted">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventory:product_list' %}" class="text-decoration-none text-muted">Shop</a></li>
+            {% if product.category %}
+                <li class="breadcrumb-item"><a href="{% url 'inventory:product_list' %}?category={{ product.category.slug }}" class="text-decoration-none text-muted">{{ product.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ product.name|title }}</li>
+        </ol>
+    </nav>
+
+    {# ============ MAIN PRODUCT SHOWCASE ============ #}
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-5 position-relative" style="border: 1px solid #e2ece5 !important;">
+        
+        <div class="row g-4 align-items-center">
+            
+            {# Left: Product Image with Compact Framing #}
+            <div class="col-lg-5">
+                <div class="position-relative rounded-3 overflow-hidden bg-light shadow-sm d-flex align-items-center justify-content-center ft-zoom-container" style="height: 320px; border: 1px solid #e2ece5;">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" id="productMainImage" class="ft-zoom-image" alt="{{ product.name }}" style="max-height: 290px; max-width: 90%; width: auto; height: auto; object-fit: contain; transition: transform 0.3s ease;">
+                    {% else %}
+                        <div class="text-center p-4" id="productMainPlaceholder">
+                            <i class="fa-solid fa-carrot text-success opacity-50 mb-2" style="font-size: 4rem;"></i>
+                            <span class="d-block text-muted small">No photo uploaded</span>
+                        </div>
+                    {% endif %}
+
+                    {% if product.in_stock %}
+                        <div class="position-absolute top-0 start-0 p-2" style="z-index: 6;">
+                            <span class="badge bg-success text-white rounded-pill px-3 py-1 fw-semibold shadow-sm extra-small">
+                                <i class="fa-solid fa-circle-check me-1"></i> In Stock ({{ product.stock_quantity }} {{ product.unit }} left)
+                            </span>
+                        </div>
+                    {% else %}
+                        <div class="position-absolute top-0 start-0 p-2" style="z-index: 6;">
+                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-semibold shadow-sm extra-small">
+                                Sold Out
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Right: Product Details & Actions #}
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if product.category %}
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 extra-small fw-bold">
+                            {{ product.category.name }}
+                        </span>
+                    {% endif %}
+                    <span class="badge bg-light text-muted border rounded-pill px-2 py-1 extra-small">
+                        <i class="fa-solid fa-leaf text-success me-1"></i> 100% Organic Farm Direct
+                    </span>
+                </div>
+
+                <h1 class="display-6 fw-bold text-dark mb-2" style="font-family: 'Fraunces', serif, system-ui;">
+                    {{ product.name|title }}
+                </h1>
+
+                {# Farm Origin Chip #}
+                <div class="d-inline-flex align-items-center gap-2 bg-light px-3 py-2 rounded-pill border mb-3">
+                    <i class="fa-solid fa-tractor text-success"></i>
+                    <span class="small fw-semibold text-dark">Grown by:</span>
+                    <a href="{{ product.farm.get_absolute_url }}" class="text-success text-decoration-none fw-bold small">
+                        {{ product.farm.name }} &rarr;
+                    </a>
+                </div>
+
+                <p class="text-muted mb-4" style="line-height: 1.6;">
+                    {{ product.description|default:"Harvested naturally at optimal ripeness from verified local partner growers. Temperature-controlled delivery guarantees garden freshness." }}
+                </p>
+
+                {# Price & Real-Time Calculation Container #}
+                <div class="p-3 bg-light rounded-4 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 border" style="border-color: #e2ece5 !important;">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-2 fw-bold text-success" id="displayedUnitPrice">₹{{ product.price }}</span>
+                        <span class="text-muted fw-semibold" id="displayedUnitLabel">/ {{ product.get_unit_display }}</span>
+                    </div>
+                    <div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold" id="calculatedTotalBadge">
+                            Subtotal: ₹{{ product.price }}
+                        </span>
+                    </div>
+                </div>
+
+                {# Variant / Quantity & Add to Cart #}
+                {% if product.has_variants %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small text-uppercase d-flex align-items-center gap-1">
+                            <i class="fa-solid fa-scale-balanced text-success"></i> Choose Package Size / Unit:
+                        </label>
+                        <div class="d-flex flex-wrap gap-2" id="variantChoicesGroup">
+                            {% for v in variants %}
+                            <label class="border rounded-pill px-3 py-2 size-option bg-white btn-zoom d-flex align-items-center gap-1.5 transition-all {% if forloop.first and v.remaining_stock > 0 %}border-success bg-success-subtle text-success fw-bold{% endif %} {% if v.remaining_stock == 0 %}text-muted bg-light opacity-50{% endif %}" style="cursor:pointer;" id="variantLabel{{ v.variant.id }}">
+                                <input type="radio" name="variant_choice" value="{{ v.variant.id }}"
+                                       data-price="{{ v.variant.price }}" data-label="{{ v.variant.label }}" data-stock="{{ v.remaining_stock }}"
+                                       class="form-check-input me-1" {% if v.remaining_stock == 0 %}disabled{% endif %}
+                                       {% if forloop.first and v.remaining_stock > 0 %}checked{% endif %}>
+                                <span>{{ v.variant.label }}</span> — <strong class="text-success">₹{{ v.variant.price }}</strong>
+                                {% if v.remaining_stock == 0 %}<span class="extra-small text-danger ms-1">(Sold out)</span>{% endif %}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <p class="small mb-3" id="variant-stock-note"></p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <div class="d-flex align-items-center bg-white border rounded-pill p-1 shadow-sm" style="border-color: #e2ece5 !important;">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle px-2.5 py-1" id="qtyMinusBtn"><i class="fa-solid fa-minus text-muted"></i></button>
+                            <input type="number" id="qtyInput" value="1" min="1" maxlength="3" class="form-control form-control-sm border-0 text-center fw-bold bg-transparent" style="width: 50px;">
+                            <button type="button" class="btn btn-sm btn-light rounded-circle px-2.5 py-1" id="qtyPlusBtn"><i class="fa-solid fa-plus text-muted"></i></button>
+                        </div>
+                        <button type="button" id="addToCartBtn" class="btn btn-success btn-lg rounded-pill px-4 fw-semibold shadow btn-zoom btn-add-cart" data-product-id="{{ product.id }}" data-variant-id="" data-add-url="{% url 'orders:add_to_cart' product.id %}" data-qty-input="qtyInput">
+                            <span class="btn-default-label"><i class="fa-solid fa-cart-plus me-2"></i> Add to Cart</span>
+                            <span class="btn-success-label"><i class="fa-solid fa-check me-2"></i> Added</span>
+                        </button>
+                    </div>
+
+                    <script>
+                        (function () {
+                            // CSRF Helper using Django's getCookie
+                            function getCookie(name) {
+                                let cookieValue = null;
+                                if (document.cookie && document.cookie !== '') {
+                                    const cookies = document.cookie.split(';');
+                                    for (let i = 0; i < cookies.length; i++) {
+                                        const cookie = cookies[i].trim();
+                                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                            break;
+                                        }
+                                    }
+                                }
+                                return cookieValue;
+                            }
+
+                            // Flying image animation into cart icon (~600ms)
+                            function animateFlyToCart(sourceImgEl, onComplete) {
+                                const cartTarget = document.querySelector('.cart-count-badge') || document.querySelector('.navbar .fa-cart-shopping') || document.querySelector('.navbar a[href*="cart"]');
+                                if (!sourceImgEl || !cartTarget) {
+                                    if (typeof onComplete === 'function') onComplete();
+                                    return;
+                                }
+
+                                const imgRect = sourceImgEl.getBoundingClientRect();
+                                const cartRect = cartTarget.getBoundingClientRect();
+
+                                const flyingEl = document.createElement('img');
+                                flyingEl.src = sourceImgEl.src || sourceImgEl.currentSrc;
+                                flyingEl.className = 'flying-cart-item';
+                                flyingEl.style.top = imgRect.top + 'px';
+                                flyingEl.style.left = imgRect.left + 'px';
+                                flyingEl.style.width = imgRect.width + 'px';
+                                flyingEl.style.height = imgRect.height + 'px';
+                                document.body.appendChild(flyingEl);
+
+                                void flyingEl.offsetWidth; // force reflow
+
+                                const targetX = (cartRect.left + cartRect.width / 2) - (imgRect.left + imgRect.width / 2);
+                                const targetY = (cartRect.top + cartRect.height / 2) - (imgRect.top + imgRect.height / 2);
+
+                                requestAnimationFrame(function() {
+                                    flyingEl.style.transform = 'translate3d(' + targetX + 'px, ' + targetY + 'px, 0) scale(0.12)';
+                                    flyingEl.style.opacity = '0.2';
+                                });
+
+                                setTimeout(function () {
+                                    if (flyingEl.parentNode) {
+                                        flyingEl.parentNode.removeChild(flyingEl);
+                                    }
+                                    if (typeof onComplete === 'function') {
+                                        onComplete();
+                                    }
+                                }, 600);
+                            }
+
+                            // Navbar badge updater
+                            function updateCartBadge(count) {
+                                const badges = document.querySelectorAll('.cart-count-badge, .navbar .badge.bg-success');
+                                badges.forEach(function (badge) {
+                                    badge.textContent = count;
+                                    badge.classList.remove('badge-bounce');
+                                    void badge.offsetWidth;
+                                    badge.classList.add('badge-bounce');
+                                    setTimeout(function () { badge.classList.remove('badge-bounce'); }, 600);
+                                });
+
+                                const navCartIcon = document.querySelector('.navbar .fa-cart-shopping');
+                                if (navCartIcon) {
+                                    navCartIcon.classList.remove('cart-icon-bounce');
+                                    void navCartIcon.offsetWidth;
+                                    navCartIcon.classList.add('cart-icon-bounce');
+                                    setTimeout(function () { navCartIcon.classList.remove('cart-icon-bounce'); }, 700);
+                                }
+                            }
+
+                            const radios = document.querySelectorAll('input[name="variant_choice"]');
+                            const note = document.getElementById('variant-stock-note');
+                            const priceEl = document.getElementById('displayedUnitPrice');
+                            const unitLabelEl = document.getElementById('displayedUnitLabel');
+                            const subtotalBadge = document.getElementById('calculatedTotalBadge');
+                            const qtyInput = document.getElementById('qtyInput');
+                            const minusBtn = document.getElementById('qtyMinusBtn');
+                            const plusBtn = document.getElementById('qtyPlusBtn');
+                            const addBtn = document.getElementById('addToCartBtn');
+
+                            function updateSelection() {
+                                const checked = document.querySelector('input[name="variant_choice"]:checked');
+                                if (!checked) {
+                                    if (addBtn) {
+                                        addBtn.disabled = true;
+                                        addBtn.classList.remove('btn-success');
+                                        addBtn.classList.add('btn-secondary');
+                                        addBtn.innerHTML = '<i class="fa-solid fa-ban me-1"></i> Out of stock';
+                                    }
+                                    return;
+                                }
+
+                                radios.forEach(r => {
+                                    const parentLabel = r.closest('label');
+                                    if (parentLabel) {
+                                        parentLabel.classList.remove('border-success', 'bg-success-subtle', 'text-success', 'fw-bold');
+                                    }
+                                });
+
+                                const unitPrice = parseFloat(checked.dataset.price) || 0;
+                                const stock = parseInt(checked.dataset.stock) || 0;
+                                const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+
+                                const activeLabel = checked.closest('label');
+                                if (activeLabel && stock > 0) {
+                                    activeLabel.classList.add('border-success', 'bg-success-subtle', 'text-success', 'fw-bold');
+                                }
+
+                                if (priceEl) priceEl.textContent = '₹' + unitPrice.toFixed(2);
+                                if (unitLabelEl) unitLabelEl.textContent = '/ ' + checked.dataset.label;
+                                if (subtotalBadge) subtotalBadge.textContent = 'Subtotal: ₹' + (unitPrice * qty).toFixed(2);
+
+                                if (stock <= 0) {
+                                    if (note) note.innerHTML = '<span class="text-danger fw-semibold"><i class="fa-solid fa-circle-xmark me-1"></i> Out of stock for this package size</span>';
+                                    if (addBtn) {
+                                        addBtn.disabled = true;
+                                        addBtn.classList.remove('btn-success');
+                                        addBtn.classList.add('btn-secondary');
+                                        addBtn.innerHTML = '<i class="fa-solid fa-ban me-1"></i> Out of stock';
+                                    }
+                                } else {
+                                    if (note) note.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> <strong>' + stock + '</strong> units available in stock.</span>';
+                                    if (addBtn) {
+                                        addBtn.disabled = false;
+                                        addBtn.classList.remove('btn-secondary');
+                                        addBtn.classList.add('btn-success');
+                                        addBtn.innerHTML = '<i class="fa-solid fa-cart-plus me-2"></i> Add to Cart';
+                                    }
+                                }
+                            }
+
+                            radios.forEach(r => r.addEventListener('change', updateSelection));
+                            if (qtyInput) {
+                                qtyInput.addEventListener('input', updateSelection);
+                            }
+                            if (minusBtn) {
+                                minusBtn.addEventListener('click', function() {
+                                    let v = parseInt(qtyInput.value) || 1;
+                                    if (v > 1) { qtyInput.value = v - 1; updateSelection(); }
+                                });
+                            }
+                            if (plusBtn) {
+                                plusBtn.addEventListener('click', function() {
+                                    let v = parseInt(qtyInput.value) || 1;
+                                    qtyInput.value = v + 1;
+                                    updateSelection();
+                                });
+                            }
+
+                            if (addBtn) {
+                                addBtn.addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    const checked = document.querySelector('input[name="variant_choice"]:checked');
+                                    if (!checked) return;
+
+                                    const variantId = checked.value;
+                                    const stock = parseInt(checked.dataset.stock) || 0;
+                                    if (stock <= 0) return;
+
+                                    const quantity = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+                                    const mainImg = document.getElementById('productMainImage') || document.querySelector('.ft-zoom-image');
+                                    const originalBtnHtml = addBtn.innerHTML;
+
+                                    addBtn.disabled = true;
+
+                                    let fetchFinished = false;
+                                    let animFinished = false;
+                                    let responseData = null;
+
+                                    function checkCompletion() {
+                                        if (fetchFinished && animFinished) {
+                                            if (responseData && responseData.success) {
+                                                if (responseData.items && window.renderNavCartDropdown) {
+                                                    renderNavCartDropdown(responseData.items, responseData.cart_count, responseData.cart_subtotal);
+                                                } else if (window.updateCartBadge) {
+                                                    updateCartBadge(responseData.cart_count);
+                                                }
+
+                                                if (window.openNavCartDropdown) {
+                                                    setTimeout(() => {
+                                                        openNavCartDropdown(4500);
+                                                    }, 300);
+                                                }
+
+                                                addBtn.classList.remove('btn-secondary');
+                                                addBtn.classList.add('btn-success');
+                                                addBtn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Added';
+
+                                                const newStock = Math.max(0, stock - quantity);
+                                                checked.dataset.stock = newStock;
+
+                                                setTimeout(function () {
+                                                    updateSelection();
+                                                }, 1400);
+                                            } else {
+                                                addBtn.disabled = false;
+                                                addBtn.innerHTML = originalBtnHtml;
+                                                const err = (responseData && responseData.error) ? responseData.error : 'Could not add to cart.';
+                                                alert(err);
+                                            }
+                                        }
+                                    }
+
+                                    // 1. Trigger flying animation (600ms)
+                                    animateFlyToCart(mainImg, function () {
+                                        animFinished = true;
+                                        checkCompletion();
+                                    });
+
+                                    // 2. Call Django add_to_cart endpoint via fetch with CSRF token
+                                    const formData = new FormData();
+                                    formData.append('variant_id', variantId);
+                                    formData.append('quantity', quantity);
+
+                                    fetch('/cart/add/', {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': getCookie('csrftoken'),
+                                            'X-Requested-With': 'XMLHttpRequest'
+                                        },
+                                        body: formData
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        responseData = data;
+                                        fetchFinished = true;
+                                        checkCompletion();
+                                    })
+                                    .catch(err => {
+                                        console.error('Add to cart error:', err);
+                                        responseData = { success: false, error: 'Network error occurred.' };
+                                        fetchFinished = true;
+                                        checkCompletion();
+                                    });
+                                });
+                            }
+
+                            // Initialize on load
+                            updateSelection();
+                        })();
+                    </script>
+                {% else %}
+                    {% if product.in_stock and remaining_stock > 0 %}
+                        {# Quick Unit Size Presets #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark small text-uppercase d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-layer-group text-success"></i> Choose Quantity / Package Size:
+                            </label>
+                            <div class="d-flex flex-wrap gap-2" id="quickUnitPills">
+                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-success text-white shadow-sm quick-qty-btn active" data-qty="1">
+                                    1 {{ product.unit }}
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary bg-white quick-qty-btn" data-qty="2">
+                                    2 {{ product.unit }}
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary bg-white quick-qty-btn" data-qty="3">
+                                    3 {{ product.unit }}
+                                </button>
+                                <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold btn-outline-secondary bg-white quick-qty-btn" data-qty="5">
+                                    5 {{ product.unit }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                            <div class="d-flex align-items-center bg-white border rounded-pill p-1 shadow-sm" style="border-color: #e2ece5 !important;">
+                                <button type="button" class="btn btn-sm btn-light rounded-circle px-2.5 py-1" id="stdQtyMinus"><i class="fa-solid fa-minus text-muted"></i></button>
+                                <input type="number" id="qtyInput" value="1" min="1" max="{{ remaining_stock }}" maxlength="3" class="form-control form-control-sm border-0 text-center fw-bold bg-transparent" style="width: 55px;">
+                                <button type="button" class="btn btn-sm btn-light rounded-circle px-2.5 py-1" id="stdQtyPlus"><i class="fa-solid fa-plus text-muted"></i></button>
+                                <span class="text-muted extra-small pe-2">{{ product.unit }}</span>
+                            </div>
+
+                            <button class="btn btn-success btn-lg rounded-pill px-4 fw-semibold add-to-cart-btn btn-add-cart shadow btn-zoom" data-product-id="{{ product.id }}" data-variant-id="" data-add-url="{% url 'orders:add_to_cart' product.id %}" data-qty-input="qtyInput">
+                                <span class="btn-default-label"><i class="fa-solid fa-cart-plus me-2"></i> Add to Cart</span>
+                                <span class="btn-success-label"><i class="fa-solid fa-check me-2"></i> Added</span>
+                            </button>
+                        </div>
+                        {% if in_cart_qty %}
+                            <p class="text-muted extra-small mb-0"><i class="fa-solid fa-circle-info text-success me-1"></i> You currently have <strong>{{ in_cart_qty }} {{ product.unit }}</strong> in your shopping cart.</p>
+                        {% endif %}
+
+                        <script>
+                            (function() {
+                                const basePrice = parseFloat("{{ product.price }}") || 0;
+                                const qtyInput = document.getElementById('qtyInput');
+                                const subtotalBadge = document.getElementById('calculatedTotalBadge');
+                                const quickBtns = document.querySelectorAll('.quick-qty-btn');
+                                const minusBtn = document.getElementById('stdQtyMinus');
+                                const plusBtn = document.getElementById('stdQtyPlus');
+
+                                function updateStdTotal() {
+                                    const qty = parseInt(qtyInput.value) || 1;
+                                    if (subtotalBadge) {
+                                        subtotalBadge.textContent = `Subtotal: ₹${(basePrice * qty).toFixed(2)}`;
+                                    }
+                                    quickBtns.forEach(b => {
+                                        if (parseInt(b.dataset.qty) === qty) {
+                                            b.classList.remove('btn-outline-secondary', 'bg-white');
+                                            b.classList.add('btn-success', 'text-white', 'shadow-sm');
+                                        } else {
+                                            b.classList.add('btn-outline-secondary', 'bg-white');
+                                            b.classList.remove('btn-success', 'text-white', 'shadow-sm');
+                                        }
+                                    });
+                                }
+
+                                quickBtns.forEach(btn => {
+                                    btn.addEventListener('click', function() {
+                                        qtyInput.value = this.dataset.qty;
+                                        updateStdTotal();
+                                    });
+                                });
+
+                                if (qtyInput) qtyInput.addEventListener('input', updateStdTotal);
+                                if (minusBtn) {
+                                    minusBtn.addEventListener('click', function() {
+                                        let v = parseInt(qtyInput.value) || 1;
+                                        if (v > 1) { qtyInput.value = v - 1; updateStdTotal(); }
+                                    });
+                                }
+                                if (plusBtn) {
+                                    plusBtn.addEventListener('click', function() {
+                                        let v = parseInt(qtyInput.value) || 1;
+                                        qtyInput.value = v + 1;
+                                        updateStdTotal();
+                                    });
+                                }
+                                updateStdTotal();
+                            })();
+                        </script>
+                    {% else %}
+                        <button class="btn btn-secondary btn-lg rounded-pill px-4" disabled>Out of Stock</button>
+                    {% endif %}
+                {% endif %}
+
+
+            </div>
+        </div>
+    </div>
+
+    {# ============ RELATED HARVEST PRODUCTS ============ #}
+    {% if related_products %}
+    <div class="mb-4">
+        <h4 class="fw-bold text-dark mb-1">You May Also Like</h4>
+        <p class="text-muted small mb-3">Fresh harvests from the same farm or produce category</p>
+
+        <div class="row g-3 g-md-4">
+            {% for p in related_products %}
+            <div class="col-6 col-md-3 reveal-on-scroll reveal-delay-{{ forloop.counter }}">
+                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white hover-elevate transition-all position-relative" style="border: 1px solid #e2ece5 !important;">
+                    
+                    <a href="{{ p.get_absolute_url }}" class="text-decoration-none position-relative d-block overflow-hidden bg-light" style="height: 150px;">
+                        {% if p.image %}
+                            <img src="{{ p.image.url }}" alt="{{ p.name }}" class="w-100 h-100 object-fit-cover hover-scale" loading="lazy">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                <i class="fa-solid fa-carrot text-success opacity-50 fs-2"></i>
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div class="card-body p-3">
+                        <a href="{{ p.get_absolute_url }}" class="text-decoration-none text-dark">
+                            <h6 class="fw-bold mb-1 text-truncate">{{ p.name|title }}</h6>
+                        </a>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold text-success fs-6">₹{{ p.price }} <small class="text-muted fw-normal">/{{ p.unit }}</small></span>
+                            <a href="{{ p.get_absolute_url }}" class="btn btn-sm btn-outline-success rounded-pill px-3 extra-small fw-semibold btn-zoom">
+                                View &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

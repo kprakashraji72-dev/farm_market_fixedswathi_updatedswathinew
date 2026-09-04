@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Driver Console{% endblock %}
+
+{% block extra_css %}
+<style>
+.dc-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 990;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.55rem 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.dc-hero {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #3b82f6;
+    border-radius: 1rem;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.dc-hero-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.1);
+    color: #2563eb;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+}
+.dc-hero-title { font-size: 1.05rem; font-weight: 750; color: #0f172a; margin: 0; line-height: 1.2; }
+.dc-hero-sub   { font-size: 0.78rem; color: #64748b; margin: 0.15rem 0 0; line-height: 1.35; }
+.dc-gps-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a;
+    border-radius: 50rem; padding: 0.3rem 0.75rem;
+    font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+}
+.dc-metric-card {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.9rem;
+    padding: 0.85rem 0.9rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    border-left-width: 4px; border-left-style: solid;
+    height: 100%; display: flex; align-items: center; justify-content: space-between;
+    gap: 0.5rem; min-width: 0;
+}
+.dc-metric-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+.dc-metric-value { font-size: 1.05rem; font-weight: 800; color: #0f172a; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-metric-sub  { font-size: 0.7rem; color: #94a3b8; margin-top: 0.1rem; }
+.dc-metric-icon { font-size: 1.5rem; color: #e2e8f0; flex-shrink: 0; }
+.dc-order-card  {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.9rem;
+    overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    height: 100%; display: flex; flex-direction: column;
+}
+.dc-order-header {
+    background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;
+}
+.dc-order-body  { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+.dc-info-row    { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.82rem; color: #374151; }
+.dc-info-row i  { margin-top: 0.15rem; flex-shrink: 0; width: 14px; text-align: center; }
+.dc-action-footer { border-top: 1px solid #f1f5f9; padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.dc-btn-row     { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.dc-btn-row .btn { flex: 1; min-width: 0; font-size: 0.8rem; padding: 0.45rem 0.7rem; white-space: nowrap; }
+.dc-section-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.dc-section-header {
+    padding: 0.85rem 1.1rem; border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem; background: #ffffff;
+}
+.dc-otp-form { display: flex; gap: 0.5rem; align-items: stretch; }
+.dc-otp-form input { flex: 1; min-width: 0; font-size: 0.85rem; }
+.dc-otp-form .btn  { font-size: 0.8rem; padding: 0.45rem 0.85rem; white-space: nowrap; flex-shrink: 0; }
+.dc-transit-banner {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.7rem;
+    padding: 0.7rem 0.85rem; display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem;
+}
+.dc-empty { text-align: center; padding: 3rem 1.5rem; }
+.dc-empty-icon {
+    width: 72px; height: 72px; border-radius: 50%; background: #f1f5f9;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; color: #94a3b8; margin-bottom: 1rem;
+}
+@media (max-width: 575.98px) {
+    .dc-hero { padding: 0.85rem 1rem; }
+    .dc-hero-title { font-size: 0.95rem; }
+    .dc-metric-value { font-size: 0.95rem; }
+    .dc-metric-card { padding: 0.7rem 0.75rem; }
+    .dc-metric-icon { font-size: 1.2rem; }
+    .dc-order-body { padding: 0.85rem; }
+    .dc-action-footer { padding: 0.75rem 0.85rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background:#f8fafc; max-width:100vw; overflow-x:hidden;">
+    {% include 'driver_sidebar.html' %}
+    <div class="flex-grow-1" style="min-width:0; max-width:100%; overflow-x:hidden;">
+
+        <div class="dc-topbar d-lg-none">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-1 fw-bold shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#driverSidebar" aria-controls="driverSidebar">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Menu</span>
+                </button>
+                {# Alternative Direct Dropdown Option #}
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm rounded-pill border shadow-sm dropdown-toggle fw-semibold text-dark px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-compass text-primary me-1"></i> Quick Links
+                    </button>
+                    <ul class="dropdown-menu shadow-lg rounded-4 p-2 border-0" style="min-width: 220px; z-index: 1060;">
+                        <li><h6 class="dropdown-header text-uppercase extra-small fw-bold text-primary"><i class="fa-solid fa-truck-fast me-1"></i> Driver Fleet</h6></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'tracking:driver_dashboard' %}"><i class="fa-solid fa-truck-ramp-box text-primary me-2"></i> Deliveries Console</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'accounts:driver_documents' %}"><i class="fa-solid fa-id-card text-success me-2"></i> Documents &amp; KYC</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'accounts:profile' %}"><i class="fa-solid fa-user-gear text-info me-2"></i> Driver Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'store:home' %}" target="_blank"><i class="fa-solid fa-store text-warning me-2"></i> Public Store</a></li>
+                        <li>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item rounded-3 py-2 text-danger fw-semibold"><i class="fa-solid fa-right-from-bracket me-2"></i> Log Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-light btn-sm rounded-circle border shadow-sm flex-shrink-0" title="My Account">
+                <i class="fa-solid fa-user text-muted"></i>
+            </a>
+        </div>
+
+        <div class="p-2 p-sm-3 p-md-4 pb-5 mb-4 pb-lg-3 mb-lg-0">
+
+            <div class="dc-hero mb-3">
+                <div class="d-flex align-items-start gap-3 flex-wrap">
+                    <div class="dc-hero-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                    <div class="flex-grow-1" style="min-width:0;">
+                        <h1 class="dc-hero-title">Driver Dispatch Console</h1>
+                        <p class="dc-hero-sub d-none d-sm-block">Manage live route assignments, stream real-time GPS, and complete OTP-verified drop-offs.</p>
+                        <p class="dc-hero-sub d-sm-none">Manage deliveries &amp; GPS tracking.</p>
+                    </div>
+                    <div class="dc-gps-chip flex-shrink-0">
+                        <i class="fa-solid fa-satellite-dish fa-sm animate-pulse"></i>
+                        <span id="geo-status">GPS Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-2 g-sm-3 mb-3">
+                <div class="col-6 col-xl-3">
+                    <div class="dc-metric-card" style="border-left-color:#3b82f6;">
+                        <div style="min-width:0; flex:1;">
+                            <div class="dc-metric-label text-primary">Active Routes</div>
+                            <div class="dc-metric-value">{{ stats.active_orders_count }}</div>
+                            <div class="dc-metric-sub">In transit now</div>
+                        </div>
+                        <i class="fa-solid fa-truck-ramp-box dc-metric-icon"></i>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="dc-metric-card" style="border-left-color:#10b981;">
+                        <div style="min-width:0; flex:1;">
+                            <div class="dc-metric-label text-success">Today</div>
+                            <div class="dc-metric-value">{{ stats.today_delivered_count }}</div>
+                            <div class="dc-metric-sub">{{ stats.delivered_count }} all-time</div>
+                        </div>
+                        <i class="fa-solid fa-circle-check dc-metric-icon"></i>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="dc-metric-card" style="border-left-color:#0d9488;">
+                        <div style="min-width:0; flex:1;">
+                            <div class="dc-metric-label" style="color:#0d9488;">Today's Pay</div>
+                            <div class="dc-metric-value">&#8377;{{ stats.today_earnings }}</div>
+                            <div class="dc-metric-sub">Commissions</div>
+                        </div>
+                        <i class="fa-solid fa-hand-holding-dollar dc-metric-icon"></i>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="dc-metric-card" style="border-left-color:#f59e0b;">
+                        <div style="min-width:0; flex:1;">
+                            <div class="dc-metric-label text-warning">Total Payout</div>
+                            <div class="dc-metric-value">&#8377;{{ stats.total_earnings }}</div>
+                            <div class="dc-metric-sub">{{ stats.total_orders_count }} orders</div>
+                        </div>
+                        <i class="fa-solid fa-wallet dc-metric-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dc-section-card mb-4">
+                <div class="dc-section-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing text-primary"></i>
+                        <span class="fw-bold text-dark">Assigned Deliveries</span>
+                    </div>
+                    <span class="badge rounded-pill fw-semibold px-3 py-2" style="background:rgba(59,130,246,0.1); color:#1d4ed8; border:1px solid rgba(59,130,246,0.2);">
+                        {{ assigned_orders.count }} Task{{ assigned_orders.count|pluralize }}
+                    </span>
+                </div>
+                <div class="p-2 p-sm-3">
+                    <div class="row g-2 g-sm-3">
+                        {% for order in assigned_orders %}
+                        <div class="col-12 col-md-6">
+                            <div class="dc-order-card">
+                                <div class="dc-order-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-dark text-white rounded-pill" style="font-size:0.72rem;">#{{ order.id }}</span>
+                                        <span class="fw-bold text-dark small text-truncate" style="max-width:140px;">{{ order.customer.get_full_name|default:order.customer.username }}</span>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1 fw-semibold text-uppercase" style="font-size:0.65rem; {% if order.status == 'confirmed' %}background:#e0f2fe; color:#0369a1;{% else %}background:#dbeafe; color:#1d4ed8;{% endif %}">{{ order.get_status_display }}</span>
+                                </div>
+                                <div class="dc-order-body">
+                                    <div class="dc-info-row">
+                                        <i class="fa-solid fa-phone text-muted fa-sm"></i>
+                                        <a href="tel:{{ order.delivery_phone }}" class="text-decoration-none fw-semibold text-dark">{{ order.delivery_phone|default:"Not provided" }}</a>
+                                    </div>
+                                    <div class="dc-info-row">
+                                        <i class="fa-solid fa-location-dot text-danger fa-sm"></i>
+                                        <span>{{ order.delivery_address }}</span>
+                                    </div>
+                                    <div class="dc-btn-row">
+                                        <a class="btn btn-primary btn-sm rounded-pill fw-bold shadow-sm" href="{% url 'tracking:driver_delivery_page' order.id %}">
+                                            <i class="fa-solid fa-map-location-dot me-1"></i>Open Console
+                                        </a>
+                                        {% if order.delivery_latitude and order.delivery_longitude %}
+                                        <a class="btn btn-outline-primary btn-sm rounded-pill fw-semibold" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ order.delivery_latitude }},{{ order.delivery_longitude }}">
+                                            <i class="fa-solid fa-diamond-turn-right me-1"></i>Maps
+                                        </a>
+                                        {% else %}
+                                        <a class="btn btn-outline-primary btn-sm rounded-pill fw-semibold" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query={{ order.delivery_address|urlencode }}">
+                                            <i class="fa-solid fa-diamond-turn-right me-1"></i>Maps
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="dc-action-footer">
+                                    {% if order.status == 'confirmed' %}
+                                    <div class="d-flex gap-2">
+                                        <form method="post" action="{% url 'tracking:driver_pick_order' order.id %}" class="flex-grow-1">{% csrf_token %}
+                                            <button type="submit" class="btn btn-primary btn-sm w-100 rounded-pill fw-semibold shadow-sm">
+                                                <i class="fa-solid fa-box me-1"></i>Pick Up Order
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'tracking:driver_reject_order' order.id %}" onsubmit="return confirm('Release Order #{{ order.id }} back to queue?');">{% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Can't take this order"><i class="fa-solid fa-xmark"></i></button>
+                                        </form>
+                                    </div>
+                                    <small class="text-muted extra-small"><i class="fa-solid fa-info-circle me-1"></i>Pick-up moves order into transit and alerts the customer.</small>
+
+                                    {% elif order.status == 'out_for_delivery' and not order.arrived_at and order.delivery_latitude and order.delivery_longitude %}
+                                    <div class="dc-transit-banner">
+                                        <span class="spinner-border spinner-border-sm text-primary flex-shrink-0" role="status"></span>
+                                        <div>
+                                            <div class="fw-semibold text-primary" style="font-size:0.8rem;">Live GPS Tracking</div>
+                                            <div class="text-muted" style="font-size:0.72rem;">OTP auto-sent when you arrive within 300m.</div>
+                                        </div>
+                                    </div>
+
+                                    {% elif order.status == 'out_for_delivery' and not order.arrived_at %}
+                                    <form method="post" action="{% url 'tracking:driver_confirm_arrival' order.id %}">{% csrf_token %}
+                                        <button class="btn btn-warning btn-sm w-100 rounded-pill fw-bold text-dark shadow-sm">
+                                            <i class="fa-solid fa-location-crosshairs me-1"></i>I've Arrived
+                                        </button>
+                                    </form>
+                                    <small class="text-muted extra-small">Tap to notify customer &amp; generate 6-digit OTP.</small>
+
+                                    {% elif order.status == 'out_for_delivery' and order.arrived_at %}
+                                    <div class="alert alert-success border-0 py-2 px-3 rounded-3 mb-1 d-flex align-items-center gap-2 small">
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                        <span>Arrived! Ask customer for their 6-digit OTP.</span>
+                                    </div>
+                                    <form method="post" action="{% url 'tracking:driver_complete_order' order.id %}" class="dc-otp-form">{% csrf_token %}
+                                        <input type="text" name="otp" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" class="form-control form-control-sm rounded-pill px-3" placeholder="6-digit OTP" required>
+                                        <button class="btn btn-sm btn-success rounded-pill fw-bold shadow-sm"><i class="fa-solid fa-check me-1"></i>Verify</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="dc-empty">
+                                <div class="dc-empty-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                                <p class="fw-semibold text-dark mb-1">No active deliveries right now</p>
+                                <small class="text-muted">New orders assigned to your route will appear here automatically.</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>const UPDATE_LOCATION_URL = "{% url 'tracking:update_location' %}";</script>
+<script src="{% static 'js/tracking.js' %}"></script>
+<script>if (typeof startDriverLocationSharing === 'function') { startDriverLocationSharing(UPDATE_LOCATION_URL); }</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% load static %}
+{# Clean Admin Topbar Component #}
+<nav class="navbar navbar-expand navbar-light bg-white sb-topbar mb-4 static-top shadow-sm px-3 px-md-4">
+    
+    {# Sidebar Toggle (Topbar for Mobile) #}
+    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle me-3 text-primary ft-sidebar-toggle">
+        <i class="fa fa-bars fs-5"></i>
+    </button>
+
+    {# Topbar Search #}
+    <form class="d-none d-sm-inline-block form-inline me-auto my-2 my-md-0 mw-100" method="get" action="{% url 'dashboard:inventory_products' %}">
+        <div class="input-group" style="width: 320px;">
+            <input type="text" name="q" class="form-control sb-search-input py-2" placeholder="Search produce, farms, orders..." aria-label="Search">
+            <button class="btn sb-search-btn px-3" type="submit">
+                <i class="fa-solid fa-magnifying-glass fa-sm"></i>
+            </button>
+        </div>
+    </form>
+
+    {# Topbar Navbar Items #}
+    <ul class="navbar-nav ms-auto align-items-center">
+
+        {# Nav Item - User Information #}
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="me-2 d-none d-lg-inline text-gray-700 small fw-bold">{{ request.user.first_name|default:request.user.username }}</span>
+                <div class="ft-avatar-sm" style="{% if request.user.is_admin_role %}background: linear-gradient(135deg, #10b981, #059669);{% else %}background: linear-gradient(135deg, #0d9488, #0f766e);{% endif %} color: #ffffff; font-weight: 700; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+            </a>
+            <!-- Dropdown - User Information -->
+            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 animated--grow-in py-2" aria-labelledby="userDropdown">
+                <div class="px-3 py-2 border-bottom">
+                    <span class="d-block fw-bold text-dark small">{{ request.user.username }}</span>
+                    <span class="badge bg-success-subtle text-success extra-small">{{ request.user.get_role_display }}</span>
+                </div>
+                <a class="dropdown-item py-2" href="{% url 'accounts:profile' %}">
+                    <i class="fa-solid fa-user fa-sm fa-fw me-2 text-gray-400"></i>
+                    Profile
+                </a>
+                <a class="dropdown-item py-2" href="{% url 'dashboard:home' %}">
+                    <i class="fa-solid fa-gauge fa-sm fa-fw me-2 text-gray-400"></i>
+                    Dashboard
+                </a>
+                <div class="dropdown-divider"></div>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item py-2 text-danger">
+                        <i class="fa-solid fa-sign-out-alt fa-sm fa-fw me-2 text-danger"></i>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </li>
+
+    </ul>
+
+</nav>

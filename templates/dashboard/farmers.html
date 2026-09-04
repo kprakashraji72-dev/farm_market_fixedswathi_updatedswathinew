@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Farmer Management | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner with Add Farmer Action #}
+        <div class="ft-mgmt-hero amber d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-user-check"></i></div>
+                <div>
+                    <h2 class="mb-1">Farmer Partner Management</h2>
+                    <p class="mb-0">Review ISO/food safety certificates, verify grower accounts, and register partner farmers.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="ft-mini-stat">
+                    <div class="num">{{ farmers.count }}</div>
+                    <div class="label">Growers</div>
+                </div>
+                <button type="button" class="btn text-white rounded-pill px-4 py-2 fw-semibold shadow-sm" id="toggleAddFarmerBtn" style="background-color: #d97706; border-color: #d97706;">
+                    <i class="fa-solid fa-user-plus me-1"></i> Add New Farmer
+                </button>
+            </div>
+        </div>
+
+        {# ============ LANDSCAPE FORMAT: ADD FARMER FORM ============ #}
+        <div class="ft-landscape-form-card amber {% if not form.errors %}d-none{% endif %} mb-4" id="addFarmerCard">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-seedling text-warning fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Register Partner Farmer (Landscape Format)</h5>
+                </div>
+                <button type="button" class="btn-close" id="closeAddFarmerBtn" aria-label="Close form"></button>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {# Row 1: Account Info #}
+                        <div class="col-12"><h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-user text-warning me-1"></i> 1. Grower Account Details</h6></div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Username <span class="text-danger">*</span></label>
+                            {{ form.username }}
+                            {% for e in form.username.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Email Address <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Mobile Phone <span class="text-danger">*</span></label>
+                            {{ form.phone_number }}
+                            {% for e in form.phone_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
+                            {{ form.password1 }}
+                            {% for e in form.password1.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Confirm Password <span class="text-danger">*</span></label>
+                            {{ form.password2 }}
+                            {% for e in form.password2.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Farm Base Address</label>
+                            {{ form.address }}
+                            {% for e in form.address.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Row 2: ISO Quality Certification #}
+                        <div class="col-12 pt-3 border-top"><h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-file-certificate text-warning me-1"></i> 2. ISO Quality &amp; Food Safety Certificate</h6></div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">ISO Certificate Number</label>
+                            {{ form.iso_certificate_number }}
+                            {% for e in form.iso_certificate_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">ISO Certificate Document (PDF / Image) <span class="text-danger">*</span></label>
+                            {{ form.iso_certificate_document }}
+                            {% for e in form.iso_certificate_document.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Certificate Issue Date</label>
+                            {{ form.iso_issue_date }}
+                            {% for e in form.iso_issue_date.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Certificate Expiry Date</label>
+                            {{ form.iso_expiry_date }}
+                            {% for e in form.iso_expiry_date.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Actions #}
+                        <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="cancelAddFarmerBtn">Cancel</button>
+                            <button type="submit" class="btn btn-warning rounded-pill px-4 fw-semibold text-dark shadow-sm">
+                                <i class="fa-solid fa-seedling me-1"></i> Register Farmer Partner
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH FARMERS DIRECTORY TABLE ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-users text-warning fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Grower Partners Directory</h5>
+                    <span class="badge bg-amber-soft rounded-pill ms-2">{{ farmers.count }} Registered</span>
+                </div>
+
+                <form method="get" class="d-flex gap-2" style="max-width: 380px; width: 100%;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search farmer by username, email, phone...">
+                    </div>
+                    {% if query %}<a href="{% url 'dashboard:farmer_management' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 170px;">Farmer Partner</th>
+                            <th style="min-width: 190px;">Contact Info</th>
+                            <th style="min-width: 300px;">ISO Quality Certificate</th>
+                            <th style="min-width: 130px;">Status</th>
+                            <th class="text-end" style="min-width: 130px;">Verification Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in farmers %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ft-avatar-sm farmer-avatar">
+                                        {{ u.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-dark d-block">{{ u.username }}</span>
+                                        <span class="badge bg-light text-muted border extra-small">Grower</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div class="text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i>{{ u.email|default:"—" }}</div>
+                                    <div class="text-muted extra-small"><i class="fa-solid fa-phone text-muted me-1"></i>{{ u.phone_number|default:"—" }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if u.farmer_kyc %}
+                                    <div class="small">
+                                        <div class="mb-1">
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fa-solid fa-file-certificate text-warning me-1"></i>ISO: {{ u.farmer_kyc.iso_certificate_number|default:"Uploaded" }}
+                                                {% if u.farmer_kyc.iso_certificate_document %}
+                                                    <a href="{{ u.farmer_kyc.iso_certificate_document.url }}" target="_blank" class="ms-1 text-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i> view</a>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="extra-small text-muted">
+                                            Expires: <strong>{{ u.farmer_kyc.iso_expiry_date|default:"—" }}</strong>
+                                            {% if u.farmer_kyc.is_expiring_soon %}<span class="badge bg-danger ms-1">Expiring Soon</span>{% endif %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted extra-small">No ISO documents submitted</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.is_verified %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-circle-check me-1"></i>Verified</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="fa-solid fa-clock me-1"></i>Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'dashboard:driver_toggle_verified' u.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm rounded-pill px-3 fw-semibold {% if u.is_verified %}btn-outline-success{% else %}btn-warning text-dark{% endif %}">
+                                        {% if u.is_verified %}<i class="fa-solid fa-check me-1"></i> Verified{% else %}<i class="fa-solid fa-circle-check me-1"></i> Verify Grower{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-seedling text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">{% if query %}No farmers match "{{ query }}".{% else %}No partner farmers registered yet.{% endif %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAddFarmerBtn');
+    const closeBtn = document.getElementById('closeAddFarmerBtn');
+    const cancelBtn = document.getElementById('cancelAddFarmerBtn');
+    const addCard = document.getElementById('addFarmerCard');
+
+    function toggleForm() {
+        if (addCard.classList.contains('d-none')) {
+            addCard.classList.remove('d-none');
+            addCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            toggleBtn.innerHTML = '<i class="fa-solid fa-minus me-1"></i> Hide Form';
+        } else {
+            addCard.classList.add('d-none');
+            toggleBtn.innerHTML = '<i class="fa-solid fa-user-plus me-1"></i> Add New Farmer';
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleForm);
+    if (closeBtn) closeBtn.addEventListener('click', toggleForm);
+    if (cancelBtn) cancelBtn.addEventListener('click', toggleForm);
+});
+</script>
+{% endblock %}

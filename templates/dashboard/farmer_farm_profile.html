@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Farm Profile | Farmer Studio{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'farmer_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+        
+        {# Page Header #}
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold mb-1"><i class="fa-solid fa-tractor text-warning me-2"></i>My Farm Profile</h2>
+                <p class="text-muted small mb-0">Craft your public farm page to showcase your harvest, farming methods, and build customer trust.</p>
+            </div>
+            {% if farm and farm.slug %}
+            <div>
+                <a href="{% url 'inventory:farm_detail' farm.slug %}" target="_blank" class="btn btn-outline-success rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Live Storefront
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="row g-4">
+            
+            {# Left Column: Farm Profile Form #}
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-pen-to-square text-success me-2"></i>Farm Details</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post" enctype="multipart/form-data" novalidate id="farmProfileForm">
+                            {% csrf_token %}
+
+                            {# Farm Name #}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark">Farm Name <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-tractor text-muted"></i></span>
+                                    {{ form.name }}
+                                </div>
+                                {% for e in form.name.errors %}
+                                    <div class="text-danger small mt-1"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ e }}</div>
+                                {% endfor %}
+                                <div class="form-text small">This is the official name customers will see on the store and product cards.</div>
+                            </div>
+
+                            {# Location #}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark">Location / Region</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-location-dot text-muted"></i></span>
+                                    {{ form.location }}
+                                </div>
+                                {% for e in form.location.errors %}
+                                    <div class="text-danger small mt-1">{{ e }}</div>
+                                {% endfor %}
+                                <div class="form-text small">E.g., "Coimbatore, Tamil Nadu" or "Green Valley Organic Belt".</div>
+                            </div>
+
+                            {# Description #}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark">About Your Farm (Story &amp; Practices)</label>
+                                {{ form.description }}
+                                {% for e in form.description.errors %}
+                                    <div class="text-danger small mt-1">{{ e }}</div>
+                                {% endfor %}
+                                <div class="form-text small">Share your farming story, soil quality, pesticide-free techniques, or certifications.</div>
+                            </div>
+
+                            {# Cover Image Upload #}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-dark d-flex justify-content-between align-items-center">
+                                    <span>Cover Image</span>
+                                    {% if farm.cover_image %}
+                                        <a href="{{ farm.cover_image.url }}" target="_blank" class="small text-success text-decoration-none">
+                                            <i class="fa-solid fa-image"></i> View current photo
+                                        </a>
+                                    {% endif %}
+                                </label>
+                                <div class="ft-file-upload-box p-3 border rounded-3 text-center bg-light">
+                                    {{ form.cover_image }}
+                                    <div class="small text-muted mt-2">Recommended: High-resolution landscape photo (1200x600px). JPG, PNG, WEBP.</div>
+                                </div>
+                                {% for e in form.cover_image.errors %}
+                                    <div class="text-danger small mt-1">{{ e }}</div>
+                                {% endfor %}
+                            </div>
+
+                            {# Video URL #}
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-dark">Farm Video URL (YouTube / Video Tour)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-video text-muted"></i></span>
+                                    {{ form.video_url }}
+                                </div>
+                                {% for e in form.video_url.errors %}
+                                    <div class="text-danger small mt-1">{{ e }}</div>
+                                {% endfor %}
+                                <div class="form-text small">Paste an embeddable YouTube video URL (e.g. <code>https://www.youtube.com/embed/VIDEO_ID</code>).</div>
+                            </div>
+
+                            {# Save Button #}
+                            <div class="d-flex align-items-center gap-2 pt-3 border-top">
+                                <button type="submit" class="btn btn-success px-4 py-2 fw-semibold rounded-pill">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Save Farm Profile
+                                </button>
+                                {% if farm and farm.slug %}
+                                <a href="{% url 'inventory:farm_detail' farm.slug %}" class="btn btn-outline-secondary px-3 py-2 rounded-pill" target="_blank">
+                                    Preview Storefront
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {# Right Column: Live Storefront Card Preview & Profile Health #}
+            <div class="col-lg-5">
+                
+                {# Live Preview Box #}
+                <div class="card border-0 shadow-sm mb-4 ft-preview-card-wrap">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-eye text-primary me-2"></i>Live Store Preview
+                        </h6>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill small">Shopper View</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="ft-mock-store-card rounded-3 overflow-hidden border shadow-sm">
+                            <div class="ft-mock-hero-img position-relative" style="height:140px; background: linear-gradient(135deg, #14532d 0%, #166534 100%);">
+                                <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);">
+                                    <span class="badge bg-success mb-1" style="font-size:0.65rem;">
+                                        <i class="fa-solid fa-tractor"></i> Verified Farm
+                                    </span>
+                                    <h6 class="text-white fw-bold mb-0" id="previewFarmName">{{ farm.name|default:"Your Farm Name" }}</h6>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-white">
+                                <p class="text-muted extra-small mb-2" id="previewLocation">
+                                    <i class="fa-solid fa-location-dot text-warning me-1"></i>{{ farm.location|default:"Farm Location" }}
+                                </p>
+                                <p class="text-secondary small mb-3 text-truncate-2" id="previewDesc">
+                                    {{ farm.description|default:"Farm description will appear here..." }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top extra-small text-muted">
+                                    <span><i class="fa-solid fa-boxes-stacked me-1"></i>{{ farm.products.count|default:"0" }} Listed Produce</span>
+                                    <span class="text-success fw-bold">Active Grower</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Farm Health & Completeness Meter #}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-list-check text-success"></i> Profile Strength Checklist
+                        </h6>
+                        
+                        <ul class="list-unstyled checklist-items small mb-0">
+                            <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                <span><i class="fa-solid {% if farm.name %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-2"></i>Farm Name</span>
+                                <span class="badge {% if farm.name %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %}">
+                                    {% if farm.name %}Done{% else %}Needed{% endif %}
+                                </span>
+                            </li>
+                            <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                <span><i class="fa-solid {% if farm.location %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-2"></i>Location / District</span>
+                                <span class="badge {% if farm.location %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %}">
+                                    {% if farm.location %}Done{% else %}Needed{% endif %}
+                                </span>
+                            </li>
+                            <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                <span><i class="fa-solid {% if farm.description %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-2"></i>Farm Story &amp; Bio</span>
+                                <span class="badge {% if farm.description %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %}">
+                                    {% if farm.description %}Done{% else %}Needed{% endif %}
+                                </span>
+                            </li>
+                            <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                <span><i class="fa-solid {% if farm.cover_image %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-2"></i>Cover Photo</span>
+                                <span class="badge {% if farm.cover_image %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %}">
+                                    {% if farm.cover_image %}Uploaded{% else %}Recommended{% endif %}
+                                </span>
+                            </li>
+                            <li class="d-flex align-items-center justify-content-between py-2">
+                                <span><i class="fa-solid {% if farm.video_url %}fa-circle-check text-success{% else %}fa-circle-dot text-muted{% endif %} me-2"></i>Video Tour URL</span>
+                                <span class="badge {% if farm.video_url %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-muted{% endif %}">
+                                    {% if farm.video_url %}Active{% else %}Optional{% endif %}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {# Quick Actions Card #}
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-bolt text-warning"></i> Next Steps
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'dashboard:farmer_products' %}" class="btn btn-outline-success btn-sm rounded-pill text-start px-3 py-2">
+                                <i class="fa-solid fa-boxes-stacked me-2"></i> Manage Produce &amp; Stock
+                            </a>
+                            <a href="{% url 'accounts:farmer_documents' %}" class="btn btn-outline-secondary btn-sm rounded-pill text-start px-3 py-2">
+                                <i class="fa-solid fa-file-certificate me-2"></i> Upload / View ISO Certificate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.querySelector('input[name="name"]');
+    const locInput = document.querySelector('input[name="location"]');
+    const descInput = document.querySelector('textarea[name="description"]');
+
+    const previewName = document.getElementById('previewFarmName');
+    const previewLoc = document.getElementById('previewLocation');
+    const previewDesc = document.getElementById('previewDesc');
+
+    if (nameInput && previewName) {
+        nameInput.addEventListener('input', function() {
+            previewName.textContent = this.value || 'Your Farm Name';
+        });
+    }
+    if (locInput && previewLoc) {
+        locInput.addEventListener('input', function() {
+            previewLoc.innerHTML = '<i class="fa-solid fa-location-dot text-warning me-1"></i>' + (this.value || 'Farm Location');
+        });
+    }
+    if (descInput && previewDesc) {
+        descInput.addEventListener('input', function() {
+            previewDesc.textContent = this.value || 'Farm description will appear here...';
+        });
+    }
+});
+</script>
+{% endblock %}

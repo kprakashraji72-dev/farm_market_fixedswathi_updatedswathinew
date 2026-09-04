@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Support Staff Console | Fresh Trace{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background-color: #f8fafc;">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Page Heading Hero Banner #}
+        <div class="ft-mgmt-hero teal d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #0f766e, #115e59); color: white;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3 bg-white text-teal shadow-sm flex-shrink-0" style="width: 52px; height: 52px; color: #0f766e;">
+                    <i class="fa-solid fa-headset fa-2x"></i>
+                </div>
+                <div>
+                    <h2 class="mb-1 fw-bold text-white">Customer Support Management</h2>
+                    <p class="mb-0 text-white-50">Manage customer inquiries, order delivery issues, resolution threads, and agent response times.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'staff_support:reports' %}" class="btn btn-light rounded-pill px-3 py-2 fw-semibold shadow-sm text-dark">
+                    <i class="fa-solid fa-chart-pie me-1 text-teal"></i> Support Analytics
+                </a>
+            </div>
+        </div>
+
+        {# ============ 5 KEY METRIC CARDS ============ #}
+        <div class="row g-3 mb-4">
+            {# Card 1: Total Tickets #}
+            <div class="col-xl col-md-4 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-xs fw-bold text-muted text-uppercase d-block mb-1">Total Tickets</span>
+                            <h4 class="fw-black text-dark mb-0">{{ total_tickets }}</h4>
+                        </div>
+                        <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-ticket fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 2: Open Tickets #}
+            <div class="col-xl col-md-4 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-xs fw-bold text-warning text-uppercase d-block mb-1">Open Tickets</span>
+                            <h4 class="fw-black text-warning mb-0">{{ open_tickets }}</h4>
+                        </div>
+                        <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-circle-dot fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 3: In Progress #}
+            <div class="col-xl col-md-4 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-xs fw-bold text-info text-uppercase d-block mb-1">In Progress</span>
+                            <h4 class="fw-black text-info mb-0">{{ in_progress_tickets }}</h4>
+                        </div>
+                        <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-spinner fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 4: Resolved Today #}
+            <div class="col-xl col-md-6 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-xs fw-bold text-success text-uppercase d-block mb-1">Resolved Today</span>
+                            <h4 class="fw-black text-success mb-0">{{ resolved_today }}</h4>
+                        </div>
+                        <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-check-circle fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 5: Avg Resolution Time #}
+            <div class="col-xl col-md-6 col-12">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-xs fw-bold text-secondary text-uppercase d-block mb-1">Avg Resolution</span>
+                            <h4 class="fw-black text-dark mb-0">{{ avg_res_time_display }}</h4>
+                        </div>
+                        <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-clock-rotate-left fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ============ FILTER TOOLBAR ============ #}
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+            <form method="get" class="row g-2 align-items-center">
+                {# Search Input #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 rounded-start-pill"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-start-0 rounded-end-pill" placeholder="Search ticket #, subject, customer...">
+                    </div>
+                </div>
+
+                {# Status Filter #}
+                <div class="col-lg-2 col-md-3 col-6">
+                    <select name="status" class="form-select rounded-pill small" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="open" {% if current_status == 'open' %}selected{% endif %}>Open</option>
+                        <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if current_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if current_status == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+
+                {# Category Filter #}
+                <div class="col-lg-3 col-md-3 col-6">
+                    <select name="category" class="form-select rounded-pill small" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        <option value="delivery_issue" {% if current_category == 'delivery_issue' %}selected{% endif %}>Delivery Issue</option>
+                        <option value="payment_issue" {% if current_category == 'payment_issue' %}selected{% endif %}>Payment Issue</option>
+                        <option value="product_quality" {% if current_category == 'product_quality' %}selected{% endif %}>Product Quality</option>
+                        <option value="account_issue" {% if current_category == 'account_issue' %}selected{% endif %}>Account Issue</option>
+                        <option value="other" {% if current_category == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                {# Assigned Agent Filter #}
+                <div class="col-lg-2 col-md-6 col-8">
+                    <select name="assigned" class="form-select rounded-pill small" onchange="this.form.submit()">
+                        <option value="">All Agents</option>
+                        <option value="me" {% if current_assigned == 'me' %}selected{% endif %}>Assigned to Me</option>
+                        <option value="unassigned" {% if current_assigned == 'unassigned' %}selected{% endif %}>Unassigned</option>
+                        {% for staff in staff_members %}
+                            <option value="{{ staff.id }}" {% if current_assigned == staff.id|stringformat:"s" %}selected{% endif %}>{{ staff.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {# Clear / Submit #}
+                <div class="col-lg-1 col-md-6 col-4 d-flex gap-1">
+                    <button type="submit" class="btn btn-teal btn-sm rounded-pill px-3 fw-bold w-100" style="background:#0f766e; color:white;">Filter</button>
+                    {% if current_status or current_category or current_assigned or search_query %}
+                        <a href="{% url 'staff_support:dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Reset Filters"><i class="fa-solid fa-rotate-left"></i></a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {# ============ TICKET LIST TABLE ============ #}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-list-check text-teal me-2" style="color: #0f766e;"></i>Customer Support Tickets ({{ tickets.count }})
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted extra-small text-uppercase">
+                        <tr>
+                            <th class="ps-3 py-3" style="width: 80px;">ID</th>
+                            <th>Customer</th>
+                            <th>Subject &amp; Category</th>
+                            <th>Status</th>
+                            <th>Assigned Agent</th>
+                            <th>Created / Updated</th>
+                            <th class="text-end pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td class="ps-3 fw-bold text-dark">#{{ ticket.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white bg-secondary flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ ticket.user.username|slice:":1"|upper }}
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <span class="fw-bold text-dark d-block text-truncate" style="max-width: 140px;">{{ ticket.user.get_full_name|default:ticket.user.username }}</span>
+                                        <span class="extra-small text-muted text-truncate d-block" style="max-width: 140px;">{{ ticket.user.email|default:"No email" }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <a href="{% url 'staff_support:detail' ticket.id %}" class="fw-bold text-dark text-decoration-none hover-teal d-block">
+                                        {{ ticket.subject|truncatewords:8 }}
+                                    </a>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <span class="badge bg-secondary-subtle text-secondary extra-small rounded-pill">
+                                            {{ ticket.get_category_display }}
+                                        </span>
+                                        {% if ticket.order %}
+                                            <span class="badge bg-primary-subtle text-primary extra-small rounded-pill">
+                                                <i class="fa-solid fa-bag-shopping me-1"></i> Order #{{ ticket.order.id }}
+                                            </span>
+                                        {% endif %}
+                                        {% if ticket.replies.count > 0 %}
+                                            <span class="extra-small text-muted">
+                                                <i class="fa-solid fa-comments text-muted me-1"></i>{{ ticket.replies.count }} replies
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if ticket.status == 'open' %}
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill extra-small fw-bold">
+                                        <i class="fa-solid fa-circle-dot me-1 text-warning"></i> Open
+                                    </span>
+                                {% elif ticket.status == 'in_progress' %}
+                                    <span class="badge bg-info-subtle text-primary border border-info-subtle rounded-pill extra-small fw-bold">
+                                        <i class="fa-solid fa-rotate me-1 text-info"></i> In Progress
+                                    </span>
+                                {% elif ticket.status == 'resolved' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small fw-bold">
+                                        <i class="fa-solid fa-check-circle me-1 text-success"></i> Resolved
+                                    </span>
+                                {% elif ticket.status == 'closed' %}
+                                    <span class="badge bg-secondary-subtle text-muted border rounded-pill extra-small fw-bold">
+                                        <i class="fa-solid fa-lock me-1"></i> Closed
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.assigned_to %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">
+                                        <i class="fa-solid fa-user-shield text-teal me-1"></i> {{ ticket.assigned_to.username }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 extra-small">
+                                        Unassigned
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="d-block small text-dark">{{ ticket.created_at|date:"M d, Y" }}</span>
+                                <span class="extra-small text-muted">{{ ticket.updated_at|timesince }} ago</span>
+                            </td>
+                            <td class="text-end pe-3">
+                                <a href="{% url 'staff_support:detail' ticket.id %}" class="btn btn-outline-teal btn-sm rounded-pill px-3 fw-semibold" style="border-color:#0f766e; color:#0f766e;">
+                                    Manage <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-ticket fa-3x text-muted mb-2 d-block"></i>
+                                <span class="fw-bold d-block">No support tickets found matching current filters.</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

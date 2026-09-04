@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Fresh Trace | Farm-Fresh Produce Delivered Direct{% endblock %}
+
+{% block content %}
+{# ============ HERO SECTION WITH BACKGROUND IMAGE & KEN BURNS ZOOM EFFECT ============ #}
+<section class="ft-hero-clean position-relative text-white py-4 py-md-5 mb-4 mb-md-5 overflow-hidden">
+    {# Animated Background Image Layer with Zoom Effect #}
+    <div class="ft-hero-bg-layer"></div>
+
+    <div class="container ft-hero-content-layer py-lg-4">
+        <div class="row align-items-center g-3 g-lg-5">
+            
+            {# Left Column: Hero Copy & CTA #}
+            <div class="col-lg-6 col-12 text-center text-lg-start">
+                <div class="d-inline-flex align-items-center gap-2 bg-white text-success px-3 py-2 rounded-pill fw-bold small mb-3 shadow-sm">
+                    <i class="fa-solid fa-leaf text-success"></i>
+                    <span>100% DIRECT FROM REGIONAL GROWERS</span>
+                </div>
+                
+                <h1 class="display-4 fw-bold mb-3 tracking-tight text-white" style="font-family: 'Fraunces', serif, system-ui; letter-spacing: -0.02em; line-height: 1.15; text-shadow: 0 2px 10px rgba(0,0,0,0.25);">
+                    Fresh Harvest, Delivered To Your Door.
+                </h1>
+                
+                <p class="lead mb-4 text-white opacity-90" style="font-size: 1.15rem; line-height: 1.6; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+                    Shop seasonal fruits, crisp vegetables, and organic farm staples directly from certified regional farms with live temperature-controlled order tracking.
+                </p>
+                
+                {# Smart Search Form in Hero #}
+                <form method="get" action="{% url 'inventory:product_list' %}" class="mb-3">
+                    <div class="input-group input-group-lg shadow-lg rounded-pill overflow-hidden bg-white p-1" style="max-width: 480px;">
+                        <span class="input-group-text bg-white border-0 text-muted ps-3">
+                            <i class="fa-solid fa-magnifying-glass text-success"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control border-0 px-2 fs-6" placeholder="Search Carrot, Apple, Tomato, Potato..." aria-label="Search produce">
+                        <button class="btn btn-success rounded-pill px-4 fw-semibold text-white" type="submit">Search</button>
+                    </div>
+                </form>
+
+                {# Quick Popular Searches #}
+                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start gap-2 mb-4 small text-white">
+                    <span class="opacity-75 me-1 extra-small text-uppercase fw-semibold">Popular Searches:</span>
+                    <a href="{% url 'inventory:product_list' %}?q=carrot" class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1.5 text-decoration-none border border-white border-opacity-50 hover-elevate transition-all">🥕 Carrot</a>
+                    <a href="{% url 'inventory:product_list' %}?q=apple" class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1.5 text-decoration-none border border-white border-opacity-50 hover-elevate transition-all">🍎 Apple</a>
+                    <a href="{% url 'inventory:product_list' %}?q=tomato" class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1.5 text-decoration-none border border-white border-opacity-50 hover-elevate transition-all">🍅 Tomato</a>
+                    <a href="{% url 'inventory:product_list' %}?q=potato" class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1.5 text-decoration-none border border-white border-opacity-50 hover-elevate transition-all">🥔 Potato</a>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3 mb-4">
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-light btn-lg rounded-pill px-4 py-2.5 fw-bold text-success shadow-lg btn-zoom">
+                        <i class="fa-solid fa-basket-shopping me-2"></i> Browse All Harvests
+                    </a>
+                    <a href="{% url 'orders:track_lookup' %}" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold btn-zoom">
+                        <i class="fa-solid fa-location-dot me-2 text-warning"></i> Track Your Delivery
+                    </a>
+                </div>
+
+                {# Trust Micro-Stats #}
+                <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-4 pt-3 border-top border-white-50 small text-white opacity-90">
+                    <div><strong class="text-white"><i class="fa-solid fa-tractor text-warning me-1"></i> Verified</strong> Regional Farms</div>
+                    <div><strong class="text-white"><i class="fa-solid fa-temperature-arrow-down text-info me-1"></i> Cold-Chain</strong> Transit</div>
+                    <div><strong class="text-white"><i class="fa-solid fa-shield-halved text-warning me-1"></i> ISO</strong> Certified</div>
+                </div>
+            </div>
+
+            {# Right Column: Hero Visual Harvest Basket Asset with Floating Badges — Hidden on mobile #}
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="position-relative mx-auto" style="max-width: 520px;">
+                    {# Hero Harvest Basket Image Frame #}
+                    <div class="rounded-4 overflow-hidden shadow-lg border border-2 border-white" style="background: #064e3b;">
+                        <img src="{% static 'images/banners/farm_hero_basket.jpg' %}" alt="Fresh Organic Farm Harvest Basket" class="w-100 h-100 object-fit-cover hover-scale transition-all" style="min-height: 340px; max-height: 400px;" loading="eager">
+                    </div>
+
+                    {# Floating Badge 1 (Top Left) #}
+                    <div class="position-absolute top-0 start-0 translate-middle-y ms-2 ms-md-n3 p-2 bg-white text-dark rounded-4 shadow-lg border d-flex align-items-center gap-2 ft-floating-badge" style="z-index: 5;">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0" style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857);">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <div class="pe-2">
+                            <span class="d-block fw-bold small lh-1 text-dark">100% Farm Fresh</span>
+                            <small class="text-muted extra-small">Harvested today</small>
+                        </div>
+                    </div>
+
+                    {# Floating Badge 2 (Bottom Right) #}
+                    <div class="position-absolute bottom-0 end-0 translate-middle-y me-2 me-md-n3 p-2 bg-white text-dark rounded-4 shadow-lg border d-flex align-items-center gap-2 ft-floating-badge-reverse" style="z-index: 5;">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0" style="width: 40px; height: 40px; background: linear-gradient(135deg, #d97706, #b45309);">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <div class="pe-2">
+                            <span class="d-block fw-bold small lh-1 text-dark">4.9/5 Quality</span>
+                            <small class="text-muted extra-small">Organic guaranteed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+
+    {# ============ 3 KEY TRUST HIGHLIGHTS ============ #}
+    <div class="row g-3 g-md-4 mb-4 mb-md-5" style="margin-top: -1.5rem; position: relative; z-index: 10;">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white hover-elevate" style="border-top: 4px solid #059669 !important;">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(5, 150, 105, 0.12); color: #059669; font-size: 1.3rem;">
+                        <i class="fa-solid fa-tractor"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Direct From The Farm</h6>
+                        <p class="text-muted small mb-0">Harvested fresh upon order, eliminating long cold-storage delays.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white hover-elevate" style="border-top: 4px solid #0284c7 !important;">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(2, 132, 199, 0.12); color: #0284c7; font-size: 1.3rem;">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Cold-Chain GPS Tracking</h6>
+                        <p class="text-muted small mb-0">Real-time driver location updates and temperature assurance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white hover-elevate" style="border-top: 4px solid #d97706 !important;">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(217, 119, 6, 0.12); color: #d97706; font-size: 1.3rem;">
+                        <i class="fa-solid fa-certificate"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Verified Food Safety</h6>
+                        <p class="text-muted small mb-0">ISO certified partner farms and transparent produce origin audit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ============ CATEGORIES SHOWCASE WITH ZOOM-IN / HOVER LIFT ============ #}
+    {% if categories %}
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">Explore Produce Categories</h3>
+            <p class="text-muted small mb-0">Hand-picked fresh fruits, crisp vegetables, and natural staples</p>
+        </div>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold btn-zoom">
+            View All Categories &rarr;
+        </a>
+    </div>
+
+    <div class="row g-3 mb-5">
+        {% for cat in categories %}
+        <div class="col-6 col-md-3">
+            <a href="{% url 'inventory:product_list' %}?category={{ cat.slug }}" class="card border-0 shadow-sm rounded-4 p-3 text-decoration-none text-dark h-100 bg-white ft-cat-card-zoom" style="border: 1px solid #e2ece5 !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0 ft-cat-icon" style="width: 46px; height: 46px; background: rgba(5, 150, 105, 0.1); color: #059669; font-size: 1.25rem;">
+                        {% if cat.icon %}
+                            <i class="fa-solid {{ cat.icon }}"></i>
+                        {% else %}
+                            <i class="fa-solid fa-leaf"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">{{ cat.name }}</h6>
+                        <small class="text-muted extra-small">Fresh harvest &rarr;</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ============ FEATURED HARVEST PRODUCTS (ZOOM-IN / ZOOM-OUT CARDS) ============ #}
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">Featured Fresh Harvest</h3>
+            <p class="text-muted small mb-0">Seasonal produce freshly harvested from our partner farms</p>
+        </div>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold btn-zoom">
+            Browse Full Shop &rarr;
+        </a>
+    </div>
+
+    <div class="row g-3 g-md-4 mb-5">
+        {% for product in featured_products %}
+        <div class="col-6 col-md-4 col-lg-3 reveal-on-scroll reveal-delay-{{ forloop.counter|default:1 }}">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white hover-elevate position-relative" style="border: 1px solid #e2ece5 !important;">
+                
+                {# Image Container with Zoom Scale #}
+                <a href="{{ product.get_absolute_url }}" class="text-decoration-none position-relative d-block overflow-hidden bg-light" style="height: 190px;">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-100 h-100 object-fit-cover hover-scale" loading="lazy">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                            <i class="fa-solid fa-carrot text-success opacity-50" style="font-size: 3rem;"></i>
+                        </div>
+                    {% endif %}
+
+                    {# Stock Badge #}
+                    <div class="position-absolute top-0 start-0 p-2">
+                        {% if product.in_stock %}
+                            <span class="badge bg-success text-white rounded-pill extra-small shadow-sm px-2 py-1">
+                                <i class="fa-solid fa-circle-check me-1"></i> In Stock
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger text-white rounded-pill extra-small shadow-sm px-2 py-1">
+                                Sold Out
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if product.category %}
+                    <div class="position-absolute bottom-0 start-0 p-2">
+                        <span class="badge bg-white text-dark rounded-pill extra-small shadow-sm px-2 py-1 border">
+                            {{ product.category.name }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </a>
+
+                {# Card Body #}
+                <div class="card-body p-3 d-flex flex-column">
+                    <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark mb-1">
+                        <h6 class="fw-bold mb-0 text-truncate" title="{{ product.name }}">{{ product.name|title }}</h6>
+                    </a>
+
+                    {% if product.farm %}
+                    <a href="{{ product.farm.get_absolute_url }}" class="text-muted extra-small text-decoration-none text-truncate mb-2">
+                        <i class="fa-solid fa-tractor text-success me-1"></i> {{ product.farm.name }}
+                    </a>
+                    {% endif %}
+
+                    {# Pricing #}
+                    <div class="d-flex align-items-baseline gap-1 my-2">
+                        <span class="fs-5 fw-bold text-success">₹{{ product.display_price }}</span>
+                        <span class="small text-muted">/ {{ product.display_unit }}</span>
+                    </div>
+
+                    {# Action Button with Quantity Stepper (- 1 +) #}
+                    <div class="mt-auto pt-2">
+                        {% if product.in_stock %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="ft-card-qty-stepper">
+                                    <button type="button" class="card-qty-btn card-qty-minus" data-target="home-qty-{{ product.id }}" aria-label="Decrease quantity">−</button>
+                                    <span class="card-qty-val" id="val-home-qty-{{ product.id }}">1</span>
+                                    <input type="hidden" id="home-qty-{{ product.id }}" value="1" min="1" max="{{ product.stock_quantity|default:99 }}">
+                                    <button type="button" class="card-qty-btn card-qty-plus" data-target="home-qty-{{ product.id }}" aria-label="Increase quantity">+</button>
+                                </div>
+                                <button class="btn btn-sm btn-success flex-grow-1 rounded-pill fw-semibold add-to-cart-btn btn-add-cart shadow-sm btn-zoom d-inline-flex align-items-center justify-content-center gap-1.5 px-3 text-nowrap" style="height: 36px;" data-product-id="{{ product.id }}" data-variant-id="" data-add-url="{% url 'orders:add_to_cart' product.id %}" data-qty-input="home-qty-{{ product.id }}">
+                                    <span class="btn-default-label"><i class="fa-solid fa-cart-plus"></i> Add</span>
+                                    <span class="btn-success-label"><i class="fa-solid fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill" style="height: 36px;" disabled>Sold Out</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fa-solid fa-seedling text-muted opacity-50 mb-2" style="font-size: 2.5rem;"></i>
+            <p class="mb-0 fw-semibold">No seasonal harvest items listed right now.</p>
+            <small>Check back soon for freshly cataloged farm goods!</small>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# ============ FARM ECOSYSTEM LANDSCAPE BANNER WITH ZOOM SCALE ============ #}
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5 bg-white hover-elevate" style="border: 1px solid #e2ece5 !important;">
+        <div class="row g-0 align-items-center">
+            <div class="col-lg-6 position-relative overflow-hidden" style="min-height: 280px; max-height: 320px;">
+                <img src="{% static 'images/banners/organic_farm_banner.jpg' %}" alt="Fresh Trace Organic Farm Fields & Delivery Logistics" class="w-100 h-100 object-fit-cover hover-scale">
+                <div class="position-absolute top-0 start-0 m-3">
+                    <span class="badge bg-white text-dark border rounded-pill shadow-sm px-3 py-1 extra-small">
+                        <i class="fa-solid fa-leaf text-success me-1"></i> Verified Farm Ecosystem
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-6 p-4 p-md-5">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 extra-small fw-bold mb-2">SUSTAINABLE HARVEST</span>
+                <h3 class="fw-bold text-dark mb-2" style="font-family: 'Fraunces', serif, system-ui;">Direct From Regional Growers</h3>
+                <p class="text-muted small mb-4" style="line-height: 1.6;">
+                    We empower independent local farmers with temperature-controlled distribution logistics. When you order with Fresh Trace, you support sustainable regional farming and receive vegetables and fruits harvested at peak nutrient density.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-success rounded-pill px-4 py-2 fw-semibold text-white shadow-sm btn-zoom">
+                        <i class="fa-solid fa-basket-shopping me-1"></i> Order Fresh Produce
+                    </a>
+                    <a href="{% url 'orders:track_lookup' %}" class="btn btn-outline-success rounded-pill px-4 py-2 fw-semibold btn-zoom">
+                        <i class="fa-solid fa-location-dot me-1"></i> Track Order Delivery
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ============ PARTNER FARMS SPOTLIGHT ============ #}
+    {% if farms %}
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">Meet Our Partner Farms</h3>
+            <p class="text-muted small mb-0">Verified regional growers dedicated to sustainable, chemical-free agriculture</p>
+        </div>
+        <span class="badge bg-light text-muted border rounded-pill px-3 py-2">{{ farms.count }} Active Farms</span>
+    </div>
+
+    <div class="row g-3 g-md-4 mb-4">
+        {% for farm in farms %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{{ farm.get_absolute_url }}" class="text-decoration-none text-dark">
+                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white hover-elevate" style="border: 1px solid #e2ece5 !important;">
+                    <div class="position-relative bg-light overflow-hidden" style="height: 120px; background: linear-gradient(135deg, #064e3b 0%, #047857 100%);">
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <span class="badge bg-white text-success rounded-pill extra-small shadow-sm px-2 py-1 border">
+                                <i class="fa-solid fa-circle-check text-success me-1"></i> Verified
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold mb-1 text-truncate text-dark">
+                            <i class="fa-solid fa-tractor text-success me-1"></i> {{ farm.name }}
+                        </h6>
+                        <p class="text-muted extra-small mb-3 text-truncate">
+                            <i class="fa-solid fa-location-dot text-warning me-1"></i> {{ farm.location|default:"Regional Farm" }}
+                        </p>
+                        <span class="btn btn-sm btn-outline-success w-100 rounded-pill extra-small fw-semibold btn-zoom">
+                            Explore Farm Profile &rarr;
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

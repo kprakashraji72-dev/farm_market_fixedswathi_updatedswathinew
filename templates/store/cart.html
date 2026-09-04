@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Cart | Fresh Trace{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Cart Page Styles ── */
+.ft-cart-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.ft-cart-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+.ft-cart-item:last-child {
+    border-bottom: none;
+}
+
+.ft-cart-img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.ft-cart-img-placeholder {
+    width: 64px;
+    height: 64px;
+    border-radius: 0.75rem;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.ft-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 50rem;
+    background: #f8fafc;
+    overflow: hidden;
+}
+.ft-qty-stepper .qty-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #334155;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: background 0.15s ease;
+}
+.ft-qty-stepper .qty-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.ft-qty-stepper .qty-value {
+    min-width: 34px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0f172a;
+    padding: 0 4px;
+}
+
+/* ── Mobile Cart Item Layout (< 768px) ── */
+@media (max-width: 767.98px) {
+    .ft-cart-item {
+        padding: 0.9rem;
+    }
+    .ft-cart-img, .ft-cart-img-placeholder {
+        width: 54px;
+        height: 54px;
+    }
+    .ft-desktop-cart-table {
+        display: none !important;
+    }
+    .ft-mobile-cart-list {
+        display: block !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .ft-desktop-cart-table {
+        display: table !important;
+    }
+    .ft-mobile-cart-list {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3 py-md-4">
+
+    {# Page Header #}
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 mb-md-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-cart-shopping text-success"></i>
+                <span>My Cart</span>
+            </h3>
+            <span class="text-muted small">Review your fresh farm items before checkout</span>
+        </div>
+        <a href="{% url 'inventory:product_list' %}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
+            <i class="fa-solid fa-arrow-left me-1"></i> Continue Shopping
+        </a>
+    </div>
+
+    {# ── Empty Cart State ── #}
+    <div id="cart-empty-msg" class="{% if cart_items %}d-none{% endif %}">
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-3">
+            <div class="mx-auto mb-3 rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                <i class="fa-solid fa-cart-shopping fa-2x"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Your cart is empty</h4>
+            <p class="text-muted small mb-4">Looks like you haven't added any fresh farm products yet.</p>
+            <div>
+                <a href="{% url 'inventory:product_list' %}" class="btn btn-success btn-lg rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="fa-solid fa-store me-2"></i> Explore Fresh Produce
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# ── Cart Content Wrapper ── #}
+    <div id="cart-table-wrapper" class="{% if not cart_items %}d-none{% endif %}">
+        <div class="row g-3 g-lg-4">
+
+            {# Left Column: Cart Items List #}
+            <div class="col-lg-8">
+                <div class="ft-cart-card overflow-hidden">
+                    
+                    {# Desktop Table View (≥ 768px) #}
+                    <div class="table-responsive ft-desktop-cart-table m-0">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="min-width: 220px;" class="ps-4">Product</th>
+                                    <th>Unit Price</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-center pe-4" style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cart-items-body-desktop">
+                                {% for item in cart_items %}
+                                <tr data-product-row="{{ item.key }}">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-3 py-1">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.name }}" class="ft-cart-img">
+                                            {% else %}
+                                                <div class="ft-cart-img-placeholder"><i class="fa-solid fa-leaf"></i></div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">{{ item.name }}</h6>
+                                                {% if item.farm %}
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small px-2 py-1">
+                                                        <i class="fa-solid fa-wheat-awn me-1"></i>{{ item.farm.name }}{% if item.farm.location %} &bull; {{ item.farm.location }}{% endif %}
+                                                    </span>
+                                                {% elif item.product.farm %}
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small px-2 py-1">
+                                                        <i class="fa-solid fa-wheat-awn me-1"></i>{{ item.product.farm.name }}{% if item.product.farm.location %} &bull; {{ item.product.farm.location }}{% endif %}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">₹{{ item.unit_price }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="ft-qty-stepper">
+                                            <button type="button" class="qty-btn" data-action="decrease" data-product-id="{{ item.key }}" title="Decrease quantity">−</button>
+                                            <span class="qty-value" data-product-id="{{ item.key }}">{{ item.quantity }}</span>
+                                            <button type="button" class="qty-btn" data-action="increase" data-product-id="{{ item.key }}" title="Increase quantity">+</button>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="fw-bold text-success line-total" data-product-id="{{ item.key }}">₹{{ item.line_total }}</span>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle remove-btn" data-product-id="{{ item.key }}" title="Remove item">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# Mobile Cards View (< 768px) #}
+                    <div class="ft-mobile-cart-list" id="cart-items-body">
+                        {% for item in cart_items %}
+                        <div class="ft-cart-item" data-product-row="{{ item.key }}">
+                            
+                            {# Top Row: Image + Name/Price + Remove Button #}
+                            <div class="d-flex align-items-start gap-3 mb-2">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.name }}" class="ft-cart-img">
+                                {% else %}
+                                    <div class="ft-cart-img-placeholder"><i class="fa-solid fa-leaf"></i></div>
+                                {% endif %}
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <div class="d-flex align-items-start justify-content-between gap-2">
+                                        <h6 class="fw-bold text-dark mb-1 lh-sm" style="word-break: break-word;">{{ item.name }}</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 remove-btn flex-shrink-0" data-product-id="{{ item.key }}" title="Remove item">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                    {% if item.farm %}
+                                        <div class="mb-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small px-2 py-1">
+                                                <i class="fa-solid fa-wheat-awn me-1"></i>{{ item.farm.name }}{% if item.farm.location %} &bull; {{ item.farm.location }}{% endif %}
+                                            </span>
+                                        </div>
+                                    {% elif item.product.farm %}
+                                        <div class="mb-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small px-2 py-1">
+                                                <i class="fa-solid fa-wheat-awn me-1"></i>{{ item.product.farm.name }}{% if item.product.farm.location %} &bull; {{ item.product.farm.location }}{% endif %}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="small text-muted">
+                                        Unit Price: <span class="fw-semibold text-dark">₹{{ item.unit_price }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Bottom Row: Stepper + Total #}
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top bg-light p-2 rounded-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="extra-small fw-bold text-muted text-uppercase">Qty:</span>
+                                    <div class="ft-qty-stepper bg-white">
+                                        <button type="button" class="qty-btn" data-action="decrease" data-product-id="{{ item.key }}">−</button>
+                                        <span class="qty-value" data-product-id="{{ item.key }}">{{ item.quantity }}</span>
+                                        <button type="button" class="qty-btn" data-action="increase" data-product-id="{{ item.key }}">+</button>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="extra-small text-muted d-block">Subtotal</span>
+                                    <span class="fw-bold text-success line-total fs-6" data-product-id="{{ item.key }}">₹{{ item.line_total }}</span>
+                                </div>
+                            </div>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+
+            {# Right Column: Order Summary Card #}
+            <div class="col-lg-4">
+                <div class="ft-cart-card p-3 p-md-4 position-sticky" style="top: 1rem;">
+                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-receipt text-success"></i>
+                        <span>Order Summary</span>
+                    </h5>
+
+                    <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
+                        <span>Items Subtotal</span>
+                        <span class="fw-semibold text-dark">₹<span id="cart-subtotal">{{ cart_subtotal }}</span></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                        <span>Delivery</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Calculated at Checkout</span>
+                    </div>
+
+                    <div class="border-top pt-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <span class="fw-bold text-dark fs-6">Estimated Total</span>
+                            <span class="fw-black text-success fs-4">₹<span id="cart-total-display">{{ cart_subtotal }}</span></span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'orders:checkout' %}" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm py-2 py-md-3 mb-3 d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>Proceed to Checkout</span>
+                    </a>
+
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-3 text-muted extra-small">
+                            <span><i class="fa-solid fa-shield-halved text-success me-1"></i>Secure Pay</span>
+                            <span><i class="fa-solid fa-truck-fast text-primary me-1"></i>Fresh Delivery</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

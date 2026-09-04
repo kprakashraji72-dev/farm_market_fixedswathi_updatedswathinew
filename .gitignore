@@ -1,0 +1,38 @@
+
+# Environment variables & secrets (CRITICAL: NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+
+# Python & Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+incoming_whatsapp_messages.txt
+temp_img.jpg
+scratch_received_image.jpg
+
+# Media & static builds
+media/
+staticfiles/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+

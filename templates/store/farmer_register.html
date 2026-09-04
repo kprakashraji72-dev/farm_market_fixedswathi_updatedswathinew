@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Become a Farmer Partner{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 mt-4" style="border-top: 4px solid #c77a1a;">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-1" style="color:#c77a1a;"><i class="fa-solid fa-tractor"></i> Become a Farmer Partner</h3>
+                    <p class="text-center text-muted small mb-4">Sell your produce on Fresh Trace — an admin verifies your certificate before you can log in.</p>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3">Account details</h6>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Username</label>
+                                {{ form.username }}
+                                {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Email</label>
+                                {{ form.email }}
+                                {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% for e in form.phone_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Farm Address</label>
+                                {{ form.address }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Password</label>
+                                {{ form.password1 }}
+                                {% for e in form.password1.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Confirm Password</label>
+                                {{ form.password2 }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3"><i class="fa-solid fa-file-certificate"></i> ISO / Food Safety Certificate</h6>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Certificate Number (optional)</label>
+                                {{ form.iso_certificate_number }}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Upload ISO Certificate</label>
+                                {{ form.iso_certificate_document }}
+                                {% for e in form.iso_certificate_document.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Issue Date</label>
+                                {{ form.iso_issue_date }}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Expiry Date</label>
+                                {{ form.iso_expiry_date }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn w-100 mt-2 text-white" style="background:#c77a1a;">Submit Application</button>
+                    </form>
+                    <p class="text-center mt-3 mb-0">
+                        Already a partner? <a href="{% url 'accounts:farmer_login' %}">Farmer Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

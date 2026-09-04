@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Driver Login{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 mt-4 border-top border-4 border-primary">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-1"><i class="fa-solid fa-truck text-primary"></i> Driver Login</h3>
+                    <p class="text-center text-muted small mb-4">For delivery drivers only</p>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            {{ form.username }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            {{ form.password }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login &amp; Start Shift
+                        </button>
+                    </form>
+                    <p class="text-center mt-3 mb-0">
+                        <a href="{% url 'accounts:login' %}">Not a driver? Customer/Admin login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

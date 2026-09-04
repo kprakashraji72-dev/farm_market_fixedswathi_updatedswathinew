@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Farmer Dashboard | Fresh Trace{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'farmer_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Welcome Header Banner #}
+        <div class="ft-mgmt-hero amber d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-seedling"></i></div>
+                <div>
+                    <h2 class="mb-1">Welcome back, {{ request.user.first_name|default:request.user.username }}</h2>
+                    <p class="mb-0">Manage your farm profile, catalog produce, review harvest reports, and check compliance status.</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                {% if request.user.is_verified %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill shadow-sm fw-semibold">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i> Verified Grower
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-2 rounded-pill shadow-sm fw-semibold">
+                        <i class="fa-solid fa-clock text-warning me-1"></i> Verification Pending
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if not request.user.is_verified %}
+        <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-3">
+            <i class="fa-solid fa-triangle-exclamation fs-4 text-warning"></i>
+            <div>
+                <strong class="d-block">Account Verification in Progress</strong>
+                <span class="small text-muted">Your account is awaiting admin approval for your ISO certificate. You can continue configuring your farm and adding products — they will go live on the storefront immediately once approved.</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not farms %}
+        <div class="alert alert-info border-0 shadow-sm d-flex align-items-center justify-content-between gap-3 mb-4 rounded-3">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fa-solid fa-circle-info fs-4 text-info"></i>
+                <div>
+                    <strong class="d-block">Setup Your Farm Profile</strong>
+                    <span class="small text-muted">You have not created a farm profile yet. Add your farm details so customers can discover your fresh produce.</span>
+                </div>
+            </div>
+            <a href="{% url 'dashboard:farmer_farm_profile' %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                Create Farm Now
+            </a>
+        </div>
+        {% endif %}
+
+        {# 4 Modern Metric Cards #}
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 ft-stat-card">
+                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted extra-small text-uppercase fw-bold">My Farms</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1">{{ farms.count }}</h3>
+                        </div>
+                        <div class="ft-stat-icon-wrap bg-success-subtle text-success">
+                            <i class="fa-solid fa-tractor"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 ft-stat-card">
+                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted extra-small text-uppercase fw-bold">Total Products</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_products }}</h3>
+                        </div>
+                        <div class="ft-stat-icon-wrap bg-primary-subtle text-primary">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 ft-stat-card">
+                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted extra-small text-uppercase fw-bold">Active Live</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1">{{ active_products }}</h3>
+                        </div>
+                        <div class="ft-stat-icon-wrap bg-success-subtle text-success">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 ft-stat-card">
+                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted extra-small text-uppercase fw-bold">Low Stock (&le;5)</span>
+                            <h3 class="fw-bold text-dark mb-0 mt-1">{{ low_stock_products }}</h3>
+                        </div>
+                        <div class="ft-stat-icon-wrap bg-danger-subtle text-danger">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Farm & Compliance Grid #}
+        <div class="row g-4">
+            
+            {# Farm Card #}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-tractor text-success me-2"></i>My Farm Profile
+                        </h6>
+                        <a href="{% url 'dashboard:farmer_farm_profile' %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                            <i class="fa-solid fa-pen me-1"></i> Edit Profile
+                        </a>
+                    </div>
+                    <div class="card-body p-4">
+                        {% for farm in farms %}
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                {% if farm.cover_image %}
+                                    <img src="{{ farm.cover_image.url }}" class="rounded-3 shadow-sm" style="width:64px;height:64px;object-fit:cover;" alt="{{ farm.name }}">
+                                {% else %}
+                                    <div class="ft-avatar" style="width:64px;height:64px;font-size:1.5rem;"><i class="fa-solid fa-tractor"></i></div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-1">{{ farm.name }}</h5>
+                                    <p class="text-muted small mb-0"><i class="fa-solid fa-location-dot text-warning me-1"></i>{{ farm.location|default:"No location set" }}</p>
+                                </div>
+                            </div>
+                            <p class="text-muted small lh-base mb-3">{{ farm.description|default:"No farm description added yet."|truncatewords:25 }}</p>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'inventory:farm_detail' farm.slug %}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Public Page
+                                </a>
+                                <a href="{% url 'dashboard:farmer_products' %}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                    <i class="fa-solid fa-boxes-stacked me-1"></i> Manage Products
+                                </a>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4">
+                                <i class="fa-solid fa-tractor text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <h6 class="fw-bold text-dark">No Farm Profile Setup</h6>
+                                <p class="text-muted small mb-3">Create your farm profile to begin listing harvest crops.</p>
+                                <a href="{% url 'dashboard:farmer_farm_profile' %}" class="btn btn-sm btn-success rounded-pill px-4">
+                                    <i class="fa-solid fa-plus me-1"></i> Setup Farm
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {# ISO Certificate Card #}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-file-certificate text-warning me-2"></i>ISO Quality Certificate
+                        </h6>
+                        <a href="{% url 'accounts:farmer_documents' %}" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+                            <i class="fa-solid fa-upload me-1"></i> Manage Certificate
+                        </a>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if kyc.iso_certificate_document %}
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="p-3 bg-warning-subtle text-warning rounded-3 fs-3">
+                                    <i class="fa-solid fa-certificate"></i>
+                                </div>
+                                <div>
+                                    <span class="extra-small text-uppercase text-muted fw-bold d-block">Certificate Number</span>
+                                    <h6 class="fw-bold text-dark mb-1">{{ kyc.iso_certificate_number|default:"Uploaded Document" }}</h6>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        <i class="fa-solid fa-check"></i> Document on file
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-3">
+                                <i class="fa-solid fa-calendar-days text-muted me-1"></i> 
+                                Validity Expiry: <strong>{{ kyc.iso_expiry_date|default:"Not specified" }}</strong>
+                            </p>
+                            <a href="{{ kyc.iso_certificate_document.url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="fa-solid fa-file-pdf me-1"></i> View Uploaded File
+                            </a>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fa-solid fa-file-certificate text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <h6 class="fw-bold text-dark">ISO Certificate Not Uploaded</h6>
+                                <p class="text-muted small mb-3">Upload your ISO certification document so admins can verify and activate your store products.</p>
+                                <a href="{% url 'accounts:farmer_documents' %}" class="btn btn-sm btn-warning rounded-pill px-4 text-dark fw-semibold">
+                                    <i class="fa-solid fa-upload me-1"></i> Upload ISO Document
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

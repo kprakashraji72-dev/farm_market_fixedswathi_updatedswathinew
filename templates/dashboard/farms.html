@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Farm Management | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner with Add Farm Action #}
+        <div class="ft-mgmt-hero green d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-tractor"></i></div>
+                <div>
+                    <h2 class="mb-1">Farm Management</h2>
+                    <p class="mb-0">Add regional farms, assign grower accounts, manage storefront visibility, and monitor produce sources.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="d-flex gap-2">
+                    <div class="ft-mini-stat">
+                        <div class="num">{{ farms.count }}</div>
+                        <div class="label">Total Farms</div>
+                    </div>
+                    <div class="ft-mini-stat">
+                        <div class="num">{{ farms_active_count }}</div>
+                        <div class="label">Active</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-semibold text-white shadow-sm" id="toggleAddFarmBtn">
+                    <i class="fa-solid fa-circle-plus me-1"></i> Add New Farm
+                </button>
+            </div>
+        </div>
+
+        {# ============ LANDSCAPE FORMAT: ADD FARM FORM ============ #}
+        <div class="ft-landscape-form-card green {% if not form.errors %}d-none{% endif %} mb-4" id="addFarmCard">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Register New Farm (Landscape Format)</h5>
+                </div>
+                <button type="button" class="btn-close" id="closeAddFarmBtn" aria-label="Close form"></button>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {# Row 1 #}
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Farm Name <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {% for e in form.name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">Public name shown on storefront and product labels.</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Assign Grower / Farmer</label>
+                            {{ form.owner }}
+                            {% for e in form.owner.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">Select verified farmer or leave blank for Fresh Trace Direct.</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Location / Region</label>
+                            {{ form.location }}
+                            {% for e in form.location.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">E.g., "Coimbatore, Tamil Nadu".</div>
+                        </div>
+
+                        {# Row 2 #}
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Description &amp; Origin Story</label>
+                            {{ form.description }}
+                            {% for e in form.description.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Cover Image</label>
+                            {{ form.cover_image }}
+                            {% for e in form.cover_image.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">High-res landscape photo.</div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Video Tour URL</label>
+                            {{ form.video_url }}
+                            {% for e in form.video_url.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">YouTube / Vimeo embed link.</div>
+                        </div>
+
+                        {# Row 3: Actions #}
+                        <div class="col-12 d-flex flex-wrap align-items-center justify-content-between pt-3 border-top gap-3">
+                            <div class="form-check form-switch m-0">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-semibold small text-dark" for="{{ form.is_active.id_for_label }}">Active &amp; Visible on Catalog</label>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="cancelAddFarmBtn">Cancel</button>
+                                <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold">
+                                    <i class="fa-solid fa-plus me-1"></i> Save &amp; Add Farm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH REGISTERED FARMS DIRECTORY ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-list-check text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Registered Farms Directory</h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-2">{{ farms.count }} Total</span>
+                </div>
+                
+                <div class="d-flex align-items-center gap-2" style="max-width: 380px; width: 100%;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="farmSearchInput" class="form-control border-start-0" placeholder="Filter farms by name, location, owner...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="farmsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 220px;">Farm Name</th>
+                            <th style="min-width: 150px;">Location</th>
+                            <th style="min-width: 160px;">Grower / Owner</th>
+                            <th style="min-width: 110px;">Status</th>
+                            <th style="min-width: 160px;">Storefront</th>
+                            <th class="text-end" style="min-width: 110px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for farm in farms %}
+                        <tr class="farm-row">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if farm.cover_image %}
+                                        <img src="{{ farm.cover_image.url }}" class="rounded-circle shadow-sm flex-shrink-0" style="width:42px;height:42px;object-fit:cover;" alt="{{ farm.name }}">
+                                    {% else %}
+                                        <div class="ft-avatar flex-shrink-0" style="width:42px;height:42px;font-size:0.9rem;"><i class="fa-solid fa-tractor"></i></div>
+                                    {% endif %}
+                                    <div class="overflow-hidden">
+                                        <a href="{% url 'inventory:farm_detail' farm.slug %}" target="_blank" class="fw-bold text-dark text-decoration-none d-block text-truncate">
+                                            {{ farm.name }} <i class="fa-solid fa-arrow-up-right-from-square text-muted extra-small"></i>
+                                        </a>
+                                        <span class="badge bg-light text-muted border extra-small">{{ farm.products.count }} produce item{{ farm.products.count|pluralize }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-secondary small"><i class="fa-solid fa-location-dot text-muted me-1"></i>{{ farm.location|default:"—" }}</span>
+                            </td>
+                            <td>
+                                {% if farm.owner %}
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="small fw-semibold text-dark">{{ farm.owner.username }}</span>
+                                        {% if farm.owner.is_verified %}
+                                            <i class="fa-solid fa-circle-check text-success small" title="Verified Farmer"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-clock text-warning small" title="Pending KYC Verification"></i>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">Fresh Trace Direct</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if farm.is_active %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not farm.is_active %}
+                                    <span class="badge bg-secondary text-white">Hidden (Inactive)</span>
+                                {% elif farm.owner and not farm.owner.is_verified %}
+                                    <span class="badge bg-danger text-white" title="Products under this farm won't show to customers until the owner is verified">Hidden (Unverified)</span>
+                                    <a href="{% url 'dashboard:farmer_management' %}" class="extra-small d-block text-primary text-decoration-none mt-1">Verify Grower &rarr;</a>
+                                {% else %}
+                                    <span class="badge bg-success text-white"><i class="fa-solid fa-check"></i> Live Visible</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a href="{% url 'inventory:farm_detail' farm.slug %}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle" title="View Public Store Page">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'dashboard:farm_delete' farm.id %}" onsubmit="return confirm('Are you sure you want to delete \'{{ farm.name }}\'?');" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Delete Farm">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-tractor text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No farms registered yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAddFarmBtn');
+    const closeBtn = document.getElementById('closeAddFarmBtn');
+    const cancelBtn = document.getElementById('cancelAddFarmBtn');
+    const addCard = document.getElementById('addFarmCard');
+
+    function toggleForm() {
+        if (addCard.classList.contains('d-none')) {
+            addCard.classList.remove('d-none');
+            addCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            toggleBtn.innerHTML = '<i class="fa-solid fa-minus me-1"></i> Hide Form';
+        } else {
+            addCard.classList.add('d-none');
+            toggleBtn.innerHTML = '<i class="fa-solid fa-circle-plus me-1"></i> Add New Farm';
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleForm);
+    if (closeBtn) closeBtn.addEventListener('click', toggleForm);
+    if (cancelBtn) cancelBtn.addEventListener('click', toggleForm);
+
+    // Live filtering
+    const searchInput = document.getElementById('farmSearchInput');
+    const tableRows = document.querySelectorAll('.farm-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            tableRows.forEach(function(row) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+

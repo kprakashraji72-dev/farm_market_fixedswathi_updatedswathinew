@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Employee Management | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background-color: #f8fafc;">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner with Add Employee Action #}
+        <div class="ft-mgmt-hero teal d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <div>
+                    <h2 class="mb-1">Employee Management</h2>
+                    <p class="mb-0">Create in-store staff accounts and manage dashboard module access permissions.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="ft-mini-stat">
+                    <div class="num">{{ employees.count }}</div>
+                    <div class="label">Staff Accounts</div>
+                </div>
+                <button type="button" class="btn text-white rounded-pill px-4 py-2 fw-semibold shadow-sm" id="toggleAddEmpBtn" style="background-color: #0d9488; border-color: #0d9488;">
+                    <i class="fa-solid fa-user-plus me-1"></i> Add New Employee
+                </button>
+            </div>
+        </div>
+
+        {# ============ LANDSCAPE FORMAT: ADD EMPLOYEE FORM ============ #}
+        <div class="card border-0 shadow-sm rounded-4 {% if not form.errors %}d-none{% endif %} mb-4 overflow-hidden" id="addEmpCard" style="border-top: 4px solid #0d9488 !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-id-badge fs-5" style="color:#0d9488;"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Add New Staff Employee (Landscape Format)</h5>
+                </div>
+                <button type="button" class="btn-close" id="closeAddEmpBtn" aria-label="Close form"></button>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {# Row 1: Account Credentials #}
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Username <span class="text-danger">*</span></label>
+                            {{ form.username }}
+                            {% for e in form.username.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Email Address</label>
+                            {{ form.email }}
+                            {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% for e in form.phone_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">10-digit mobile number.</div>
+                        </div>
+
+                        {# Row 2: Passwords #}
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
+                            {{ form.password1 }}
+                            {% for e in form.password1.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">Minimum 8 characters.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Confirm Password <span class="text-danger">*</span></label>
+                            {{ form.password2 }}
+                            {% for e in form.password2.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Row 3: Dashboard Access Permissions (Landscape 4-Col Grid) #}
+                        <div class="col-12 pt-3 border-top">
+                            <h6 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-key me-1" style="color:#0d9488;"></i> Initial Dashboard Module Access</h6>
+                            <p class="text-muted small mb-3">Select the sections this staff member is allowed to view and manage. Permissions can be updated anytime.</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-orders">
+                                        <input type="checkbox" name="can_manage_orders" class="form-check-input mt-0" id="new-orders">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-clipboard-list me-1"></i>Orders</span>
+                                            <span class="extra-small text-muted">Process &amp; dispatch</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-inventory">
+                                        <input type="checkbox" name="can_manage_inventory" class="form-check-input mt-0" id="new-inventory">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-boxes-stacked me-1"></i>Inventory</span>
+                                            <span class="extra-small text-muted">Stock &amp; approvals</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-reports">
+                                        <input type="checkbox" name="can_view_reports" class="form-check-input mt-0" id="new-reports">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-chart-line me-1"></i>Reports</span>
+                                            <span class="extra-small text-muted">Revenue &amp; analytics</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-damage">
+                                        <input type="checkbox" name="can_report_damage" class="form-check-input mt-0" id="new-damage">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-magnifying-glass me-1"></i>Audit &amp; Damage</span>
+                                            <span class="extra-small text-muted">Report spoiled items</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Row 4: Submit Actions #}
+                        <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="cancelAddEmpBtn">Cancel</button>
+                            <button type="submit" class="btn rounded-pill px-4 fw-semibold text-white shadow-sm" style="background:linear-gradient(135deg,#14b8a6,#0d9488); border:none;">
+                                <i class="fa-solid fa-user-plus me-1"></i> Create Employee Account
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH EMPLOYEE DIRECTORY TABLE ============ #}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-users-gear fs-5" style="color:#0d9488;"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Staff Directory &amp; Permissions</h5>
+                    <span class="badge bg-teal-soft rounded-pill ms-2">{{ employees.count }} Total</span>
+                </div>
+
+                <form method="get" class="d-flex gap-2" style="max-width: 380px; width: 100%;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search employee username, email...">
+                    </div>
+                    {% if query %}<a href="{% url 'dashboard:employee_management' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 180px;" class="ps-3">Employee</th>
+                            <th style="min-width: 200px;">Contact Info</th>
+                            <th style="min-width: 480px;" class="pe-3">Dashboard Module Access</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in employees %}
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ft-avatar-sm" style="background:linear-gradient(135deg,#14b8a6,#0d9488);">
+                                        {{ u.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-dark d-block">{{ u.username }}</span>
+                                        <span class="badge bg-light text-muted border extra-small">Staff</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div class="text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i>{{ u.email|default:"—" }}</div>
+                                    <div class="text-muted extra-small"><i class="fa-solid fa-phone text-muted me-1"></i>{{ u.phone_number|default:"—" }}</div>
+                                </div>
+                            </td>
+                            <td class="pe-3">
+                                <form method="post" action="{% url 'dashboard:employee_permissions_update' u.id %}">
+                                    {% csrf_token %}
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        <label class="ft-perm-chip" for="orders-{{ u.id }}">
+                                            <input type="checkbox" name="can_manage_orders" class="form-check-input mt-0"
+                                                id="orders-{{ u.id }}" {% if u.employee_permission.can_manage_orders %}checked{% endif %}>
+                                            <span><i class="fa-solid fa-clipboard-list me-1"></i>Orders</span>
+                                        </label>
+
+                                        <label class="ft-perm-chip" for="inv-{{ u.id }}">
+                                            <input type="checkbox" name="can_manage_inventory" class="form-check-input mt-0"
+                                                id="inv-{{ u.id }}" {% if u.employee_permission.can_manage_inventory %}checked{% endif %}>
+                                            <span><i class="fa-solid fa-boxes-stacked me-1"></i>Inventory</span>
+                                        </label>
+
+                                        <label class="ft-perm-chip" for="rep-{{ u.id }}">
+                                            <input type="checkbox" name="can_view_reports" class="form-check-input mt-0"
+                                                id="rep-{{ u.id }}" {% if u.employee_permission.can_view_reports %}checked{% endif %}>
+                                            <span><i class="fa-solid fa-chart-line me-1"></i>Reports</span>
+                                        </label>
+
+                                        <label class="ft-perm-chip" for="dmg-{{ u.id }}">
+                                            <input type="checkbox" name="can_report_damage" class="form-check-input mt-0"
+                                                id="dmg-{{ u.id }}" {% if u.employee_permission.can_report_damage %}checked{% endif %}>
+                                            <span><i class="fa-solid fa-magnifying-glass me-1"></i>Damage</span>
+                                        </label>
+
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 extra-small fw-bold">
+                                            Save
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-user-plus text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No employee accounts created yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAddEmpBtn');
+    const closeBtn = document.getElementById('closeAddEmpBtn');
+    const cancelBtn = document.getElementById('cancelAddEmpBtn');
+    const addCard = document.getElementById('addEmpCard');
+
+    function toggleForm() {
+        if (!addCard) return;
+        addCard.classList.toggle('d-none');
+        if (!addCard.classList.contains('d-none')) {
+            addCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleForm);
+    if (closeBtn) closeBtn.addEventListener('click', toggleForm);
+    if (cancelBtn) cancelBtn.addEventListener('click', toggleForm);
+});
+</script>
+{% endblock %}
+

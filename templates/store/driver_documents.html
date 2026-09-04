@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Driver Documents &amp; KYC | Fresh Trace{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background-color: #f8fafc;">
+    {% include 'driver_sidebar.html' %}
+
+    <div class="flex-grow-1" style="min-width: 0; max-width: 100%; overflow-x: hidden;">
+
+        {# ── Sticky Mobile Top Navigation Bar ── #}
+        <div class="ft-mobile-topbar d-flex d-lg-none align-items-center justify-content-between gap-2 mb-3 bg-white p-2 px-3 border-bottom shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-1 fw-bold shadow-sm"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#driverSidebar"
+                        aria-controls="driverSidebar"
+                        aria-label="Open driver menu">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Menu</span>
+                </button>
+                {# Quick Links Dropdown #}
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm rounded-pill border shadow-sm dropdown-toggle fw-semibold text-dark px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-compass text-primary me-1"></i> Links
+                    </button>
+                    <ul class="dropdown-menu shadow-lg rounded-4 p-2 border-0" style="min-width: 220px; z-index: 1060;">
+                        <li><h6 class="dropdown-header text-uppercase extra-small fw-bold text-primary"><i class="fa-solid fa-truck-fast me-1"></i> Driver Fleet</h6></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'tracking:driver_dashboard' %}"><i class="fa-solid fa-truck-ramp-box text-primary me-2"></i> Deliveries Console</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'accounts:driver_documents' %}"><i class="fa-solid fa-id-card text-success me-2"></i> Documents &amp; KYC</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'accounts:profile' %}"><i class="fa-solid fa-user-gear text-info me-2"></i> Driver Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'store:home' %}" target="_blank"><i class="fa-solid fa-store text-warning me-2"></i> Public Store</a></li>
+                        <li>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item rounded-3 py-2 text-danger fw-semibold"><i class="fa-solid fa-right-from-bracket me-2"></i> Log Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 px-sm-3 py-2 fw-bold">
+                <i class="fa-solid fa-id-card me-1"></i>KYC &amp; Docs
+            </span>
+            <a href="{% url 'tracking:driver_dashboard' %}" class="btn btn-light btn-sm rounded-circle border shadow-sm flex-shrink-0" title="Back to Fleet">
+                <i class="fa-solid fa-house text-muted"></i>
+            </a>
+        </div>
+
+        <div class="p-3 p-md-4 pb-5 mb-4 pb-lg-3 mb-lg-0">
+
+        {# Management Hero Banner #}
+        <div class="ft-mgmt-hero blue d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <div>
+                    <h2 class="mb-1">Driver Documents &amp; Compliance</h2>
+                    <p class="mb-0">Upload your government ID, driving license, vehicle registration, and monitor annual renewal dues.</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                {% if request.user.is_verified %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill shadow-sm fw-semibold">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i> Verified Driver
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-2 rounded-pill shadow-sm fw-semibold">
+                        <i class="fa-solid fa-clock text-warning me-1"></i> Verification Pending
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if kyc.is_renewal_due_soon %}
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center gap-3">
+            <i class="fa-solid fa-triangle-exclamation fs-4 text-warning"></i>
+            <div>
+                <strong>Renewal Reminder</strong>
+                <p class="mb-0 small">Your driver license or vehicle registration renewal is due on <strong>{{ kyc.renewal_due_date }}</strong>. Please renew and update your document copies below.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Form Card #}
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border-top: 4px solid #3b82f6 !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-file-shield text-primary me-2"></i>KYC Document Verification Form</h5>
+                <span class="badge bg-light text-muted border rounded-pill">Secure Upload</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-3"><i class="fa-solid fa-id-card-clip text-primary me-1"></i> 1. Government Identity &amp; Age Verification</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">
+                                Date of Birth
+                                {% if kyc.age %}<span class="badge bg-primary-subtle text-primary ms-1">Age: {{ kyc.age }} yrs</span>{% endif %}
+                            </label>
+                            {{ form.date_of_birth }}
+                            {% for e in form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Aadhar Card Number</label>
+                            {{ form.aadhar_number }}
+                            {% for e in form.aadhar_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">
+                                Aadhar Document (PDF/Image)
+                                {% if kyc.aadhar_document %}
+                                    <a href="{{ kyc.aadhar_document.url }}" target="_blank" class="small text-primary ms-1"><i class="fa-solid fa-file-lines"></i> View Current</a>
+                                {% endif %}
+                            </label>
+                            {{ form.aadhar_document }}
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-3 border-top pt-3"><i class="fa-solid fa-address-card text-primary me-1"></i> 2. Commercial Driving License</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">License Number</label>
+                            {{ form.license_number }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">
+                                License File Copy
+                                {% if kyc.license_document %}
+                                    <a href="{{ kyc.license_document.url }}" target="_blank" class="small text-primary ms-1"><i class="fa-solid fa-file-lines"></i> View Current</a>
+                                {% endif %}
+                            </label>
+                            {{ form.license_document }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Expiry Date</label>
+                            {{ form.license_expiry_date }}
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-3 border-top pt-3"><i class="fa-solid fa-truck text-primary me-1"></i> 3. Delivery Vehicle &amp; RC</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Vehicle Registration Number</label>
+                            {{ form.vehicle_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">
+                                RC Book / Document Copy
+                                {% if kyc.vehicle_document %}
+                                    <a href="{{ kyc.vehicle_document.url }}" target="_blank" class="small text-primary ms-1"><i class="fa-solid fa-file-lines"></i> View Current</a>
+                                {% endif %}
+                            </label>
+                            {{ form.vehicle_document }}
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-3 border-top pt-3"><i class="fa-solid fa-calendar-check text-primary me-1"></i> 4. Annual Renewal &amp; Fees</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Renewal Fee Amount (₹)</label>
+                            {{ form.renewal_amount }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Next Renewal Due Date</label>
+                            {{ form.renewal_due_date }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'tracking:driver_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Save &amp; Submit Documents
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        </div>{# /inner padding div #}
+    </div>{# /flex-grow-1 #}
+</div>{# /d-flex #}
+{% endblock %}

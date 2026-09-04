@@ -1,0 +1,456 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Inventory & Produce Catalog | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner with Add Product Action #}
+        <div class="ft-mgmt-hero green d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div>
+                    <h2 class="mb-1">Inventory Management</h2>
+                    <p class="mb-0">Manage catalogue produce, adjust live warehouse stock, review farmer submissions, and set retail prices.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="d-flex gap-2">
+                    <div class="ft-mini-stat">
+                        <div class="num">{{ products.count }}</div>
+                        <div class="label">Total Products</div>
+                    </div>
+                    {% if pending_count %}
+                    <div class="ft-mini-stat" style="background:rgba(234,179,8,0.3); border-color:rgba(234,179,8,0.5);">
+                        <div class="num">{{ pending_count }}</div>
+                        <div class="label">Pending Approval</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-success text-white rounded-pill px-4 py-2 fw-semibold shadow-sm" id="toggleAddProductBtn">
+                    <i class="fa-solid fa-circle-plus me-1"></i> Add New Product
+                </button>
+            </div>
+        </div>
+
+        {# ============ LANDSCAPE FORMAT: ADD PRODUCT FORM ============ #}
+        <div class="ft-landscape-form-card green {% if not form.errors %}d-none{% endif %} mb-4" id="addProductCard">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Add New Produce Item (Landscape Format)</h5>
+                </div>
+                <button type="button" class="btn-close" id="closeAddProductBtn" aria-label="Close form"></button>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {# Row 1 #}
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Origin Farm <span class="text-danger">*</span></label>
+                            {{ form.farm }}
+                            {% for e in form.farm.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Produce Category <span class="text-danger">*</span></label>
+                            {{ form.category }}
+                            {% for e in form.category.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Product Name <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {% for e in form.name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Row 2 #}
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Store Retail Price ($) <span class="text-danger">*</span></label>
+                            {{ form.price }}
+                            {% for e in form.price.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Unit <span class="text-danger">*</span></label>
+                            {{ form.unit }}
+                            {% for e in form.unit.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Initial Stock</label>
+                            {{ form.stock_quantity }}
+                            {% for e in form.stock_quantity.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Product Photo</label>
+                            {{ form.image }}
+                            {% for e in form.image.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Row 3 #}
+                        <div class="col-12 col-md-8">
+                            <label class="form-label fw-semibold small text-dark">Produce Description</label>
+                            {{ form.description }}
+                            {% for e in form.description.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4 d-flex flex-column justify-content-end">
+                            <div class="form-check form-switch mb-3">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-semibold small text-dark" for="{{ form.is_active.id_for_label }}">Active &amp; Ready for Sale</label>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-3" id="cancelAddProductBtn">Cancel</button>
+                                <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold w-100">
+                                    <i class="fa-solid fa-plus me-1"></i> Add Produce
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH INVENTORY DIRECTORY TABLE ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-boxes-stacked text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Produce Inventory Directory</h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-2">{{ products.count }} Items</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    {% if pending_count %}
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                        <i class="fa-solid fa-clock me-1"></i> {{ pending_count }} Pending Admin Approval
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 200px;">Produce Name</th>
+                            <th style="min-width: 140px;">Origin Farm</th>
+                            <th style="min-width: 130px;">Price</th>
+                            <th style="min-width: 180px;">Live Stock</th>
+                            <th style="min-width: 100px;">Active</th>
+                            <th style="min-width: 220px;">Review &amp; Approval</th>
+                            <th style="min-width: 110px;">Store Status</th>
+                            <th style="min-width: 90px;">Sizes</th>
+                            <th class="text-end" style="min-width: 60px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" class="rounded-3 shadow-sm flex-shrink-0" style="width:40px;height:40px;object-fit:cover;" alt="{{ product.name }}">
+                                    {% else %}
+                                        <div class="ft-avatar flex-shrink-0" style="width:40px;height:40px;font-size:0.9rem;"><i class="fa-solid fa-carrot"></i></div>
+                                    {% endif %}
+                                    <div class="overflow-hidden">
+                                        <a href="{{ product.get_absolute_url }}" target="_blank" class="fw-bold text-dark text-decoration-none d-block text-truncate">
+                                            {{ product.name }}
+                                        </a>
+                                        <span class="badge bg-light text-muted border extra-small">{{ product.category.name|default:"General" }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="small text-muted"><i class="fa-solid fa-tractor text-success me-1"></i>{{ product.farm.name }}</span>
+                            </td>
+                            <td>
+                                {% if product.has_variants %}
+                                    <div class="d-flex flex-column gap-1">
+                                        {% for v in product.variants.all %}
+                                        <div class="d-flex align-items-center justify-content-between gap-1 extra-small">
+                                            <span class="badge bg-light text-dark border">{{ v.label }}</span>
+                                            <span class="fw-bold text-success">₹{{ v.price }}</span>
+                                        </div>
+                                        {% endfor %}
+                                        <a href="{% url 'dashboard:product_variants' product.id %}" class="extra-small text-decoration-none text-primary mt-0.5">
+                                            <i class="fa-solid fa-gear me-0.5"></i> Edit Sizes
+                                        </a>
+                                    </div>
+                                {% elif product.is_approved %}
+                                    <span class="fw-bold text-success">₹{{ product.price }} <small class="text-muted fw-normal">/{{ product.unit }}</small></span>
+                                {% else %}
+                                    <div class="small">
+                                        <div class="text-muted extra-small">Quoted: ₹{{ product.cost_price|default:"—" }}{% if product.bulk_quantity > 1 %} (lot of {{ product.bulk_quantity }}){% endif %}</div>
+                                        {% if product.farmer_unit_cost %}<div class="fw-semibold text-dark">≈₹{{ product.farmer_unit_cost|floatformat:2 }}/unit</div>{% endif %}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.has_variants %}
+                                    <div class="d-flex flex-column gap-1">
+                                        {% for v in product.variants.all %}
+                                        <div class="d-flex align-items-center gap-1 extra-small py-0.5">
+                                            <span class="text-muted" style="min-width: 34px;">{{ v.label }}:</span>
+                                            <span class="fw-bold text-dark text-center" style="min-width:1.5rem;">{{ v.stock_quantity }}</span>
+                                            <form method="post" action="{% url 'dashboard:product_variant_adjust_stock' product.id v.id %}" class="d-flex gap-0.5">
+                                                {% csrf_token %}
+                                                <input type="number" name="amount" min="1" value="1" class="form-control form-control-sm py-0 px-1 text-center" style="width:36px; height:22px; font-size:11px;">
+                                                <button type="submit" name="action" value="add" class="btn btn-sm btn-outline-success py-0 px-1" style="height:22px; line-height:1;" title="Add Stock">
+                                                    <i class="fa-solid fa-plus" style="font-size:10px;"></i>
+                                                </button>
+                                                <button type="submit" name="action" value="remove" class="btn btn-sm btn-outline-danger py-0 px-1" style="height:22px; line-height:1;" title="Deduct Stock">
+                                                    <i class="fa-solid fa-minus" style="font-size:10px;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold text-dark text-center" style="min-width:2rem;">{{ product.stock_quantity }}</span>
+                                    <form method="post" action="{% url 'dashboard:product_adjust_stock' product.id %}" class="d-flex gap-1">
+                                        {% csrf_token %}
+                                        <input type="number" name="amount" min="1" value="1" class="form-control form-control-sm py-0 px-1 text-center" style="width:48px;">
+                                        <button type="submit" name="action" value="add" class="btn btn-sm btn-outline-success py-0 px-2" title="Add Stock">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                        <button type="submit" name="action" value="remove" class="btn btn-sm btn-outline-danger py-0 px-2" title="Deduct Stock">
+                                            <i class="fa-solid fa-minus"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'dashboard:product_toggle_active' product.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm rounded-pill px-2 py-0 extra-small fw-semibold {% if product.is_active %}btn-outline-success{% else %}btn-outline-secondary{% endif %}">
+                                        {% if product.is_active %}<i class="fa-solid fa-circle-check"></i> Active{% else %}Inactive{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                {% if product.is_approved %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-check me-1"></i>Approved</span>
+                                    <form method="post" action="{% url 'dashboard:product_toggle_approved' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-link text-muted extra-small p-0">Revoke</button>
+                                    </form>
+                                </div>
+                                {% elif product.rejected_at %}
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle align-self-start"><i class="fa-solid fa-ban me-1"></i>Rejected</span>
+                                    {% if product.rejection_reason %}
+                                    <span class="extra-small text-muted text-truncate" style="max-width:180px;">"{{ product.rejection_reason }}"</span>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'dashboard:product_reconsider' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2 extra-small">Reconsider</button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle align-self-start"><i class="fa-solid fa-clock me-1"></i>Pending Price</span>
+                                    <form method="post" action="{% url 'dashboard:product_toggle_approved' product.id %}" class="d-flex gap-1">
+                                        {% csrf_token %}
+                                        <input type="number" name="price" step="0.01" min="0.01"
+                                               placeholder="Price $"
+                                               value="{% if product.farmer_unit_cost %}{{ product.farmer_unit_cost|floatformat:2 }}{% endif %}"
+                                               class="form-control form-control-sm py-0 px-1" style="width:75px;" required>
+                                        <button type="submit" class="btn btn-sm btn-success py-0 px-2 extra-small fw-semibold" title="Approve & Publish">
+                                            Approve
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not product.is_active %}
+                                    <span class="badge bg-secondary text-white extra-small">Hidden (Inactive)</span>
+                                {% elif not product.is_approved %}
+                                    <span class="badge bg-warning text-dark extra-small">Hidden (Pending)</span>
+                                {% elif product.farm.owner and not product.farm.owner.is_verified %}
+                                    <span class="badge bg-danger text-white extra-small" title="Farm owner is not verified">Hidden (Unverified)</span>
+                                {% elif not product.farm.is_active %}
+                                    <span class="badge bg-secondary text-white extra-small">Hidden (Farm Off)</span>
+                                {% else %}
+                                    <span class="badge bg-success text-white extra-small"><i class="fa-solid fa-check"></i> Live</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'dashboard:product_variants' product.id %}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 extra-small text-nowrap">
+                                    <i class="fa-solid fa-sliders me-1"></i>{{ product.variants.count }}
+                                </a>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                {# Edit / Reassign Button #}
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-circle py-1 px-2 me-1" title="Edit &amp; Reassign Produce" data-bs-toggle="modal" data-bs-target="#editProductModal{{ product.id }}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+
+                                <form method="post" action="{% url 'dashboard:product_delete' product.id %}" onsubmit="return confirm('Delete \'{{ product.name }}\'?');" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle py-1 px-2" title="Delete Produce">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+
+                                {# ============ REASSIGN & EDIT PRODUCT MODAL ============ #}
+                                <div class="modal fade" id="editProductModal{{ product.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ product.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content rounded-4 border-0 shadow">
+                                            <div class="modal-header border-bottom py-3">
+                                                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="editModalLabel{{ product.id }}">
+                                                    <i class="fa-solid fa-pen-to-square text-success"></i>
+                                                    <span>Edit &amp; Reassign: {{ product.name }}</span>
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="post" action="{% url 'dashboard:product_edit' product.id %}" enctype="multipart/form-data">
+                                                {% csrf_token %}
+                                                <div class="modal-body p-4 text-start">
+                                                    <div class="row g-3">
+                                                        {# Reassign Farm #}
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small text-dark">Origin Farm (Reassign)</label>
+                                                            <select name="farm" class="form-select" required>
+                                                                {% for f in farms %}
+                                                                    <option value="{{ f.id }}" {% if product.farm_id == f.id %}selected{% endif %}>{{ f.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                            <div class="form-text small">Select the grower farm supplying this produce.</div>
+                                                        </div>
+
+                                                        {# Reassign Category #}
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small text-dark">Produce Category (Reassign)</label>
+                                                            <select name="category" class="form-select">
+                                                                <option value="">-- No Category --</option>
+                                                                {% for c in categories %}
+                                                                    <option value="{{ c.id }}" {% if product.category_id == c.id %}selected{% endif %}>{{ c.name|title }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+
+                                                        {# Product Name #}
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small text-dark">Produce Name</label>
+                                                            <input type="text" name="name" value="{{ product.name }}" class="form-control" required>
+                                                        </div>
+
+                                                        {# Store Retail Price #}
+                                                        <div class="col-md-3">
+                                                            <label class="form-label fw-semibold small text-dark">Price (₹)</label>
+                                                            <input type="number" name="price" value="{{ product.price }}" step="0.01" min="0.01" class="form-control" required>
+                                                        </div>
+
+                                                        {# Unit Choice #}
+                                                        <div class="col-md-3">
+                                                            <label class="form-label fw-semibold small text-dark">Selling Unit</label>
+                                                            <select name="unit" class="form-select" required>
+                                                                {% for code, label in unit_choices %}
+                                                                    <option value="{{ code }}" {% if product.unit == code %}selected{% endif %}>{{ label }} ({{ code }})</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+
+                                                        {# Stock Quantity #}
+                                                        <div class="col-md-4">
+                                                            <label class="form-label fw-semibold small text-dark">Live Stock Quantity</label>
+                                                            <input type="number" name="stock_quantity" value="{{ product.stock_quantity }}" min="0" class="form-control" required>
+                                                        </div>
+
+                                                        {# Image Update #}
+                                                        <div class="col-md-8">
+                                                            <label class="form-label fw-semibold small text-dark">Produce Photo (Replace)</label>
+                                                            <input type="file" name="image" class="form-control">
+                                                            {% if product.image %}
+                                                                <small class="text-muted">Current: <a href="{{ product.image.url }}" target="_blank">View Image</a></small>
+                                                            {% endif %}
+                                                        </div>
+
+                                                        {# Description #}
+                                                        <div class="col-12">
+                                                            <label class="form-label fw-semibold small text-dark">Produce Description</label>
+                                                            <textarea name="description" rows="2" class="form-control">{{ product.description }}</textarea>
+                                                        </div>
+
+                                                        {# Active Toggle #}
+                                                        <div class="col-12">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" name="is_active" id="modalActive{{ product.id }}" {% if product.is_active %}checked{% endif %}>
+                                                                <label class="form-check-label fw-semibold small text-dark" for="modalActive{{ product.id }}">
+                                                                    Active &amp; Visible on Customer Storefront
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-top py-2.5">
+                                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold">
+                                                        <i class="fa-solid fa-floppy-disk me-1"></i> Save &amp; Reassign
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-boxes-stacked text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No produce items in inventory.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAddProductBtn');
+    const closeBtn = document.getElementById('closeAddProductBtn');
+    const cancelBtn = document.getElementById('cancelAddProductBtn');
+    const addCard = document.getElementById('addProductCard');
+
+    function toggleForm() {
+        if (addCard.classList.contains('d-none')) {
+            addCard.classList.remove('d-none');
+            addCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            toggleBtn.innerHTML = '<i class="fa-solid fa-minus me-1"></i> Hide Form';
+        } else {
+            addCard.classList.add('d-none');
+            toggleBtn.innerHTML = '<i class="fa-solid fa-circle-plus me-1"></i> Add New Product';
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleForm);
+    if (closeBtn) closeBtn.addEventListener('click', toggleForm);
+    if (cancelBtn) cancelBtn.addEventListener('click', toggleForm);
+});
+</script>
+{% endblock %}

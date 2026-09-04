@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}My Report{% endblock %}
+{% block content %}
+<div class="d-flex">
+    {% include 'farmer_sidebar.html' %}
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <div>
+                <h3 class="fw-bold mb-1 text-dark">Harvest &amp; Stock Report</h3>
+                <p class="text-muted small mb-0">Showing inventory data for <strong>{{ period_start|date:"F Y" }}</strong></p>
+            </div>
+            <form method="get" class="d-flex align-items-center gap-2">
+                <input type="month" name="month" value="{{ month_param }}" class="form-control form-control-sm rounded-pill px-3" style="width:170px;" onchange="this.form.submit()">
+                <button class="btn btn-sm btn-success rounded-pill px-3">Filter</button>
+            </form>
+        </div>
+
+        {% if not farm %}
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4">
+            Set up your <a href="{% url 'dashboard:farmer_farm_profile' %}" class="fw-bold text-dark">farm profile</a> first to view your harvest report.
+        </div>
+        {% else %}
+
+        {# Small Compact Metric Stat Boxes #}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 bg-white p-3 h-100" style="border: 1px solid #e2ece5 !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">Products Added</span>
+                            <h4 class="fw-bold text-dark mb-0 mt-1">{{ products_added_this_month }}</h4>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary" style="width: 38px; height: 38px; font-size: 1rem;">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 bg-white p-3 h-100" style="border: 1px solid #e2ece5 !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">Units Damaged</span>
+                            <h4 class="fw-bold text-danger mb-0 mt-1">{{ total_damaged }}</h4>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center rounded-3 bg-danger-subtle text-danger" style="width: 38px; height: 38px; font-size: 1rem;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 bg-white p-3 h-100" style="border: 1px solid #e2ece5 !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total In-Stock</span>
+                            <h4 class="fw-bold text-dark mb-0 mt-1">{{ total_stock_quantity|default:0 }}</h4>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center rounded-3 bg-info-subtle text-info" style="width: 38px; height: 38px; font-size: 1rem;">
+                            <i class="fa-solid fa-warehouse"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 bg-white p-3 h-100" style="border: 1px solid #e2ece5 !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.72rem; letter-spacing: 0.5px;">Est. Revenue</span>
+                            {% if has_cost_prices %}
+                            <h4 class="fw-bold text-success mb-0 mt-1">₹{{ total_revenue }}</h4>
+                            {% else %}
+                            <h4 class="fw-bold text-muted mb-0 mt-1">—</h4>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success" style="width: 38px; height: 38px; font-size: 1rem;">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-muted small">
+            Revenue is calculated from your own quoted price and the stock quantity you entered on each product —
+            it isn't linked to actual customer orders, the store price, or the admin/customer side of the app.
+        </p>
+
+        <table class="table bg-white shadow-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Added this month</th>
+                    <th>Your Stock</th>
+                    <th>Revenue</th>
+                    <th>Damaged</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.product.name }}</td>
+                    <td>
+                        {% if row.added_this_month %}
+                        <span class="badge bg-info text-dark">New</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.stock_quantity }}</td>
+                    <td>
+                        ₹{{ row.revenue }}
+                        {% if row.product.rejected_at %}
+                        <div class="small text-danger">Rejected — not counted</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.damaged_qty %}
+                        <span class="text-danger">{{ row.damaged_qty }}</span>
+                        {% else %}
+                        0
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted">No products yet.</td></tr>
+                {% endfor %}
+            </tbody>
+            {% if rows %}
+            <tfoot>
+                <tr class="fw-semibold">
+                    <td colspan="2">Total</td>
+                    <td>{{ total_stock_quantity }}</td>
+                    <td>₹{{ total_revenue }}</td>
+                    <td>{{ total_damaged }}</td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

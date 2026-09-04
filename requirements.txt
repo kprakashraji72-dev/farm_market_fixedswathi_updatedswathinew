@@ -1,0 +1,14 @@
+Django>=5.0,<6.0
+Pillow>=10.0
+psycopg2-binary>=2.9   # PostgreSQL driver (production)
+python-decouple>=3.8   # environment variable management
+gunicorn>=21.2          # production WSGI server (Render start command)
+whitenoise>=6.6         # serves static files in production without needing Nginx
+dj-database-url>=2.1    # parses Render's DATABASE_URL into Django's DATABASES format
+channels>=4.0.0         # Django Channels for WebSocket handling
+daphne>=4.0.0           # ASGI server for WebSockets and HTTP
+transformers>=4.40
+torch>=2.2
+PyMuPDF>=1.24
+requests>=2.31
+cryptography>=42.0.0

@@ -1,0 +1,223 @@
+{% comment %}
+Admin / Staff Console Sidebar Component.
+Light, modern, sticky-docked (100vh) on desktop; smooth slide-out drawer on mobile.
+Themed with role-specific accents:
+- Admin: Indigo/Purple badge & active pill
+- Staff/Employee: Teal badge & active pill
+{% endcomment %}
+<aside class="ft-sidebar {% if request.user.is_admin_role %}ft-sidebar-admin{% else %}ft-sidebar-employee{% endif %}" id="dashboardSidebar">
+    
+    {# Mobile Close Button Header #}
+    <div class="d-lg-none d-flex align-items-center justify-content-between p-3 border-bottom bg-light">
+        <span class="fw-bold small text-uppercase tracking-wide text-muted">Navigation Menu</span>
+        <button type="button" class="btn-close ft-sidebar-close" aria-label="Close sidebar"></button>
+    </div>
+
+    {# Sidebar Brand / Console Header #}
+    <div class="ft-sidebar-brand-wrap">
+        <a href="{% url 'dashboard:home' %}" class="d-flex align-items-center text-decoration-none ft-sidebar-brand">
+            {% if request.user.is_admin_role %}
+            <div class="ft-sidebar-icon-badge admin-badge me-2">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <span class="fs-6 fw-bold d-block lh-1 text-dark">Fresh Trace</span>
+                <span class="ft-badge-role admin">ADMIN CONSOLE</span>
+            </div>
+            {% else %}
+            <div class="ft-sidebar-icon-badge employee-badge me-2">
+                <i class="fa-solid fa-id-badge"></i>
+            </div>
+            <div>
+                <span class="fs-6 fw-bold d-block lh-1 text-dark">Fresh Trace</span>
+                <span class="ft-badge-role employee">STAFF CONSOLE</span>
+            </div>
+            {% endif %}
+        </a>
+    </div>
+
+    {# Navigation List #}
+    <div class="ft-sidebar-scroll-body flex-grow-1 p-3">
+        
+        {# Section 1: Dashboard Overview #}
+        <div class="ft-sidebar-section-title">Overview</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'dashboard:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <i class="fa-solid fa-gauge me-2"></i>Dashboard
+                </a>
+            </li>
+        </ul>
+
+        {# Section 2: User & Partner Management (Admin Only) #}
+        {% if request.user.is_admin_role %}
+        <div class="ft-sidebar-section-title">User &amp; Partners</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'dashboard:user_management' %}" class="nav-link {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+                    <i class="fa-solid fa-users me-2"></i>Customers &amp; Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:driver_management' %}" class="nav-link {% if request.resolver_match.url_name == 'driver_management' %}active{% endif %}">
+                    <i class="fa-solid fa-truck me-2"></i>Delivery Drivers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:farmer_management' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_management' %}active{% endif %}">
+                    <i class="fa-solid fa-seedling me-2"></i>Farmer Partners
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:employee_management' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_management' or request.resolver_match.url_name == 'employee_create' %}active{% endif %}">
+                    <i class="fa-solid fa-user-plus me-2"></i>Staff Employees
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        {# Section 3: Catalog & Inventory #}
+        {% if request.user.is_admin_role or request.user.employee_permission.can_manage_inventory or request.user.employee_permission.can_report_damage %}
+        <div class="ft-sidebar-section-title">Catalog &amp; Inventory</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            {% if request.user.is_admin_role %}
+            <li class="nav-item">
+                <a href="{% url 'dashboard:inventory_farms' %}" class="nav-link {% if request.resolver_match.url_name == 'inventory_farms' %}active{% endif %}">
+                    <i class="fa-solid fa-tractor me-2"></i>Farms
+                </a>
+            </li>
+            {% endif %}
+
+            {% if request.user.is_admin_role or request.user.employee_permission.can_manage_inventory %}
+            <li class="nav-item">
+                <a href="{% url 'dashboard:inventory_categories' %}" class="nav-link {% if request.resolver_match.url_name == 'inventory_categories' %}active{% endif %}">
+                    <i class="fa-solid fa-tags me-2"></i>Categories
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:inventory_products' %}" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'inventory_products' or request.resolver_match.url_name == 'product_variants' %}active{% endif %}">
+                    <div>
+                        <i class="fa-solid fa-boxes-stacked me-2"></i>Inventory
+                    </div>
+                    {% if sidebar_pending_product_approvals %}
+                        <span class="badge bg-warning text-dark rounded-pill">{{ sidebar_pending_product_approvals }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:damage_review' %}" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'damage_review' %}active{% endif %}">
+                    <div>
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>Damage Review
+                    </div>
+                    {% if sidebar_pending_damage_reviews %}
+                        <span class="badge bg-danger rounded-pill">{{ sidebar_pending_damage_reviews }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endif %}
+
+            {% if request.user.is_admin_role or request.user.employee_permission.can_report_damage %}
+            <li class="nav-item">
+                <a href="{% url 'dashboard:employee_audit' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_audit' %}active{% endif %}">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i>Audit Products
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        {% endif %}
+
+        {# Section 4: Logistics & Orders #}
+        {% if request.user.is_admin_role or request.user.employee_permission.can_manage_orders or request.user.employee_permission.can_view_reports %}
+        <div class="ft-sidebar-section-title">Logistics &amp; Reports</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            {% if request.user.is_admin_role or request.user.employee_permission.can_manage_orders %}
+            <li class="nav-item">
+                <a href="{% url 'dashboard:order_management' %}" class="nav-link {% if request.resolver_match.url_name == 'order_management' %}active{% endif %}">
+                    <i class="fa-solid fa-clipboard-list me-2"></i>Orders
+                </a>
+            </li>
+            {% endif %}
+
+            {% if request.user.is_admin_role %}
+            <li class="nav-item">
+                <a href="{% url 'dashboard:tracking_overview' %}" class="nav-link {% if request.resolver_match.url_name == 'tracking_overview' %}active{% endif %}">
+                    <i class="fa-solid fa-location-dot me-2"></i>Live Tracking
+                </a>
+            </li>
+            {% endif %}
+
+            {% if request.user.is_admin_role or request.user.employee_permission.can_view_reports %}
+            <li class="nav-item">
+                <a href="{% url 'dashboard:reports' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line me-2"></i>Analytics &amp; Reports
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        {% endif %}
+
+        {# Section 5: Customer Support (Admin & Staff) #}
+        {% if request.user.is_admin_role or request.user.role == 'employee' or request.user.role == 'support_staff' %}
+        <div class="ft-sidebar-section-title">Customer Support</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'customer_support:console' %}" class="nav-link {% if 'support-console' in request.path and 'reports' not in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-headset me-2"></i>Support Console
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'customer_support:reports' %}" class="nav-link {% if 'support-console/reports' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie me-2"></i>Support Analytics
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        {# Section 6: WhatsApp Outreach & Follow-Ups #}
+        {% if request.user.is_admin_role or request.user.role == 'employee' %}
+        <div class="ft-sidebar-section-title">Outreach &amp; Messaging</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'dashboard:whatsapp_followups' %}" class="nav-link {% if request.resolver_match.url_name == 'whatsapp_followups' %}active{% endif %}">
+                    <i class="fa-brands fa-whatsapp me-2 text-success"></i>WhatsApp Follow-Ups
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        {# Section 6: Storefront Link #}
+        <div class="ft-sidebar-section-title">Storefront</div>
+        <ul class="nav nav-pills flex-column mb-2">
+            <li class="nav-item">
+                <a href="{% url 'store:home' %}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>View Public Store
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+    {# Sidebar User Footer Card #}
+    <div class="ft-sidebar-user-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                <div class="ft-avatar-sm" style="{% if request.user.is_admin_role %}background:linear-gradient(135deg,#6366f1,#4f46e5);{% else %}background:linear-gradient(135deg,#14b8a6,#0d9488);{% endif %} color:#fff;">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+                <div class="overflow-hidden">
+                    <span class="d-block fw-semibold text-truncate small text-dark">{{ request.user.first_name|default:request.user.username }}</span>
+                    <span class="badge {% if request.user.is_admin_role %}bg-purple-soft{% else %}bg-teal-soft{% endif %} ft-role-badge">
+                        {{ request.user.get_role_display }}
+                    </span>
+                </div>
+            </div>
+            <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm ft-logout-btn" title="Log out" aria-label="Log out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</aside>

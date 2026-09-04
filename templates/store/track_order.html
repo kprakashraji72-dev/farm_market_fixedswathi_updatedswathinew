@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Track Order #{{ order.id }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .ft-track-map-wrapper {
+        position: relative;
+        height: 560px;
+        min-height: 560px;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #e5e7eb;
+    }
+    #tracking-map {
+        width: 100% !important;
+        height: 560px !important;
+        min-height: 560px !important;
+        display: block !important;
+        z-index: 1;
+    }
+    .ft-hud-badge {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-radius: 1rem;
+        padding: 0.65rem 1rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+    .ft-map-legend {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(6px);
+        padding: 6px 14px;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Tablet & Medium Windows (max-width: 991.98px) */
+    @media (max-width: 991.98px) {
+        .ft-track-map-wrapper, #tracking-map {
+            height: 460px !important;
+            min-height: 460px !important;
+        }
+    }
+
+    /* Mobile Phones (max-width: 767.98px) */
+    @media (max-width: 767.98px) {
+        .ft-track-map-wrapper {
+            height: 390px !important;
+            min-height: 390px !important;
+            border-radius: 1rem;
+        }
+        #tracking-map {
+            height: 390px !important;
+            min-height: 390px !important;
+        }
+        .ft-hud-badge {
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.75rem;
+            gap: 8px !important;
+        }
+        .ft-map-legend {
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            font-size: 0.68rem;
+            gap: 8px;
+            justify-content: center;
+        }
+        .ft-stepper {
+            margin-bottom: 0.75rem;
+        }
+        .ft-stepper::before {
+            top: 14px;
+            left: 20px;
+            right: 20px;
+        }
+        .ft-step-circle {
+            width: 30px;
+            height: 30px;
+            font-size: 0.75rem;
+        }
+        .ft-step-label {
+            font-size: 0.65rem;
+            margin-top: 0.25rem;
+        }
+    }
+
+    /* Small Mobile Screens (max-width: 480px) */
+    @media (max-width: 480px) {
+        .ft-track-map-wrapper, #tracking-map {
+            height: 340px !important;
+            min-height: 340px !important;
+        }
+        .ft-step-label {
+            font-size: 0.6rem;
+            line-height: 1.1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-2 py-md-3" style="max-width: 1200px;">
+
+    {# Breadcrumbs & Header #}
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 mb-md-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'store:home' %}" class="text-decoration-none text-muted">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'orders:my_orders' %}" class="text-decoration-none text-muted">My Orders</a></li>
+                    <li class="breadcrumb-item active fw-semibold text-primary" aria-current="page">Track Order #{{ order.id }}</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <i class="fa-solid fa-location-crosshairs text-primary"></i> Live Order Tracking
+                <span class="fs-6 fw-normal text-muted">#{{ order.id }}</span>
+            </h4>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button type="button" id="btn-sync-cust-gps" class="btn btn-primary btn-sm rounded-pill fw-bold shadow-sm px-3 py-1">
+                <i class="fa-solid fa-location-crosshairs me-1"></i> Sync GPS
+            </button>
+            <button type="button" id="btn-cust-sim-motion" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-3 py-1">
+                <i class="fa-solid fa-person-walking me-1"></i> Test Motion
+            </button>
+            <span id="order-status-badge" class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'out_for_delivery' %}bg-primary{% else %}bg-secondary{% endif %} text-uppercase px-3 py-1 rounded-pill shadow-sm">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    {# Progress Timeline Stepper #}
+    <div class="card border-0 shadow-sm rounded-3 py-2 px-3 mb-2 mb-md-3 bg-white">
+        <div class="ft-stepper m-0">
+            <div class="ft-step-item completed">
+                <div class="ft-step-circle"><i class="fa-solid fa-check"></i></div>
+                <div class="ft-step-label">Order Placed</div>
+            </div>
+            <div class="ft-step-item {% if order.status != 'pending' %}completed{% else %}active{% endif %}" id="step-confirmed">
+                <div class="ft-step-circle">
+                    {% if order.status != 'pending' %}<i class="fa-solid fa-check"></i>{% else %}2{% endif %}
+                </div>
+                <div class="ft-step-label">Confirmed</div>
+            </div>
+            <div class="ft-step-item {% if order.status == 'out_for_delivery' or order.status == 'delivered' %}completed{% endif %}" id="step-transit">
+                <div class="ft-step-circle">
+                    <i class="fa-solid fa-motorcycle"></i>
+                </div>
+                <div class="ft-step-label">Out for Delivery</div>
+            </div>
+            <div class="ft-step-item {% if order.status == 'delivered' %}completed active{% endif %}" id="step-delivered">
+                <div class="ft-step-circle">
+                    <i class="fa-solid fa-house-chimney"></i>
+                </div>
+                <div class="ft-step-label">Delivered</div>
+            </div>
+        </div>
+    </div>
+
+    {# Main Tracking Workspace Grid #}
+    <div class="row g-2 g-md-3">
+
+        {# Left Column: Interactive Map with Floating HUD #}
+        <div class="col-lg-8">
+            <div class="ft-track-map-wrapper position-relative">
+                
+                {# Floating HUD Card at Top #}
+                <div class="ft-map-hud-container d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div class="ft-hud-badge d-flex align-items-center gap-2 gap-sm-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle p-1 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:30px;height:30px;">
+                                <i class="fa-solid fa-route" style="font-size:0.8rem;"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted fw-bold text-uppercase" style="font-size:0.62rem;">Distance</div>
+                                <div class="fw-bold text-dark lh-1" id="order-distance" style="font-size:0.85rem;">Calculating...</div>
+                            </div>
+                        </div>
+                        <div class="vr my-1"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle p-1 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:30px;height:30px;">
+                                <i class="fa-solid fa-clock" style="font-size:0.8rem;"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted fw-bold text-uppercase" style="font-size:0.62rem;">ETA</div>
+                                <div class="fw-bold text-success lh-1" id="order-eta" style="font-size:0.85rem;">Calculating...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ft-hud-badge d-none d-sm-flex align-items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-primary"></i>
+                        <span class="small fw-semibold text-dark">Live Transit</span>
+                    </div>
+                </div>
+
+                {# Leaflet Map Container #}
+                <div id="tracking-map"></div>
+
+                {# Map Legend Pill #}
+                <div class="ft-map-legend">
+                    <span class="d-flex align-items-center gap-1 text-primary"><i class="fa-solid fa-motorcycle"></i> 🛵 Rider</span>
+                    <span class="d-flex align-items-center gap-1 text-danger"><i class="fa-solid fa-location-dot"></i> 📍 Customer</span>
+                    <span class="d-flex align-items-center gap-1 text-primary"><i class="fa-solid fa-route"></i> 🛣️ Route</span>
+                </div>
+
+            </div>
+        </div>
+
+        {# Right Column: Accordion Format (Click Details One by One) #}
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-2">
+
+                {# Arrived Notice Banner #}
+                <div id="arrived-indicator" class="alert alert-success border shadow-sm rounded-3 py-2 px-3 mb-1 d-flex align-items-center gap-2" style="border-color: #bbf7d0 !important; background-color: #f0fdf4; {% if not order.arrived_at %}display:none;{% endif %}">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px; height:28px;">
+                        <i class="fa-solid fa-location-dot" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="fw-bold mb-0 text-success" style="font-size: 0.88rem;">Driver Has Arrived!</h6>
+                        <p class="mb-0 text-dark small" style="font-size: 0.76rem; line-height: 1.25;">Share your 6-digit OTP code below to complete handover.</p>
+                    </div>
+                </div>
+
+                {# Unified Accordion Container #}
+                <div class="accordion shadow-sm rounded-3 overflow-hidden border" id="trackingDetailsAccordion" style="border-color: #e2ece5 !important;">
+                    
+                    {# 1. Delivery Partner & Handover OTP #}
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header" id="headingPartner">
+                            <button class="accordion-button py-2 px-3 fw-bold text-dark bg-white shadow-none d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePartner" aria-expanded="true" aria-controls="collapsePartner" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-id-badge text-primary"></i>
+                                <span>Delivery Partner &amp; OTP</span>
+                                {% if order.driver %}
+                                <span class="badge bg-primary-subtle text-primary rounded-pill ms-auto extra-small">{{ order.driver.username }}</span>
+                                {% endif %}
+                            </button>
+                        </h2>
+                        <div id="collapsePartner" class="accordion-collapse collapse show" aria-labelledby="headingPartner" data-bs-parent="#trackingDetailsAccordion">
+                            <div class="accordion-body p-3 bg-light-subtle">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="ft-avatar rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0"
+                                         style="width: 36px; height: 36px; font-size: 0.9rem; background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                        {% if order.driver %}
+                                            {{ order.driver.username|make_list|first|upper }}
+                                        {% else %}
+                                            <i class="fa-solid fa-user-clock"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="overflow-hidden flex-grow-1">
+                                        <h6 class="fw-bold text-dark mb-0 text-truncate" id="driver-name" style="font-size: 0.88rem;">
+                                            {% if order.driver %}
+                                                {{ order.driver.get_full_name|default:order.driver.username }}
+                                            {% else %}
+                                                Assigning Delivery Partner...
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted d-block" style="font-size: 0.7rem;">Fresh Trace Fleet Rider</small>
+                                    </div>
+                                    {% if order.driver and order.driver.phone_number %}
+                                    <a href="tel:{{ order.driver.phone_number }}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold shadow-sm py-1 px-3" id="driver-phone" style="font-size: 0.75rem;">
+                                        <i class="fa-solid fa-phone me-1"></i> Call
+                                    </a>
+                                    {% endif %}
+                                </div>
+
+                                {# Delivery OTP Card #}
+                                {% if order.status == 'delivered' %}
+                                <div class="card border shadow-sm rounded-3 bg-success-subtle p-2 text-center border-success-subtle mt-2">
+                                    <i class="fa-solid fa-circle-check text-success fs-5 mb-0"></i>
+                                    <h6 class="fw-bold text-success mb-0" style="font-size: 0.85rem;">Order Delivered</h6>
+                                    <small class="text-muted" style="font-size: 0.68rem;">Verified on {{ order.otp_verified_at|date:"M d, Y H:i"|default:"Recently" }}</small>
+                                </div>
+                                {% else %}
+                                <div class="card border shadow-sm rounded-3 overflow-hidden mt-2" id="otp-section" style="border-color: #bfdbfe !important; background-color: #f8fafc; {% if not order.is_otp_visible %}display:none;{% endif %}">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0 fw-semibold" style="font-size: 0.68rem;">
+                                                <i class="fa-solid fa-key me-1"></i> Secure Handover OTP
+                                            </span>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.72rem; margin-bottom: 2px;">Share this OTP with rider upon arrival:</div>
+                                        <div id="otp-code" class="fw-black text-primary" style="font-size: 1.4rem; letter-spacing: 3px; line-height: 1.2; font-family: monospace;">
+                                            {{ order.delivery_otp|default:"------" }}
+                                        </div>
+                                        <small class="text-muted d-block" style="font-size: 0.65rem; line-height: 1.1; margin-top: 2px;">Do not share over phone before physical arrival.</small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# 2. Delivery & Farm Address #}
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header" id="headingAddress">
+                            <button class="accordion-button collapsed py-2 px-3 fw-bold text-dark bg-white shadow-none d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddress" aria-expanded="false" aria-controls="collapseAddress" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-location-dot text-danger"></i>
+                                <span>Delivery &amp; Farm Address</span>
+                            </button>
+                        </h2>
+                        <div id="collapseAddress" class="accordion-collapse collapse" aria-labelledby="headingAddress" data-bs-parent="#trackingDetailsAccordion">
+                            <div class="accordion-body p-3 bg-light-subtle">
+                                <div class="mb-2">
+                                    <div class="text-xs fw-bold text-uppercase text-muted mb-1" style="font-size:0.68rem;">
+                                        <i class="fa-solid fa-house-chimney text-danger me-1"></i> Destination
+                                    </div>
+                                    <p class="text-dark small mb-0 fw-semibold">{{ order.delivery_address }}</p>
+                                    <small class="text-muted"><i class="fa-solid fa-phone me-1"></i> {{ order.delivery_phone }}</small>
+                                </div>
+                                <hr class="my-2 text-muted opacity-25">
+                                <div>
+                                    <div class="text-xs fw-bold text-uppercase text-muted mb-1" style="font-size:0.68rem;">
+                                        <i class="fa-solid fa-wheat-awn text-success me-1"></i> Origin Hub
+                                    </div>
+                                    <p class="text-dark small mb-0 fw-semibold">{{ order.pickup_farm_name }}</p>
+                                    <small class="text-muted">{{ order.pickup_farm.location|default:"Central Farm Hub" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# 3. Order Items & Receipt #}
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header" id="headingSummary">
+                            <button class="accordion-button collapsed py-2 px-3 fw-bold text-dark bg-white shadow-none d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-receipt text-success"></i>
+                                <span>Order Items ({{ order.items.count }})</span>
+                                <span class="badge bg-success-subtle text-success rounded-pill ms-auto extra-small">₹{{ order.total_amount }}</span>
+                            </button>
+                        </h2>
+                        <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#trackingDetailsAccordion">
+                            <div class="accordion-body p-3 bg-light-subtle">
+                                <ul class="list-unstyled small text-muted mb-2">
+                                    {% for item in order.items.all %}
+                                    <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                                        <span>{{ item.quantity }} × {{ item.product_name }}{% if item.variant_label %} <span class="badge bg-light text-dark">({{ item.variant_label }})</span>{% endif %}</span>
+                                        <span class="fw-semibold text-dark">₹{{ item.line_total }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+
+                                <div class="d-flex justify-content-between text-muted extra-small mb-1">
+                                    <span>Subtotal</span>
+                                    <span>₹{{ order.subtotal }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between text-muted extra-small mb-2">
+                                    <span>Delivery Fee</span>
+                                    <span>₹{{ order.delivery_fee }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between fw-bold text-dark pt-1 border-top" style="font-size: 0.88rem;">
+                                    <span>Total Amount</span>
+                                    <span class="text-success">₹{{ order.total_amount }}</span>
+                                </div>
+
+                                {% if order.can_be_cancelled and request.user == order.customer %}
+                                <form method="post" action="{% url 'orders:cancel_order' order.id %}" class="mt-3"
+                                      onsubmit="return confirm('Cancel Order #{{ order.id }}? This action cannot be undone.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill py-1" style="font-size:0.78rem;">
+                                        <i class="fa-solid fa-xmark me-1"></i> Cancel Order
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{# Arrival Modal Notification #}
+<div class="modal fade" id="arrivalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4 border-0 rounded-4 shadow-lg">
+            <div class="rounded-circle bg-success-subtle text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                <i class="fa-solid fa-motorcycle fa-2x"></i>
+            </div>
+            <h4 class="fw-bold mb-2 text-dark">Your Delivery Partner Has Arrived!</h4>
+            <p class="text-muted small mb-3">Please share this 6-digit code with your rider to verify and receive your package:</p>
+            <div class="bg-light p-3 rounded-4 mb-3 border">
+                <div class="text-xs text-muted text-uppercase fw-bold mb-1">Handover Verification OTP</div>
+                <div id="modal-otp-code" class="fs-1 fw-black text-primary letter-spacing-3" style="letter-spacing: 6px;">{{ order.delivery_otp }}</div>
+            </div>
+            <button type="button" class="btn btn-primary rounded-pill py-2 fw-semibold" data-bs-dismiss="modal">
+                <i class="fa-solid fa-check me-1"></i> Got It, Meeting Rider
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'js/tracking.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const config = {
+            locationApiUrl: "{% url 'tracking:order_location_api' order.id %}",
+            updateCustomerLocationUrl: "{% url 'tracking:update_customer_location' order.id %}",
+            csrfToken: "{{ csrf_token }}",
+            otpAlreadyVisibleOnLoad: {{ order.is_otp_visible|yesno:"true,false" }}
+        };
+        initCustomerTrackingMap(config);
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,610 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Delivery Console #{{ order.id }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* ─────────────────────────────────────────────────────────
+       RIDER-PAGE DRIVER SIDEBAR — MOBILE FIX
+       Leaflet sets .leaflet-top/.leaflet-bottom z-index:1000.
+       We must place the sidebar ABOVE that, and guarantee the
+       sidebar has an opaque, fully-visible background with
+       correct text colours.
+    ───────────────────────────────────────────────────────── */
+
+    /* Ensure the sidebar is always above Leaflet layers */
+    #driverSidebar {
+        z-index: 1070 !important;
+        background: #ffffff !important;
+        background-image: none !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        color: #1e293b !important;
+        isolation: isolate;
+    }
+
+    /* Sidebar backdrop sits above map (1000) but below sidebar (1070) */
+    #driver-sidebar-backdrop,
+    .ft-sidebar-backdrop {
+        z-index: 1065 !important;
+    }
+
+    /* Force all sidebar nav-link text to be fully visible */
+    #driverSidebar .nav-link {
+        color: #475569 !important;
+        background: transparent !important;
+    }
+    #driverSidebar .nav-link:hover {
+        background: #f1f5f9 !important;
+        color: #1e293b !important;
+    }
+    #driverSidebar .nav-link.active {
+        color: #fff !important;
+    }
+    #driverSidebar .ft-sidebar-section-title {
+        color: #94a3b8 !important;
+    }
+    #driverSidebar .ft-sidebar-brand,
+    #driverSidebar .ft-sidebar-brand span,
+    #driverSidebar .fw-bold,
+    #driverSidebar .fw-semibold,
+    #driverSidebar .text-dark {
+        color: #1e293b !important;
+    }
+    #driverSidebar .text-muted,
+    #driverSidebar .small {
+        color: #64748b !important;
+    }
+
+    /* Scrollbar inside sidebar */
+    #driverSidebar::-webkit-scrollbar { width: 5px; }
+    #driverSidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* Mobile: drawer slide-in */
+    @media (max-width: 991.98px) {
+        #driverSidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100vh !important;
+            width: 285px !important;
+            max-width: 88vw !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 6px 0 30px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        #driverSidebar.ft-sidebar-open,
+        #driverSidebar.show {
+            transform: translateX(0) !important;
+            visibility: visible !important;
+        }
+    }
+
+    /* ── Rider Map Container ── */
+    .ft-rider-map-container {
+        position: relative;
+        height: 520px;
+        min-height: 520px;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.08);
+        background: #e5e7eb;
+        width: 100%;
+    }
+    #rider-map {
+        width: 100% !important;
+        height: 520px !important;
+        min-height: 520px !important;
+        display: block !important;
+        z-index: 1;
+    }
+
+    /* ── Action Button Bar ── */
+    .ft-action-bar-btn {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        padding: 0.65rem 1.25rem;
+        transition: all 0.25s ease;
+    }
+    .ft-action-bar-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    /* ── Customer Destination Banner ── */
+    .ft-customer-banner-card {
+        background: linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);
+        border: 1px solid rgba(37,99,235,0.15);
+        border-left: 5px solid #2563eb;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    /* ── Sticky Mobile Top Bar ── */
+    .ft-mobile-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 990;
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.6rem 0.9rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    /* ── Tablet (≤ 991px) ── */
+    @media (max-width: 991.98px) {
+        .ft-rider-map-container,
+        #rider-map {
+            height: 440px !important;
+            min-height: 440px !important;
+        }
+    }
+
+    /* ── Mobile (≤ 767px) ── */
+    @media (max-width: 767.98px) {
+        .ft-rider-map-container,
+        #rider-map {
+            height: 320px !important;
+            min-height: 320px !important;
+            border-radius: 0.9rem;
+        }
+        /* Action buttons: 2 per row grid */
+        .ft-action-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        .ft-action-bar-btn {
+            padding: 0.5rem 0.6rem;
+            font-size: 0.82rem;
+            width: 100%;
+        }
+        .ft-gps-tools-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.4rem;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .ft-customer-banner-card {
+            padding: 0.85rem !important;
+        }
+        .ft-customer-banner-card .d-flex.align-items-center.gap-2 {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .ft-customer-banner-card .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .ft-map-legend {
+            bottom: 6px;
+            left: 6px;
+            right: 6px;
+            padding: 3px 8px;
+            font-size: 0.65rem;
+            gap: 6px;
+            justify-content: center;
+        }
+        /* HUD inside map */
+        .ft-hud-badge {
+            padding: 0.4rem 0.6rem !important;
+            font-size: 0.75rem !important;
+        }
+        .ft-map-hud-container {
+            padding: 0.4rem 0.6rem !important;
+        }
+    }
+
+    /* ── Small phones (≤ 480px) ── */
+    @media (max-width: 480px) {
+        .ft-rider-map-container,
+        #rider-map {
+            height: 270px !important;
+            min-height: 270px !important;
+        }
+        .ft-action-buttons-grid {
+            grid-template-columns: 1fr;
+        }
+        .ft-gps-tools-row {
+            grid-template-columns: 1fr 1fr auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{# NOTE: Do NOT put overflow-x:hidden on this wrapper — it clips the fixed-position sidebar drawer #}
+<div class="d-flex" style="background-color:#f8fafc; min-height:100vh;">
+    {% include 'driver_sidebar.html' %}
+
+    <div class="flex-grow-1" style="min-width:0; max-width:100%; overflow-x:hidden;">
+
+        {# ── Sticky Mobile Top Navigation Bar ── #}
+        <div class="ft-mobile-topbar d-flex d-lg-none align-items-center justify-content-between gap-2 mb-0">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-1 fw-bold shadow-sm"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#driverSidebar"
+                        aria-controls="driverSidebar"
+                        aria-label="Open driver menu">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Menu</span>
+                </button>
+                {# Quick Links Dropdown #}
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm rounded-pill border shadow-sm dropdown-toggle fw-semibold text-dark px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-compass text-primary me-1"></i> Links
+                    </button>
+                    <ul class="dropdown-menu shadow-lg rounded-4 p-2 border-0" style="min-width: 220px; z-index: 1060;">
+                        <li><h6 class="dropdown-header text-uppercase extra-small fw-bold text-primary"><i class="fa-solid fa-truck-fast me-1"></i> Driver Fleet</h6></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'tracking:driver_dashboard' %}"><i class="fa-solid fa-truck-ramp-box text-primary me-2"></i> Deliveries Console</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'accounts:driver_documents' %}"><i class="fa-solid fa-id-card text-success me-2"></i> Documents &amp; KYC</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'accounts:profile' %}"><i class="fa-solid fa-user-gear text-info me-2"></i> Driver Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item rounded-3 py-2 fw-semibold" href="{% url 'store:home' %}" target="_blank"><i class="fa-solid fa-store text-warning me-2"></i> Public Store</a></li>
+                        <li>
+                            <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item rounded-3 py-2 text-danger fw-semibold"><i class="fa-solid fa-right-from-bracket me-2"></i> Log Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 px-sm-3 py-2 fw-bold">
+                <i class="fa-solid fa-truck-fast me-1"></i>#{{ order.id }}
+            </span>
+            <a href="{% url 'tracking:driver_dashboard' %}" class="btn btn-light btn-sm rounded-circle border shadow-sm flex-shrink-0" title="Back to Fleet">
+                <i class="fa-solid fa-house text-muted"></i>
+            </a>
+        </div>
+
+        <div class="p-2 p-sm-3 p-md-4 pb-5 mb-4 pb-lg-3 mb-lg-0">
+
+        {# ── Page Header (Compact) ── #}
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 mb-md-3">
+            <div>
+                <nav aria-label="breadcrumb" class="d-none d-sm-block">
+                    <ol class="breadcrumb mb-0 small">
+                        <li class="breadcrumb-item"><a href="{% url 'tracking:driver_dashboard' %}" class="text-decoration-none text-muted">Driver Console</a></li>
+                        <li class="breadcrumb-item active fw-semibold text-primary" aria-current="page">Delivery #{{ order.id }}</li>
+                    </ol>
+                </nav>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h4 class="fw-bold mb-0 text-dark fs-5 fs-6-mobile">Delivery Dispatch #{{ order.id }}</h4>
+                    <span class="badge {% if order.status == 'confirmed' %}bg-warning-subtle text-dark border border-warning-subtle{% elif order.status == 'out_for_delivery' %}bg-primary text-white{% else %}bg-success text-white{% endif %} text-uppercase rounded-pill px-3 py-1 fw-bold">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <div id="gps-broadcast-status">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 px-md-3 py-1 rounded-pill d-flex align-items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-satellite-dish animate-pulse"></i>
+                        <span class="d-none d-sm-inline">Live GPS Active</span>
+                    </span>
+                </div>
+                <a href="{% url 'tracking:driver_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold d-none d-md-inline-block">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Fleet
+                </a>
+            </div>
+        </div>
+
+        {# ── Main Grid: Map (Top) + Actions & Drop-off (Down) ── #}
+        <div class="row g-2 g-md-3 mb-3">
+
+            {# Left Column: Map on Top, then Customer Banner and Action Buttons below #}
+            <div class="col-lg-8">
+                
+                {# 1. LIVE NAVIGATION MAP AT THE VERY TOP #}
+                <div class="ft-rider-map-container position-relative mb-2">
+                    
+                    {# Floating HUD in Map #}
+                    <div class="ft-map-hud-container d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="ft-hud-badge d-flex align-items-center gap-2 gap-sm-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle p-1 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:30px;height:30px;">
+                                    <i class="fa-solid fa-route" style="font-size:0.8rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-muted fw-bold text-uppercase" style="font-size:0.62rem;">Distance</div>
+                                    <div class="fw-bold text-dark lh-1" id="rider-distance" style="font-size:0.85rem;">{{ dist_display }}</div>
+                                </div>
+                            </div>
+                            <div class="vr my-1"></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle p-1 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:30px;height:30px;">
+                                    <i class="fa-solid fa-clock" style="font-size:0.8rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-muted fw-bold text-uppercase" style="font-size:0.62rem;">ETA</div>
+                                    <div class="fw-bold text-success lh-1" id="rider-eta" style="font-size:0.85rem;">{{ eta_display }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ft-hud-badge d-none d-sm-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill px-2 py-1">GPS Streaming</span>
+                            <span class="small fw-semibold text-dark">Driver Dispatch</span>
+                        </div>
+                    </div>
+
+                    {# Leaflet Map #}
+                    <div id="rider-map"></div>
+
+                    {# Map Legend #}
+                    <div class="ft-map-legend">
+                        <span class="d-flex align-items-center gap-1 text-primary"><i class="fa-solid fa-motorcycle"></i> You</span>
+                        <span class="d-flex align-items-center gap-1 text-danger"><i class="fa-solid fa-location-dot"></i> Drop-off</span>
+                        <span class="d-flex align-items-center gap-1 text-primary"><i class="fa-solid fa-route"></i> Route</span>
+                    </div>
+                </div>
+
+                {# Proximity Arrival Auto-Alert #}
+                <div id="rider-arrival-alert" class="alert alert-success border-0 shadow-sm rounded-3 p-2 px-3 mb-2 align-items-center gap-2" style="display:none;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0 text-success" style="font-size:0.88rem;">Arrival Detected! (Within 300m)</h6>
+                            <p class="mb-0 extra-small text-dark" style="font-size:0.75rem;">You have reached the destination. Collect OTP code from the customer.</p>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm rounded-pill fw-bold" onclick="document.getElementById('btn-mark-delivered').click();">
+                            Verify OTP
+                        </button>
+                    </div>
+                </div>
+
+                {# 2. ACTION BUTTONS BAR (BELOW MAP) #}
+                <div class="card border-0 shadow-sm rounded-3 mb-2 bg-white p-2">
+
+                    {# ── Main Action Buttons ── #}
+                    <div class="ft-action-buttons-grid d-flex flex-wrap align-items-center gap-2 mb-2">
+
+                        {# Accept Order #}
+                        {% if order.status == 'pending' or order.status == 'confirmed' %}
+                        <form method="post" action="{% url 'tracking:driver_accept_order' order.id %}" class="m-0 flex-grow-1">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary rounded-pill ft-action-bar-btn shadow-sm w-100 py-2">
+                                <i class="fa-solid fa-hand-holding-box me-1"></i> Accept
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {# Start Delivery / In Progress #}
+                        {% if order.status != 'out_for_delivery' and order.status != 'delivered' %}
+                        <form method="post" id="form-start-delivery" action="{% url 'tracking:driver_start_delivery' order.id %}" class="m-0 flex-grow-1">
+                            {% csrf_token %}
+                            <button type="button" id="btn-start-delivery" class="btn btn-success rounded-pill ft-action-bar-btn shadow-sm w-100 py-2">
+                                <i class="fa-solid fa-motorcycle me-1"></i> Start
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-success-subtle text-success border border-success-subtle rounded-pill ft-action-bar-btn disabled flex-grow-1 py-2" disabled>
+                            <i class="fa-solid fa-circle-check me-1"></i> In Progress
+                        </button>
+                        {% endif %}
+
+                        {# Navigate #}
+                        <button type="button" id="btn-navigate" class="btn btn-outline-primary rounded-pill ft-action-bar-btn shadow-sm flex-grow-1 py-2">
+                            <i class="fa-solid fa-diamond-turn-right me-1"></i> Navigate
+                        </button>
+
+                        {# Mark Delivered #}
+                        {% if order.status == 'out_for_delivery' %}
+                        <button type="button" id="btn-mark-delivered" class="btn btn-dark rounded-pill ft-action-bar-btn shadow-sm flex-grow-1 py-2">
+                            <i class="fa-solid fa-circle-check text-success me-1"></i> Mark Delivered
+                        </button>
+                        {% elif order.status == 'delivered' %}
+                        <span class="badge bg-success px-3 py-2 rounded-pill fw-bold flex-grow-1 text-center d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-check me-1"></i> Delivered!
+                        </span>
+                        {% endif %}
+
+                    </div>
+
+                    {# ── GPS Tools Row ── #}
+                    <div class="ft-gps-tools-row d-flex flex-wrap align-items-center gap-2">
+                        <button type="button" id="btn-sync-rider-gps" class="btn btn-primary btn-sm rounded-pill fw-bold shadow-sm flex-grow-1 py-1">
+                            <i class="fa-solid fa-location-crosshairs me-1"></i> GPS
+                        </button>
+                        <button type="button" id="btn-sim-motion" class="btn btn-outline-secondary btn-sm rounded-pill flex-grow-1 py-1">
+                            <i class="fa-solid fa-play me-1"></i> Motion
+                        </button>
+                        <button type="button" id="btn-center-map" class="btn btn-light btn-sm rounded-pill border shadow-sm px-3 py-1" title="Center map on my location">
+                            <i class="fa-solid fa-crosshairs"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+                {# 3. CUSTOMER DROP-OFF BANNER (BELOW ACTION BAR) #}
+                <div class="card ft-customer-banner-card border-0 shadow-sm rounded-3 p-2 px-3 mb-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center mt-1 flex-shrink-0" style="width:34px;height:34px;">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0 text-uppercase fw-bold" style="font-size:0.65rem;">Customer Drop-off</span>
+                                    <span class="fw-bold text-dark small">{{ order.customer.get_full_name|default:order.customer.username }}</span>
+                                    {% if order.delivery_phone %}
+                                    <a href="tel:{{ order.delivery_phone }}" class="badge bg-success-subtle text-success text-decoration-none border border-success-subtle rounded-pill px-2 py-0 extra-small">
+                                        <i class="fa-solid fa-phone me-1"></i>{{ order.delivery_phone }}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                <div class="text-dark small fw-semibold" style="font-size:0.8rem;">
+                                    <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ order.delivery_address }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-2 ms-auto">
+                            {% if order.delivery_latitude and order.delivery_longitude %}
+                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ order.delivery_latitude }},{{ order.delivery_longitude }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill fw-bold px-3 py-1 shadow-sm" style="font-size:0.78rem;">
+                                <i class="fa-solid fa-diamond-turn-right me-1"></i> Maps
+                            </a>
+                            {% endif %}
+                            <a href="tel:{{ order.delivery_phone }}" class="btn btn-success btn-sm rounded-pill fw-bold px-3 py-1 shadow-sm" style="font-size:0.78rem;">
+                                <i class="fa-solid fa-phone me-1"></i> Call
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {# Proximity Arrival Auto-Alert #}
+                <div id="rider-arrival-alert" class="alert alert-success border-0 shadow-sm rounded-4 p-3 mt-3 align-items-center gap-3" style="display:none;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success text-white p-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                            <i class="fa-solid fa-location-dot fa-lg"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold mb-1 text-success">Arrival Detected! (Within 300m)</h5>
+                            <p class="mb-0 small text-dark">You have reached the customer location. OTP has been automatically generated for the customer.</p>
+                        </div>
+                        <button type="button" class="btn btn-success rounded-pill fw-bold" onclick="document.getElementById('btn-mark-delivered').click();">
+                            Enter OTP
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            {# Right Column: Customer Info & Order Details #}
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-3">
+
+                    {# Customer Information Card #}
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                <i class="fa-solid fa-user-circle text-primary me-2"></i>Customer Destination
+                            </h6>
+                            <div id="customer-live-status-pill">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                                    <i class="fa-solid fa-satellite-dish me-1 animate-pulse"></i> Live GPS
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body p-3 p-md-4">
+                            <div class="mb-3">
+                                <div class="text-xs text-muted fw-bold text-uppercase mb-1">Customer Name</div>
+                                <h6 class="fw-bold text-dark mb-0">{{ order.customer.get_full_name|default:order.customer.username }}</h6>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="text-xs text-muted fw-bold text-uppercase mb-1">Delivery Address</div>
+                                <p class="text-dark small mb-1 fw-semibold">{{ order.delivery_address }}</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ order.delivery_address|urlencode }}" target="_blank" rel="noopener" class="small text-decoration-none fw-semibold text-primary">
+                                    <i class="fa-solid fa-external-link me-1"></i> Open Address in Maps
+                                </a>
+                            </div>
+
+                            <div>
+                                <div class="text-xs text-muted fw-bold text-uppercase mb-1">Customer Contact</div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="fw-bold text-dark">{{ order.delivery_phone }}</span>
+                                    <a href="tel:{{ order.delivery_phone }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                                        <i class="fa-solid fa-phone me-1"></i> Call Customer
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Farm Pickup Hub Card #}
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-3 p-md-4">
+                            <div class="text-xs text-muted fw-bold text-uppercase mb-2">
+                                <i class="fa-solid fa-wheat-awn text-success me-1"></i> Farm / Store Pickup
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">{{ order.pickup_farm_name }}</h6>
+                            <p class="text-muted small mb-0">{{ order.pickup_farm.location|default:"Central Farm Hub" }}</p>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+
+        </div>
+
+        </div>{# /inner padding wrapper #}
+    </div>{# /flex-grow-1 #}
+</div>{# /d-flex #}
+
+{# Complete Delivery Modal (OTP Verification) #}
+<div class="modal fade" id="completeDeliveryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg p-4">
+            <div class="text-center mb-3">
+                <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-key fa-2x"></i>
+                </div>
+                <h4 class="fw-bold mb-1 text-dark">Complete Delivery #{{ order.id }}</h4>
+                <p class="text-muted small mb-0">Ask the customer for their 6-digit Delivery OTP code to verify and confirm drop-off:</p>
+            </div>
+
+            <form method="post" action="{% url 'tracking:driver_complete_order' order.id %}">
+                {% csrf_token %}
+                <div class="mb-3 text-center">
+                    <input type="text"
+                           name="otp"
+                           id="driver-otp-input"
+                           maxlength="6"
+                           inputmode="numeric"
+                           pattern="[0-9]{6}"
+                           class="form-control form-control-lg text-center fw-black rounded-pill letter-spacing-3 shadow-sm py-3"
+                           style="letter-spacing: 6px; font-size: 1.6rem;"
+                           placeholder="------"
+                           required
+                           autofocus>
+                    <small class="text-muted mt-1 d-block">Enter the 6-digit code shown on the customer's tracking screen.</small>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                        <i class="fa-solid fa-check-circle me-1"></i> Verify OTP &amp; Mark Delivered
+                    </button>
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'js/tracking.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const config = {
+            orderId: {{ order.id }},
+            updateLocationUrl: "{% url 'tracking:update_location' %}",
+            orderLocationApiUrl: "{% url 'tracking:order_location_api' order.id %}",
+            startDeliveryUrl: "{% url 'tracking:driver_start_delivery' order.id %}",
+            completeDeliveryUrl: "{% url 'tracking:driver_complete_order' order.id %}",
+            customerLat: {% if order.delivery_latitude %}{{ order.delivery_latitude }}{% else %}13.050000{% endif %},
+            customerLng: {% if order.delivery_longitude %}{{ order.delivery_longitude }}{% else %}80.212000{% endif %},
+            farmLat: {% if order.pickup_latitude %}{{ order.pickup_latitude }}{% else %}13.082700{% endif %},
+            farmLng: {% if order.pickup_longitude %}{{ order.pickup_longitude }}{% else %}80.270700{% endif %},
+            csrfToken: "{{ csrf_token }}"
+        };
+        initRiderDeliveryMap(config);
+    });
+</script>
+{% endblock %}
+

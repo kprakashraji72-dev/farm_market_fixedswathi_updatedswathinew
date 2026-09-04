@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Create Employee | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+        
+        {# Header Banner #}
+        <div class="ft-mgmt-hero teal d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <div>
+                    <h2 class="mb-1">Create Employee Account</h2>
+                    <p class="mb-0">Provision staff credentials and configure dashboard module access permissions.</p>
+                </div>
+            </div>
+            <a href="{% url 'dashboard:employee_management' %}" class="btn btn-light rounded-pill px-4 fw-semibold shadow-sm" style="color: #0d9488;">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Staff Directory
+            </a>
+        </div>
+
+        {# ============ LANDSCAPE CREATE FORM ============ #}
+        <div class="card border-0 shadow-sm ft-landscape-form-card purple">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-id-badge text-purple me-2" style="color:#7c3aed;"></i>Staff Credentials &amp; Permissions</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {# Row 1: Credentials #}
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Username <span class="text-danger">*</span></label>
+                            {{ form.username }}
+                            {% for e in form.username.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Email Address</label>
+                            {{ form.email }}
+                            {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% for e in form.phone_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">10-digit mobile number.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
+                            {{ form.password1 }}
+                            {% for e in form.password1.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            <div class="form-text extra-small">Minimum 8 characters.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Confirm Password <span class="text-danger">*</span></label>
+                            {{ form.password2 }}
+                            {% for e in form.password2.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Row 2: Permissions (Landscape 4-Col Grid) #}
+                        <div class="col-12 pt-3 border-top">
+                            <h6 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-key text-purple me-1" style="color:#7c3aed;"></i> Initial Dashboard Module Access</h6>
+                            <p class="text-muted small mb-3">Select the sections this staff member is allowed to view and manage.</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-orders">
+                                        <input type="checkbox" name="can_manage_orders" class="form-check-input mt-0" id="new-orders">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-clipboard-list me-1"></i>Orders</span>
+                                            <span class="extra-small text-muted">Process &amp; dispatch</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-inventory">
+                                        <input type="checkbox" name="can_manage_inventory" class="form-check-input mt-0" id="new-inventory">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-boxes-stacked me-1"></i>Inventory</span>
+                                            <span class="extra-small text-muted">Stock &amp; approvals</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-reports">
+                                        <input type="checkbox" name="can_view_reports" class="form-check-input mt-0" id="new-reports">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-chart-line me-1"></i>Reports</span>
+                                            <span class="extra-small text-muted">Revenue &amp; analytics</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-sm-6 col-lg-3">
+                                    <label class="ft-perm-card" for="new-damage">
+                                        <input type="checkbox" name="can_report_damage" class="form-check-input mt-0" id="new-damage">
+                                        <div>
+                                            <span class="d-block fw-semibold small"><i class="fa-solid fa-magnifying-glass me-1"></i>Audit &amp; Damage</span>
+                                            <span class="extra-small text-muted">Report spoiled items</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Row 3: Submit Actions #}
+                        <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="{% url 'dashboard:employee_management' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn rounded-pill px-4 fw-semibold text-white shadow-sm" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
+                                <i class="fa-solid fa-user-plus me-1"></i> Create Employee Account
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

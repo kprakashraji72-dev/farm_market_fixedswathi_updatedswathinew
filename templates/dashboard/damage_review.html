@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Damage Review | Staff Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner #}
+        <div class="ft-mgmt-hero amber d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div>
+                    <h2 class="mb-1">Product Damage Review Queue</h2>
+                    <p class="mb-0">Employee-filed damage and spoilage reports. Approving deducts stock quantity; rejecting keeps inventory unchanged.</p>
+                </div>
+            </div>
+            <div class="ft-mini-stat">
+                <div class="num">{{ reports.count }}</div>
+                <div class="label">Pending Reports</div>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH DAMAGE REVIEW TABLE ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-list-check text-warning me-2"></i>Pending Damage Reports</h5>
+                <span class="badge bg-warning-soft rounded-pill">{{ reports.count }} Items</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 200px;">Produce Item</th>
+                            <th style="min-width: 150px;">Reported By</th>
+                            <th style="min-width: 130px;">Damaged Quantity</th>
+                            <th style="min-width: 200px;">Audit Note</th>
+                            <th style="min-width: 150px;">Timestamp</th>
+                            <th class="text-end" style="min-width: 180px;">Review Decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ft-avatar-sm" style="background:#fee2e2; color:#dc2626;">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-dark d-block">{{ report.product.name }}</span>
+                                        <span class="extra-small text-muted">{{ report.product.farm.name }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-dark small"><i class="fa-solid fa-user me-1 text-muted"></i>{{ report.reported_by.username|default:"Staff" }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6">
+                                    -{{ report.quantity }} {{ report.product.unit }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="small text-secondary">{{ report.note|default:"Standard warehouse damage report" }}</span>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ report.reported_at|date:"d M Y, H:i" }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2">
+                                    <form method="post" action="{% url 'dashboard:damage_approve' report.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 extra-small fw-semibold">
+                                            <i class="fa-solid fa-check me-1"></i> Approve &amp; Deduct
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'dashboard:damage_reject' report.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 extra-small">
+                                            <i class="fa-solid fa-xmark me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-circle-check text-success opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No pending damage reports. Warehouse inventory is clear!</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

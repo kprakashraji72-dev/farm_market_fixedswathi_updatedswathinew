@@ -1,0 +1,113 @@
+{% comment %}
+Farmer Partner Portal Sidebar Component.
+Light, modern, sticky-docked (100vh) on desktop; smooth slide-out drawer on mobile.
+Themed with warm amber/gold accents for Farmer Partners.
+{% endcomment %}
+<aside class="ft-sidebar ft-sidebar-farmer" id="farmerSidebar">
+    
+    {# Mobile Close Button Header #}
+    <div class="d-lg-none d-flex align-items-center justify-content-between p-3 border-bottom bg-light">
+        <span class="fw-bold small text-uppercase tracking-wide text-muted">Farmer Menu</span>
+        <button type="button" class="btn-close ft-sidebar-close" aria-label="Close sidebar"></button>
+    </div>
+
+    {# Sidebar Header #}
+    <div class="ft-sidebar-brand-wrap">
+        <a href="{% url 'dashboard:farmer_home' %}" class="d-flex align-items-center text-decoration-none ft-sidebar-brand">
+            <div class="ft-sidebar-icon-badge farmer-badge me-2">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <div>
+                <span class="fs-6 fw-bold d-block lh-1 text-dark">Fresh Trace</span>
+                <span class="ft-badge-role farmer">FARMER PARTNER</span>
+            </div>
+        </a>
+        <div class="mt-2">
+            {% if request.user.is_verified %}
+                <span class="badge bg-success-soft text-success w-100 py-1 d-inline-flex align-items-center justify-content-center gap-1 border border-success-subtle">
+                    <i class="fa-solid fa-circle-check"></i> Verified Partner
+                </span>
+            {% else %}
+                <span class="badge bg-amber-soft text-dark w-100 py-1 d-inline-flex align-items-center justify-content-center gap-1 border border-warning-subtle">
+                    <i class="fa-solid fa-clock text-warning"></i> Verification Pending
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Nav Body #}
+    <div class="ft-sidebar-scroll-body flex-grow-1 p-3">
+        
+        <div class="ft-sidebar-section-title">Farm Workspace</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'dashboard:farmer_home' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_home' %}active{% endif %}">
+                    <i class="fa-solid fa-gauge me-2"></i>Overview
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:farmer_farm_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_farm_profile' %}active{% endif %}">
+                    <i class="fa-solid fa-tractor me-2"></i>My Farm Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard:farmer_products' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_products' %}active{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked me-2"></i>My Products &amp; Stock
+                </a>
+            </li>
+        </ul>
+
+        <div class="ft-sidebar-section-title">Analytics &amp; Compliance</div>
+        <ul class="nav nav-pills flex-column mb-3">
+            <li class="nav-item">
+                <a href="{% url 'dashboard:farmer_report' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_report' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line me-2"></i>Harvest Report
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'accounts:farmer_documents' %}" class="nav-link {% if request.resolver_match.url_name == 'farmer_documents' %}active{% endif %}">
+                    <i class="fa-solid fa-file-certificate me-2"></i>ISO Certificate
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'profile_edit' %}active{% endif %}">
+                    <i class="fa-solid fa-user-gear me-2"></i>Account Profile
+                </a>
+            </li>
+        </ul>
+
+        <div class="ft-sidebar-section-title">Storefront</div>
+        <ul class="nav nav-pills flex-column mb-2">
+            <li class="nav-item">
+                <a href="{% url 'store:home' %}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>View Public Store
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+    {# User Footer #}
+    <div class="ft-sidebar-user-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                <div class="ft-avatar-sm farmer-avatar">
+                    {{ request.user.username|make_list|first|upper }}
+                </div>
+                <div class="overflow-hidden">
+                    <span class="d-block fw-semibold text-truncate small text-dark">{{ request.user.first_name|default:request.user.username }}</span>
+                    <span class="badge bg-amber-soft ft-role-badge">
+                        Farmer Partner
+                    </span>
+                </div>
+            </div>
+            <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm ft-logout-btn" title="Log out" aria-label="Log out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</aside>

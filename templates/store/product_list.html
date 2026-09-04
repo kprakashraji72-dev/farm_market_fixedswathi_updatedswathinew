@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load humanize static %}
+{% block title %}Shop Farm-Fresh Produce | Fresh Trace{% endblock %}
+
+{% block content %}
+<div class="container py-4 pb-5">
+
+    {# ============ SHOP HEADER BANNER ============ #}
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-5 text-white mb-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7">
+                <span class="badge bg-white text-success rounded-pill px-3 py-2 fw-bold mb-2">
+                    <i class="fa-solid fa-basket-shopping me-1"></i> HARVEST MARKETPLACE
+                </span>
+                <h1 class="fw-bold mb-2 h3 h1-md">Shop Fresh, Local Produce</h1>
+                <p class="text-white-50 mb-0 small">Browse fresh seasonal harvests supplied directly by regional growers in your area.</p>
+            </div>
+            <div class="col-lg-5 col-12">
+                <form method="get" class="d-flex gap-2">
+                    {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                    {% endif %}
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-0 text-muted ps-3">
+                            <i class="fa-solid fa-magnifying-glass text-success"></i>
+                        </span>
+                        <input type="text" name="q" value="{{ query|default:'' }}" class="form-control border-0" placeholder="Search produce..." aria-label="Search produce">
+                        <button class="btn btn-success px-3 fw-semibold text-white" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# ============ CATEGORY PILL FILTER BAR ============ #}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+        <span class="fw-bold small text-muted text-uppercase me-2"><i class="fa-solid fa-filter text-success me-1"></i> Filter:</span>
+        <a href="{% url 'inventory:product_list' %}{% if query %}?q={{ query }}{% endif %}" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold {% if not selected_category %}btn-success text-white shadow-sm{% else %}btn-outline-secondary bg-white{% endif %}">
+            All Products
+        </a>
+        {% for cat in categories %}
+            <a href="?category={{ cat.slug }}{% if query %}&q={{ query }}{% endif %}" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold {% if selected_category == cat.slug %}btn-success text-white shadow-sm{% else %}btn-outline-secondary bg-white{% endif %}">
+                {% if cat.icon %}<i class="fa-solid {{ cat.icon }} me-1"></i>{% endif %}{{ cat.name|title }}
+            </a>
+        {% endfor %}
+    </div>
+
+    {# ============ SMART SEARCH RECOMMENDATION BANNER ============ #}
+    {% if is_search_view and query %}
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 position-relative overflow-hidden" style="border: 1px solid #d1fae5 !important; background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 extra-small fw-bold text-uppercase">
+                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Smart Recommendations
+                    </span>
+                    <span class="text-muted small">({{ total_matches }} matching {% if total_matches == 1 %}variety{% else %}varieties{% endif %} found)</span>
+                </div>
+                <h2 class="h4 fw-bold text-dark mb-1">
+                    <i class="fa-solid fa-seedling text-success me-1"></i> {{ query|title }} Recommendations
+                </h2>
+                <p class="text-muted small mb-0">Ranked by produce variety, stock freshness, quality rating, and direct farmer pricing.</p>
+            </div>
+            
+            {% if lowest_price_item %}
+            <div class="p-2 px-3 rounded-pill bg-white shadow-sm border border-success-subtle d-inline-flex align-items-center gap-2">
+                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.9rem;">
+                    <i class="fa-solid fa-tag"></i>
+                </div>
+                <div>
+                    <span class="d-block extra-small text-muted fw-semibold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.68rem;">Lowest Price Highlight</span>
+                    <strong class="text-success small">{{ lowest_price_item.name|title }} — ₹{{ lowest_price_item.display_price }}{% if lowest_price_item.unit %}/{{ lowest_price_item.unit }}{% endif %}</strong>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# ============ PRODUCT CATALOG GRID / MATCHING VARIETIES ============ #}
+    <div class="row g-3 g-md-4 mb-5">
+        {% for product in page_obj %}
+        <div class="col-6 col-md-4 col-lg-3 reveal-on-scroll reveal-delay-{{ forloop.counter0|divisibleby:4|yesno:'1,2' }}">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white hover-elevate transition-all position-relative" style="border: 1px solid #e2ece5 !important;">
+                
+                {# Product Image Container #}
+                <a href="{{ product.get_absolute_url }}" class="text-decoration-none position-relative d-block overflow-hidden bg-light" style="height: 185px;">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-100 h-100 object-fit-cover transition-all hover-scale" loading="lazy">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                            <i class="fa-solid fa-carrot text-success opacity-50" style="font-size: 3rem;"></i>
+                        </div>
+                    {% endif %}
+
+                    {# Lowest Price Ribbon Badge (ONLY on actual lowest priced item) #}
+                    {% if product.is_lowest_price %}
+                    <div class="position-absolute top-0 start-0 m-2" style="z-index: 5;">
+                        <span class="badge bg-warning text-dark rounded-pill shadow-sm px-2 py-1 extra-small fw-bold border border-warning-subtle d-inline-flex align-items-center gap-1">
+                            <i class="fa-solid fa-fire text-danger"></i> LOWEST PRICE
+                        </span>
+                    </div>
+                    {% else %}
+                        {# Regular Stock Badge #}
+                        <div class="position-absolute top-0 start-0 m-2" style="z-index: 5;">
+                            {% if product.in_stock %}
+                                <span class="badge bg-success text-white rounded-pill extra-small shadow-sm px-2 py-1">
+                                    <i class="fa-solid fa-circle-check me-1"></i> In Stock
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger text-white rounded-pill extra-small shadow-sm px-2 py-1">
+                                    Sold Out
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {# Discount Badge (if available) #}
+                    {% if product.discount_percent and product.discount_percent > 0 %}
+                    <div class="position-absolute top-0 end-0 m-2" style="z-index: 5;">
+                        <span class="badge bg-danger text-white rounded-pill extra-small shadow-sm px-2 py-1 fw-bold">
+                            {{ product.discount_percent }}% OFF
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    {% if product.category %}
+                    <div class="position-absolute bottom-0 start-0 m-2" style="z-index: 5;">
+                        <span class="badge bg-white text-dark rounded-pill extra-small shadow-sm px-2 py-1 border">
+                            {{ product.category.name|title }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </a>
+
+                {# Card Body #}
+                <div class="card-body p-3 d-flex flex-column">
+                    <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark mb-1">
+                        <h6 class="fw-bold mb-0 text-truncate" title="{{ product.name }}">{{ product.name|title }}</h6>
+                    </a>
+
+                    {% if product.farm %}
+                    <a href="{{ product.farm.get_absolute_url }}" class="text-muted extra-small text-decoration-none text-truncate mb-2">
+                        <i class="fa-solid fa-tractor text-success me-1"></i> {{ product.farm.name }}
+                    </a>
+                    {% endif %}
+
+                    {# Star Rating #}
+                    <div class="d-flex align-items-center gap-1 mb-2">
+                        <div class="text-warning extra-small">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <span class="extra-small fw-bold text-dark">{{ product.rating_score|default:"4.8" }}</span>
+                        <span class="extra-small text-muted">({{ product.review_count|default:"24" }})</span>
+                    </div>
+
+                    {# Pricing with Original Strike-Through #}
+                    <div class="d-flex align-items-baseline flex-wrap gap-1 my-2">
+                        <span class="fs-5 fw-bold text-success">₹{{ product.display_price }}</span>
+                        <span class="small text-muted">/{{ product.display_unit }}</span>
+                        {% if product.original_price and product.original_price > product.display_price %}
+                            <span class="extra-small text-muted text-decoration-line-through ms-1">₹{{ product.original_price }}</span>
+                        {% endif %}
+                    </div>
+
+                    {# Action Buttons with Quantity Stepper (- 1 +) #}
+                    <div class="mt-auto pt-2">
+                        {% if product.in_stock %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="ft-card-qty-stepper">
+                                    <button type="button" class="card-qty-btn card-qty-minus" data-target="pl-qty-{{ product.id }}" aria-label="Decrease quantity">−</button>
+                                    <span class="card-qty-val" id="val-pl-qty-{{ product.id }}">1</span>
+                                    <input type="hidden" id="pl-qty-{{ product.id }}" value="1" min="1" max="{{ product.stock_quantity|default:99 }}">
+                                    <button type="button" class="card-qty-btn card-qty-plus" data-target="pl-qty-{{ product.id }}" aria-label="Increase quantity">+</button>
+                                </div>
+                                <button class="btn btn-sm btn-success flex-grow-1 rounded-pill fw-semibold add-to-cart-btn btn-add-cart shadow-sm btn-zoom d-inline-flex align-items-center justify-content-center gap-1.5 px-3 text-nowrap" style="height: 36px;" data-product-id="{{ product.id }}" data-variant-id="" data-add-url="{% url 'orders:add_to_cart' product.id %}" data-qty-input="pl-qty-{{ product.id }}">
+                                    <span class="btn-default-label"><i class="fa-solid fa-cart-plus"></i> Add</span>
+                                    <span class="btn-success-label"><i class="fa-solid fa-check"></i> Added</span>
+                                </button>
+                            </div>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-secondary w-100 rounded-pill" style="height: 36px;" disabled>Sold Out</button>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-white mx-auto" style="max-width: 500px; border: 1px solid #e2ece5 !important;">
+                <i class="fa-solid fa-basket-shopping text-success opacity-50 mb-3" style="font-size: 3.5rem;"></i>
+                <h5 class="fw-bold text-dark">No Exact Matches Found</h5>
+                <p class="text-muted small mb-3">We couldn't find any produce directly named "{{ query }}". Check out our other fresh harvests below!</p>
+                <a href="{% url 'inventory:product_list' %}" class="btn btn-outline-success rounded-pill px-4 align-self-center fw-semibold">
+                    View All Harvests
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {# ============ YOU MAY ALSO LIKE / RELATED PRODUCE SECTION ============ #}
+    {% if related_products %}
+    <div class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h4 class="fw-bold text-dark mb-1">
+                    <i class="fa-solid fa-heart text-danger me-2"></i> You May Also Like
+                </h4>
+                <p class="text-muted small mb-0">Complementary harvests and seasonal favorites from regional growers</p>
+            </div>
+            <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                Explore All &rarr;
+            </a>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            {% for rp in related_products %}
+            <div class="col-6 col-md-4 col-lg-2 reveal-on-scroll reveal-delay-{{ forloop.counter }}">
+                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white hover-elevate transition-all position-relative" style="border: 1px solid #e2ece5 !important;">
+                    
+                    <a href="{{ rp.get_absolute_url }}" class="text-decoration-none position-relative d-block overflow-hidden bg-light" style="height: 140px;">
+                        {% if rp.image %}
+                            <img src="{{ rp.image.url }}" alt="{{ rp.name }}" class="w-100 h-100 object-fit-cover hover-scale" loading="lazy">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                <i class="fa-solid fa-leaf text-success opacity-50 fs-2"></i>
+                            </div>
+                        {% endif %}
+                        
+                        {% if rp.discount_percent and rp.discount_percent > 0 %}
+                        <div class="position-absolute top-0 end-0 m-1" style="z-index: 5;">
+                            <span class="badge bg-danger text-white rounded-pill extra-small shadow-sm px-2 py-0.5" style="font-size: 0.65rem;">
+                                {{ rp.discount_percent }}% OFF
+                            </span>
+                        </div>
+                        {% endif %}
+                    </a>
+
+                    <div class="card-body p-2.5 d-flex flex-column">
+                        <a href="{{ rp.get_absolute_url }}" class="text-decoration-none text-dark mb-1">
+                            <h6 class="fw-bold mb-0 text-truncate small" title="{{ rp.name }}">{{ rp.name|title }}</h6>
+                        </a>
+
+                        <div class="d-flex align-items-baseline gap-1 my-1">
+                            <strong class="text-success small">₹{{ rp.display_price }}</strong>
+                            {% if rp.unit %}
+                                <span class="extra-small text-muted">/{{ rp.unit }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex align-items-center gap-1.5 mt-auto pt-1">
+                            <div class="ft-card-qty-stepper">
+                                <button type="button" class="card-qty-btn card-qty-minus" data-target="rp-qty-{{ rp.id }}" aria-label="Decrease quantity">−</button>
+                                <span class="card-qty-val" id="val-rp-qty-{{ rp.id }}">1</span>
+                                <input type="hidden" id="rp-qty-{{ rp.id }}" value="1" min="1" max="{{ rp.stock_quantity|default:99 }}">
+                                <button type="button" class="card-qty-btn card-qty-plus" data-target="rp-qty-{{ rp.id }}" aria-label="Increase quantity">+</button>
+                            </div>
+                            <button class="btn btn-sm btn-outline-success flex-grow-1 rounded-pill extra-small fw-semibold add-to-cart-btn btn-add-cart btn-zoom d-inline-flex align-items-center justify-content-center gap-1 py-1 px-2 text-nowrap" style="height: 36px;" data-product-id="{{ rp.id }}" data-variant-id="" data-add-url="{% url 'orders:add_to_cart' rp.id %}" data-qty-input="rp-qty-{{ rp.id }}">
+                                <span class="btn-default-label"><i class="fa-solid fa-cart-plus"></i> Add</span>
+                                <span class="btn-success-label"><i class="fa-solid fa-check"></i> Added</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Pagination #}
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-center mt-4">
+        {% include 'components/pagination.html' with page_obj=page_obj %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

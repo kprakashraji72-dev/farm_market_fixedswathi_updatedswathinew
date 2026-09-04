@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}My Products{% endblock %}
+{% block content %}
+<div class="d-flex">
+    {% include 'farmer_sidebar.html' %}
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+        <h2 class="mb-4">My Products</h2>
+
+        {% if not farm %}
+        <div class="alert alert-warning">
+            Set up your <a href="{% url 'dashboard:farmer_farm_profile' %}">farm profile</a> first, then add products here.
+        </div>
+        {% elif not has_categories %}
+        <div class="alert alert-warning">
+            No product categories exist yet, so the Category field below has nothing to select. Ask an admin to add at least one category (Dashboard &rarr; Inventory &rarr; Categories) before you can add products.
+        </div>
+        {% else %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="mb-4">Add a Product</h5>
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Category</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Name</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Your price (₹)</label>
+                            {{ form.cost_price }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">For how many units?</label>
+                            {{ form.bulk_quantity }}
+                            <div class="form-text">e.g. 1 and 22 = ₹1 for a lot of 22 pieces</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unit</label>
+                            {{ form.unit }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stock</label>
+                            {{ form.stock_quantity }}
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Image</label>
+                            {{ form.image }}
+                        </div>
+
+                        <div class="col-12 form-check ps-4">
+                            {{ form.is_active }} <label class="form-check-label ms-1">Active</label>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success px-4">Add Product</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+       <div class="table-responsive">
+    <table class="table bg-white shadow-sm align-middle">
+        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>
+                    {{ product.name }}
+                    {% if product.rejected_at %}
+                    <span class="badge bg-danger ms-1"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                    {% if product.rejection_reason %}
+                    <div class="small text-muted mt-1">Reason: "{{ product.rejection_reason }}"</div>
+                    {% endif %}
+                    {% elif not product.is_approved %}
+                    <span class="badge bg-warning text-dark ms-1"><i class="fa-solid fa-hourglass-half"></i> Pending approval</span>
+                    {% endif %}
+                </td>
+                <td>{{ product.category|default:"—" }}</td>
+                <td>
+                    <span class="small">
+                        ₹{{ product.cost_price }}{% if product.bulk_quantity > 1 %} for {{ product.bulk_quantity }}{% endif %}
+                    </span>
+                </td>
+                <td>{{ product.stock_quantity }}</td>
+                <td>
+                    {% if product.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'dashboard:farmer_product_toggle_active' product.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-secondary">Toggle</button>
+                    </form>
+                    <form method="post" action="{% url 'dashboard:farmer_product_delete' product.id %}" class="d-inline" onsubmit="return confirm('Remove this product?');">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No products yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if hidden_products %}
+<h5 class="mt-4 mb-3 text-muted">Removed from your list</h5>
+<p class="text-muted small">These are hidden from this page only — they're untouched for admin and customers, and still tied to any past orders.</p>
+<div class="table-responsive">
+    <table class="table bg-white shadow-sm align-middle">
+        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for product in hidden_products %}
+            <tr class="text-muted">
+                <td>{{ product.name }}</td>
+                <td>{{ product.category|default:"—" }}</td>
+                <td class="small">₹{{ product.cost_price }}{% if product.bulk_quantity > 1 %} for {{ product.bulk_quantity }}{% endif %}</td>
+                <td>
+                    <form method="post" action="{% url 'dashboard:farmer_product_restore' product.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-outline-success">Restore</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+    </div>
+</div>
+{% endblock %}

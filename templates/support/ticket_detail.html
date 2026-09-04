@@ -1,0 +1,1130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ticket #{{ ticket.id }}: {{ ticket.subject }} | Fresh Trace Support{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* WhatsApp Theme Variables & Styling */
+    :root {
+        --wa-bg: #efeae2;
+        --wa-green-out: #d9fdd3;
+        --wa-white-in: #ffffff;
+        --wa-header-bg: #008069;
+        --wa-teal: #0f766e;
+        --wa-tick: #53bdeb;
+        --wa-text-primary: #111b21;
+        --wa-text-secondary: #667781;
+    }
+
+    .wa-chat-card {
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2ded5;
+        background: #ffffff;
+    }
+
+    .wa-chat-header {
+        background: var(--wa-header-bg);
+        color: #ffffff;
+        padding: 0.85rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top-left-radius: 1.25rem;
+        border-top-right-radius: 1.25rem;
+    }
+
+    .wa-header-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #005c4b;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .wa-chat-wallpaper {
+        background-color: var(--wa-bg);
+        background-image: radial-gradient(#d3cbbf 0.8px, transparent 0.8px), radial-gradient(#d3cbbf 0.8px, var(--wa-bg) 0.8px);
+        background-size: 28px 28px;
+        background-position: 0 0, 14px 14px;
+        padding: 1.25rem;
+    }
+
+    .wa-messages-stream {
+        height: 56vh;
+        max-height: 550px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding-right: 6px;
+    }
+
+    .wa-messages-stream::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .wa-messages-stream::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
+
+    .wa-date-pill {
+        align-self: center;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--wa-text-secondary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 4px 14px;
+        border-radius: 8px;
+        box-shadow: 0 1px 1px rgba(11, 20, 26, 0.12);
+        margin: 0.35rem 0 0.65rem 0;
+    }
+
+    .wa-bubble {
+        max-width: 82%;
+        min-width: 140px;
+        padding: 8px 12px 6px 12px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        position: relative;
+        box-shadow: 0 1px 1.5px rgba(11, 20, 26, 0.13);
+        word-break: break-word;
+    }
+
+    .wa-bubble-out {
+        align-self: flex-end;
+        background: var(--wa-green-out);
+        color: var(--wa-text-primary);
+        border-radius: 12px 12px 2px 12px;
+    }
+
+    .wa-bubble-in {
+        align-self: flex-start;
+        background: var(--wa-white-in);
+        color: var(--wa-text-primary);
+        border-radius: 12px 12px 12px 2px;
+    }
+
+    .wa-sender-name {
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+    .wa-sender-name.staff {
+        color: #008069;
+    }
+
+    .wa-sender-name.customer {
+        color: #1f6fed;
+    }
+
+    .wa-bubble-content {
+        margin-bottom: 2px;
+        white-space: pre-wrap;
+    }
+
+    .wa-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        font-size: 0.68rem;
+        color: var(--wa-text-secondary);
+        margin-top: 2px;
+        float: right;
+        margin-left: 12px;
+    }
+
+    .wa-ticks {
+        color: var(--wa-tick);
+        font-size: 0.75rem;
+    }
+
+    .wa-input-panel {
+        background: #f0f2f5;
+        padding: 0.75rem 1rem;
+        border-bottom-left-radius: 1.25rem;
+        border-bottom-right-radius: 1.25rem;
+    }
+
+    .wa-icon-btn {
+        color: #54656f;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px;
+        border-radius: 50%;
+        transition: background 0.15s ease, color 0.15s ease;
+        border: none;
+        background: transparent;
+    }
+
+    .wa-icon-btn:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #111b21;
+    }
+
+    .wa-preview-tray {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 6px 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        animation: slideUpFade 0.2s ease-out;
+    }
+
+    .wa-preview-thumb {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .wa-preview-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .wa-attachment-img-wrap {
+        margin-bottom: 4px;
+        border-radius: 8px;
+        overflow: hidden;
+        max-width: 290px;
+    }
+
+    .wa-attached-img {
+        width: 100%;
+        max-height: 240px;
+        object-fit: cover;
+        display: block;
+        border-radius: 8px;
+        transition: opacity 0.15s ease;
+        cursor: pointer;
+    }
+
+    .wa-attached-img:hover {
+        opacity: 0.92;
+    }
+
+    .wa-doc-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        padding: 7px 10px;
+        margin-bottom: 4px;
+        max-width: 290px;
+    }
+
+    .wa-doc-icon {
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .wa-doc-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .wa-doc-name {
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--wa-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .wa-doc-size {
+        font-size: 0.7rem;
+        color: var(--wa-text-secondary);
+    }
+
+    .wa-doc-download-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #008069;
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .wa-doc-download-btn:hover {
+        background: #008069;
+        color: #ffffff;
+        transform: scale(1.06);
+    }
+
+    .wa-input-pill {
+        flex: 1;
+        background: #ffffff;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        padding: 0.35rem 0.85rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .wa-textarea {
+        border: none;
+        outline: none;
+        width: 100%;
+        resize: none;
+        font-size: 0.92rem;
+        color: var(--wa-text-primary);
+        background: transparent;
+        padding: 4px 6px;
+        max-height: 90px;
+    }
+
+    .wa-send-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #00a884;
+        color: #ffffff;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
+        transition: transform 0.15s ease, background 0.15s ease;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .wa-send-btn:hover {
+        background: #008f6f;
+        transform: scale(1.06);
+    }
+
+    .wa-typing-box {
+        align-self: flex-start;
+        background: #ffffff;
+        padding: 6px 14px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 1px rgba(11, 20, 26, 0.12);
+        font-size: 0.78rem;
+        color: #008069;
+        font-weight: 600;
+    }
+
+    .typing-dot {
+        width: 5px;
+        height: 5px;
+        background: #008069;
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typingBounce {
+
+        0%,
+        60%,
+        100% {
+            transform: translateY(0);
+        }
+
+        30% {
+            transform: translateY(-4px);
+        }
+    }
+
+    .chat-bubble-enter {
+        animation: slideUpFade 0.2s ease-out;
+    }
+
+    @keyframes slideUpFade {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .live-pulse-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #25d366;
+        animation: livePulse 1.8s infinite;
+    }
+
+    @keyframes livePulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 7px rgba(37, 211, 102, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    {# Navigation Bar #}
+    <div class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <a href="{% url 'support:my_tickets' %}"
+            class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold shadow-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to My Tickets
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border fw-bold fs-6">Ticket #{{ ticket.id }}</span>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-bold">{{ ticket.get_category_display
+                }}</span>
+            <span id="ticketStatusBadge">
+                {% if ticket.status == 'open' %}
+                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill fw-bold">
+                    <i class="fa-solid fa-circle-dot me-1 text-warning"></i> Open
+                </span>
+                {% elif ticket.status == 'in_progress' %}
+                <span class="badge bg-info-subtle text-primary border border-info-subtle rounded-pill fw-bold">
+                    <i class="fa-solid fa-rotate me-1 text-info"></i> In Progress
+                </span>
+                {% elif ticket.status == 'resolved' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fw-bold">
+                    <i class="fa-solid fa-check-circle me-1 text-success"></i> Resolved
+                </span>
+                {% elif ticket.status == 'closed' %}
+                <span class="badge bg-secondary-subtle text-muted border rounded-pill fw-bold">
+                    <i class="fa-solid fa-lock me-1"></i> Closed
+                </span>
+                {% endif %}
+            </span>
+            <a href="{% url 'support:create' %}"
+                class="btn btn-sm btn-success rounded-pill px-3 fw-bold text-white shadow-sm">
+                <i class="fa-solid fa-plus me-1"></i> New Ticket
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        {# Main Ticket & WhatsApp Chat Box #}
+        <div class="col-lg-8">
+            <div class="wa-chat-card mb-4">
+
+                {# WhatsApp Top Header #}
+                <div class="wa-chat-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="wa-header-avatar">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="mb-0 fw-bold text-white">Fresh Trace Support Hub</h6>
+                                <span class="badge bg-light text-dark extra-small rounded-pill">Official Agent</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1.5 extra-small" style="color: #c0f4df;">
+                                <span class="live-pulse-dot" id="wsStatusDot"></span>
+                                <span id="wsStatusText">Live Support Active</span>
+                                <span>• Ticket #{{ ticket.id }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end d-none d-sm-block">
+                        <span class="extra-small text-white opacity-75">
+                            <i class="fa-regular fa-clock me-1"></i> {{ ticket.created_at|date:"M d, h:i A" }}
+                        </span>
+                    </div>
+                </div>
+
+                {# Subject Banner #}
+                <div class="px-3 py-2 bg-white border-bottom d-flex align-items-center justify-content-between">
+                    <span class="small text-dark fw-bold text-truncate me-2">
+                        <i class="fa-solid fa-tag text-success me-1"></i> {{ ticket.subject }}
+                    </span>
+                    <span class="extra-small text-muted text-nowrap">End-to-End WebSocket Stream</span>
+                </div>
+
+                {# WhatsApp Wallpaper & Message Stream #}
+                <div class="wa-chat-wallpaper">
+                    <div class="wa-messages-stream" id="chatThread">
+
+                        {# Date Divider #}
+                        <div class="wa-date-pill">
+                            {{ ticket.created_at|date:"F d, Y" }}
+                        </div>
+
+                        {# 1. Initial Inquiry by Customer (Right / Outgoing Bubble) #}
+                        <div class="wa-bubble wa-bubble-out" id="initial-inquiry">
+                            <div class="wa-sender-name customer d-flex align-items-center justify-content-between">
+                                <span>{{ ticket.user.get_full_name|default:ticket.user.username }} (You)</span>
+                                <span class="extra-small fw-normal text-muted">Initial Inquiry</span>
+                            </div>
+
+                            {% if ticket.attachment %}
+                            {% if ticket.is_image %}
+                            <div class="wa-attachment-img-wrap">
+                                <img src="{{ ticket.attachment.url }}" alt="{{ ticket.filename }}"
+                                    class="wa-attached-img" onclick="openImageModal(this.src)" loading="lazy">
+                            </div>
+                            {% else %}
+                            <div class="wa-doc-card">
+                                <div class="wa-doc-icon">
+                                    <i class="fa-solid {{ ticket.file_icon }}"></i>
+                                </div>
+                                <div class="wa-doc-info">
+                                    <span class="wa-doc-name" title="{{ ticket.filename }}">{{ ticket.filename }}</span>
+                                    <span class="wa-doc-size">{{ ticket.file_size_display }}</span>
+                                </div>
+                                <a href="{{ ticket.attachment.url }}" download class="wa-doc-download-btn"
+                                    title="Download Document">
+                                    <i class="fa-solid fa-arrow-down-to-line"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+
+                            {% if ticket.message %}
+                            <div class="wa-bubble-content">{{ ticket.message }}</div>
+                            {% endif %}
+
+                            <div class="wa-meta-row">
+                                <span>{{ ticket.created_at|date:"h:i A" }}</span>
+                                <span class="wa-ticks"><i class="fa-solid fa-check-double"></i></span>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+
+                        {# 2. Threaded Replies #}
+                        {% for reply in replies %}
+                        {% if reply.is_staff_reply %}
+                        {# Staff Incoming Message (Left Bubble) #}
+                        <div class="wa-bubble wa-bubble-in chat-bubble-enter" id="reply-{{ reply.id }}">
+                            <div class="wa-sender-name staff d-flex align-items-center gap-1.5">
+                                <i class="fa-solid fa-headset text-teal small"></i>
+                                <span>Fresh Trace Support Team</span>
+                            </div>
+
+                            {% if reply.attachment %}
+                            {% if reply.is_image %}
+                            <div class="wa-attachment-img-wrap">
+                                <img src="{{ reply.attachment.url }}" alt="{{ reply.filename }}" class="wa-attached-img"
+                                    onclick="openImageModal(this.src)" loading="lazy">
+                            </div>
+                            {% else %}
+                            <div class="wa-doc-card">
+                                <div class="wa-doc-icon">
+                                    <i class="fa-solid {{ reply.file_icon }}"></i>
+                                </div>
+                                <div class="wa-doc-info">
+                                    <span class="wa-doc-name" title="{{ reply.filename }}">{{ reply.filename }}</span>
+                                    <span class="wa-doc-size">{{ reply.file_size_display }}</span>
+                                </div>
+                                <a href="{{ reply.attachment.url }}" download class="wa-doc-download-btn"
+                                    title="Download Document">
+                                    <i class="fa-solid fa-arrow-down-to-line"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+
+                            {% if reply.message %}
+                            <div class="wa-bubble-content">{{ reply.message }}</div>
+                            {% endif %}
+
+                            <div class="wa-meta-row">
+                                <span>{{ reply.created_at|date:"h:i A" }}</span>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        {% else %}
+                        {# Customer Outgoing Message (Right Bubble) #}
+                        <div class="wa-bubble wa-bubble-out chat-bubble-enter" id="reply-{{ reply.id }}">
+                            <div class="wa-sender-name customer">
+                                <span>{{ reply.sender.get_full_name|default:reply.sender.username }} (You)</span>
+                            </div>
+
+                            {% if reply.attachment %}
+                            {% if reply.is_image %}
+                            <div class="wa-attachment-img-wrap">
+                                <img src="{{ reply.attachment.url }}" alt="{{ reply.filename }}" class="wa-attached-img"
+                                    onclick="openImageModal(this.src)" loading="lazy">
+                            </div>
+                            {% else %}
+                            <div class="wa-doc-card">
+                                <div class="wa-doc-icon">
+                                    <i class="fa-solid {{ reply.file_icon }}"></i>
+                                </div>
+                                <div class="wa-doc-info">
+                                    <span class="wa-doc-name" title="{{ reply.filename }}">{{ reply.filename }}</span>
+                                    <span class="wa-doc-size">{{ reply.file_size_display }}</span>
+                                </div>
+                                <a href="{{ reply.attachment.url }}" download class="wa-doc-download-btn"
+                                    title="Download Document">
+                                    <i class="fa-solid fa-arrow-down-to-line"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+
+                            {% if reply.message %}
+                            <div class="wa-bubble-content">{{ reply.message }}</div>
+                            {% endif %}
+
+                            <div class="wa-meta-row">
+                                <span>{{ reply.created_at|date:"h:i A" }}</span>
+                                <span class="wa-ticks"><i class="fa-solid fa-check-double"></i></span>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        {# Live Typing Indicator Container #}
+                        <div id="typingIndicator" class="d-none">
+                            <div class="wa-typing-box">
+                                <i class="fa-solid fa-headset me-1"></i>
+                                <span id="typingUserText">Support Agent is typing</span>
+                                <span class="d-inline-flex align-items-center gap-1 ms-1">
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {# WhatsApp Input Footer #}
+                <div class="wa-input-panel">
+
+                    {# Attachment Preview Tray #}
+                    <div id="filePreviewTray" class="wa-preview-tray d-none">
+                        <div class="d-flex align-items-center gap-2">
+                            <img id="filePreviewImg" class="wa-preview-thumb d-none" alt="Preview">
+                            <div id="filePreviewIcon" class="wa-preview-icon d-none">
+                                <i class="fa-solid fa-file-lines text-secondary"></i>
+                            </div>
+                            <div class="small">
+                                <span id="filePreviewName" class="fw-bold text-dark d-block text-truncate"
+                                    style="max-width: 220px;">file.pdf</span>
+                                <span id="filePreviewSize" class="extra-small text-muted">0 KB</span>
+                            </div>
+                        </div>
+                        <button type="button" id="removeFileBtn"
+                            class="btn btn-sm btn-light border rounded-circle p-1 text-muted" title="Remove attachment"
+                            style="width:28px; height:28px; line-height:1;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <form method="post" action="{% url 'support:detail' ticket.id %}" id="chatForm"
+                        enctype="multipart/form-data" class="d-flex align-items-center gap-2 w-100 mb-0">
+                        {% csrf_token %}
+
+                        {# Attachment Paperclip Button #}
+                        <label for="chatFileInput" class="wa-icon-btn mb-0" title="Attach Image or Document">
+                            <i class="fa-solid fa-paperclip"></i>
+                            <input type="file" id="chatFileInput" name="attachment" class="d-none"
+                                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip">
+                        </label>
+
+                        <div class="wa-input-pill">
+                            <textarea id="chatInput" name="message" class="wa-textarea" rows="1"
+                                placeholder="Type a message (Press Enter to send, Shift+Enter for new line)..."></textarea>
+                        </div>
+                        <button type="submit" id="sendBtn" class="wa-send-btn" title="Send message">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        {# Sidebar Information #}
+        <div class="col-lg-4">
+            {# Linked Order Information Card #}
+            {% if ticket.order %}
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3">
+                <div class="text-xs text-muted fw-bold text-uppercase mb-2">
+                    <i class="fa-solid fa-bag-shopping text-success me-1"></i> Associated Order
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold text-dark mb-0">Order #{{ ticket.order.id }}</h6>
+                    <span class="badge bg-success-subtle text-success rounded-pill fw-bold">₹{{
+                        ticket.order.total_amount }}</span>
+                </div>
+                <p class="text-muted extra-small mb-2">
+                    Placed on {{ ticket.order.created_at|date:"M d, Y" }} • Status: <strong>{{
+                        ticket.order.get_status_display }}</strong>
+                </p>
+                <a href="{% url 'orders:track_order' ticket.order.id %}"
+                    class="btn btn-outline-success btn-sm rounded-pill w-100 fw-bold">
+                    <i class="fa-solid fa-truck-fast me-1"></i> View Live Tracking
+                </a>
+            </div>
+            {% endif %}
+
+            {# Ticket Meta Info #}
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-circle-info text-success me-1"></i> Ticket Details
+                </h6>
+                <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Status:</span>
+                        <span class="fw-bold text-capitalize" id="sidebarStatusText">{{ ticket.get_status_display
+                            }}</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">Category:</span>
+                        <span class="fw-bold">{{ ticket.get_category_display }}</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <span class="text-muted">WebSocket Sync:</span>
+                        <span class="badge bg-success-subtle text-success fw-bold">Live Stream</span>
+                    </li>
+                </ul>
+            </div>
+
+            {# Support Contact Help Card #}
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <h6 class="fw-bold text-dark mb-2">
+                    <i class="fa-solid fa-headset text-success me-1"></i> Fresh Trace Support Hub
+                </h6>
+                <p class="text-muted small mb-3">Our team is available daily to assist with your farm orders and
+                    questions:</p>
+                <div class="d-flex flex-column gap-2 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-envelope text-success"></i>
+                        <a href="mailto:support@freshtrace.local"
+                            class="text-decoration-none text-dark fw-semibold">support@freshtrace.local</a>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clock text-success"></i>
+                        <span class="text-muted">7:00 AM – 9:00 PM Daily</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Image Lightbox Modal #}
+<div class="modal fade" id="imageLightboxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 bg-transparent shadow-none">
+            <div class="modal-body p-0 text-center position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                    data-bs-dismiss="modal" aria-label="Close" style="z-index: 1056;"></button>
+                <img id="lightboxImg" src="" alt="Full view" class="img-fluid rounded-3 shadow-lg"
+                    style="max-height: 85vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openImageModal(src) {
+        const lightboxImg = document.getElementById('lightboxImg');
+        if (lightboxImg) {
+            lightboxImg.src = src;
+            const modal = new bootstrap.Modal(document.getElementById('imageLightboxModal'));
+            modal.show();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const ticketId = "{{ ticket.id }}";
+        const uploadUrl = "{% url 'support:upload_attachment' ticket.id %}";
+        const currentUsername = "{{ request.user.username }}";
+        const currentUserId = {{ request.user.id }
+    };
+    const chatThread = document.getElementById('chatThread');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatFileInput = document.getElementById('chatFileInput');
+    const filePreviewTray = document.getElementById('filePreviewTray');
+    const filePreviewImg = document.getElementById('filePreviewImg');
+    const filePreviewIcon = document.getElementById('filePreviewIcon');
+    const filePreviewName = document.getElementById('filePreviewName');
+    const filePreviewSize = document.getElementById('filePreviewSize');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const typingUserText = document.getElementById('typingUserText');
+    const wsStatusDot = document.getElementById('wsStatusDot');
+    const wsStatusText = document.getElementById('wsStatusText');
+    const ticketStatusBadge = document.getElementById('ticketStatusBadge');
+    const sidebarStatusText = document.getElementById('sidebarStatusText');
+
+    let socket = null;
+    let reconnectTimeout = null;
+    let typingTimer = null;
+    let isTyping = false;
+    let selectedFile = null;
+
+    // Scroll to bottom of conversation
+    function scrollToBottom() {
+        if (chatThread) {
+            chatThread.scrollTop = chatThread.scrollHeight;
+        }
+    }
+    scrollToBottom();
+
+    // Helper: update status badges
+    function updateStatusUI(status, statusDisplay) {
+        if (sidebarStatusText) sidebarStatusText.textContent = statusDisplay;
+
+        if (ticketStatusBadge) {
+            let badgeHtml = '';
+            if (status === 'open') {
+                badgeHtml = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill fw-bold"><i class="fa-solid fa-circle-dot me-1 text-warning"></i> Open</span>';
+            } else if (status === 'in_progress') {
+                badgeHtml = '<span class="badge bg-info-subtle text-primary border border-info-subtle rounded-pill fw-bold"><i class="fa-solid fa-rotate me-1 text-info"></i> In Progress</span>';
+            } else if (status === 'resolved') {
+                badgeHtml = '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fw-bold"><i class="fa-solid fa-check-circle me-1 text-success"></i> Resolved</span>';
+            } else if (status === 'closed') {
+                badgeHtml = '<span class="badge bg-secondary-subtle text-muted border rounded-pill fw-bold"><i class="fa-solid fa-lock me-1"></i> Closed</span>';
+            }
+            ticketStatusBadge.innerHTML = badgeHtml;
+        }
+    }
+
+    // Format time (e.g., 03:45 PM)
+    function formatTime(isoOrFormatted) {
+        if (!isoOrFormatted) {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return isoOrFormatted;
+    }
+
+    // File Preview Handler
+    if (chatFileInput) {
+        chatFileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                selectedFile = this.files[0];
+                filePreviewName.textContent = selectedFile.name;
+
+                // Format size
+                const sizeKb = (selectedFile.size / 1024).toFixed(1);
+                filePreviewSize.textContent = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
+
+                if (selectedFile.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        filePreviewImg.src = e.target.result;
+                        filePreviewImg.classList.remove('d-none');
+                        filePreviewIcon.classList.add('d-none');
+                    };
+                    reader.readAsDataURL(selectedFile);
+                } else {
+                    filePreviewImg.classList.add('d-none');
+                    filePreviewIcon.classList.remove('d-none');
+                }
+
+                filePreviewTray.classList.remove('d-none');
+            }
+        });
+    }
+
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function () {
+            selectedFile = null;
+            if (chatFileInput) chatFileInput.value = '';
+            filePreviewTray.classList.add('d-none');
+        });
+    }
+
+    // Helper: append message bubble in WhatsApp style
+    function appendMessageBubble(reply) {
+        if (document.getElementById(`reply-${reply.id}`)) {
+            return;
+        }
+
+        const isStaff = reply.is_staff_reply;
+        const bubble = document.createElement('div');
+        bubble.id = `reply-${reply.id}`;
+        bubble.className = `wa-bubble chat-bubble-enter ${isStaff ? 'wa-bubble-in' : 'wa-bubble-out'}`;
+
+        const senderDisplay = reply.sender_display || reply.sender_username;
+        const timeDisplay = reply.created_at_formatted ? reply.created_at_formatted.split(', ')[1] || reply.created_at_formatted : formatTime();
+
+        let attachmentHtml = '';
+        if (reply.attachment_url) {
+            if (reply.is_image) {
+                attachmentHtml = `
+                    <div class="wa-attachment-img-wrap">
+                        <img src="${reply.attachment_url}" alt="${escapeHtml(reply.attachment_name || 'Image')}" class="wa-attached-img" onclick="openImageModal('${reply.attachment_url}')" loading="lazy">
+                    </div>
+                `;
+            } else {
+                const iconClass = reply.file_icon || 'fa-file-lines text-secondary';
+                attachmentHtml = `
+                    <div class="wa-doc-card">
+                        <div class="wa-doc-icon">
+                            <i class="fa-solid ${iconClass}"></i>
+                        </div>
+                        <div class="wa-doc-info">
+                            <span class="wa-doc-name" title="${escapeHtml(reply.attachment_name || 'Document')}">${escapeHtml(reply.attachment_name || 'Document')}</span>
+                            <span class="wa-doc-size">${escapeHtml(reply.file_size || '')}</span>
+                        </div>
+                        <a href="${reply.attachment_url}" download class="wa-doc-download-btn" title="Download Document">
+                            <i class="fa-solid fa-arrow-down-to-line"></i>
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        const messageContentHtml = reply.message ? `<div class="wa-bubble-content">${escapeHtml(reply.message)}</div>` : '';
+
+        if (isStaff) {
+            bubble.innerHTML = `
+                <div class="wa-sender-name staff d-flex align-items-center gap-1.5">
+                    <i class="fa-solid fa-headset text-teal small"></i>
+                    <span>Fresh Trace Support Team</span>
+                </div>
+                ${attachmentHtml}
+                ${messageContentHtml}
+                <div class="wa-meta-row">
+                    <span>${escapeHtml(timeDisplay)}</span>
+                </div>
+                <div class="clearfix"></div>
+            `;
+        } else {
+            bubble.innerHTML = `
+                <div class="wa-sender-name customer">
+                    <span>${escapeHtml(senderDisplay)} (You)</span>
+                </div>
+                ${attachmentHtml}
+                ${messageContentHtml}
+                <div class="wa-meta-row">
+                    <span>${escapeHtml(timeDisplay)}</span>
+                    <span class="wa-ticks"><i class="fa-solid fa-check-double"></i></span>
+                </div>
+                <div class="clearfix"></div>
+            `;
+        }
+
+        // Insert before typing indicator if present
+        if (typingIndicator && typingIndicator.parentElement === chatThread) {
+            chatThread.insertBefore(bubble, typingIndicator);
+        } else {
+            chatThread.appendChild(bubble);
+        }
+
+        scrollToBottom();
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.innerText = text;
+        return div.innerHTML;
+    }
+
+    // Connect WebSocket
+    function initWebSocket() {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsUrl = `${wsProtocol}${window.location.host}/ws/support/ticket/${ticketId}/`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function () {
+            if (wsStatusDot) wsStatusDot.style.backgroundColor = '#25d366';
+            if (wsStatusText) wsStatusText.textContent = 'Live Support Active';
+        };
+
+        socket.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'chat_message' && data.reply) {
+                    appendMessageBubble(data.reply);
+                    if (data.reply.ticket_status && data.reply.ticket_status_display) {
+                        updateStatusUI(data.reply.ticket_status, data.reply.ticket_status_display);
+                    }
+                    if (typingIndicator) typingIndicator.classList.add('d-none');
+                } else if (data.type === 'typing') {
+                    if (data.is_typing) {
+                        if (typingUserText) typingUserText.textContent = data.is_staff ? 'Support Agent is typing...' : `${data.username} is typing...`;
+                        if (typingIndicator) typingIndicator.classList.remove('d-none');
+                        scrollToBottom();
+                    } else {
+                        if (typingIndicator) typingIndicator.classList.add('d-none');
+                    }
+                } else if (data.type === 'status_update') {
+                    updateStatusUI(data.status, data.status_display);
+                }
+            } catch (err) {
+                console.error('Error handling WebSocket message:', err);
+            }
+        };
+
+        socket.onclose = function (e) {
+            if (wsStatusDot) wsStatusDot.style.backgroundColor = '#f59e0b';
+            if (wsStatusText) wsStatusText.textContent = 'Reconnecting...';
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = setTimeout(initWebSocket, 3000);
+        };
+
+        socket.onerror = function (err) {
+            console.warn('WebSocket encountered error:', err);
+            socket.close();
+        };
+    }
+
+    initWebSocket();
+
+    // Auto-resize input
+    chatInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+        if (!isTyping) {
+            isTyping = true;
+            socket.send(JSON.stringify({
+                action: 'typing',
+                is_typing: true
+            }));
+        }
+
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function () {
+            isTyping = false;
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'typing',
+                    is_typing: false
+                }));
+            }
+        }, 1200);
+    });
+
+    // Enter key submits message
+    chatInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    // Form submit handler with WebSocket / Attachment upload
+    chatForm.addEventListener('submit', function (e) {
+        const message = chatInput.value.trim();
+        const hasFile = chatFileInput && chatFileInput.files && chatFileInput.files.length > 0;
+
+        if (!message && !hasFile) return;
+
+        e.preventDefault();
+
+        // If an attachment file is attached, upload via async AJAX endpoint
+        if (hasFile) {
+            const formData = new FormData(chatForm);
+
+            // Clear input UI immediately for responsive feel
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            chatFileInput.value = '';
+            selectedFile = null;
+            if (filePreviewTray) filePreviewTray.classList.add('d-none');
+
+            fetch(uploadUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'ok' && data.reply) {
+                        appendMessageBubble(data.reply);
+                    } else if (data.message) {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error uploading attachment:', err);
+                    chatForm.submit(); // fallback to standard submit if fetch fails
+                });
+
+        } else if (socket && socket.readyState === WebSocket.OPEN) {
+            // Text only via WebSocket
+            socket.send(JSON.stringify({
+                action: 'chat_message',
+                message: message
+            }));
+
+            // Clear input & cancel typing state
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            isTyping = false;
+            clearTimeout(typingTimer);
+            socket.send(JSON.stringify({
+                action: 'typing',
+                is_typing: false
+            }));
+        } else {
+            // Socket not connected fallback
+            chatForm.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

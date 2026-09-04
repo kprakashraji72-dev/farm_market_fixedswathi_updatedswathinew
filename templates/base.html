@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Fresh Trace{% endblock %} | Fresh Trace</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/mobile.css' %}" rel="stylesheet">
+    <link href="{% static 'css/cart-animation.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100" style="background-color: #f8fafc;">
+
+    {# Top Storefront Navbar — Only rendered on Customer Storefront pages, NOT on Dashboard / Portal pages #}
+    {% block navbar %}
+        {% if not is_dashboard and '/dashboard/' not in request.path and '/support-console/' not in request.path and '/tracking/driver/' not in request.path and '/accounts/driver/' not in request.path and '/accounts/farmer/' not in request.path %}
+            {% include 'navbar.html' %}
+        {% endif %}
+    {% endblock %}
+
+    <main class="flex-grow-1 d-flex flex-column">
+        {% if messages %}
+        <div class="container my-3">
+            {% include 'components/messages.html' %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {# Footer — Only rendered on Customer Storefront pages, NOT on Dashboard / Portal pages #}
+    {% block footer %}
+        {% if not is_dashboard and '/dashboard/' not in request.path and '/support-console/' not in request.path and '/tracking/driver/' not in request.path and '/accounts/driver/' not in request.path and '/accounts/farmer/' not in request.path %}
+            {% include 'footer.html' %}
+            {% include 'components/chat_widget.html' %}
+        {% endif %}
+    {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
+    <script src="{% static 'js/cart-animation.js' %}"></script>
+    <script src="{% static 'js/storefront_search.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,616 @@
+{
+  "version": "7.3",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "PRODUCTS": [
+      "DELIVERY"
+    ],
+    "DELIVERY": [
+      "SUMMARY"
+    ],
+    "SUMMARY": [
+      "COMPLETE"
+    ],
+    "COMPLETE": []
+  },
+  "screens": [
+    {
+      "id": "PRODUCTS",
+      "title": "Fresh Trace Farm Market",
+      "data": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "cat_veg",
+              "title": "🥕 Fresh Vegetables"
+            },
+            {
+              "id": "cat_fruits",
+              "title": "🍎 Farm Fresh Fruits"
+            },
+            {
+              "id": "cat_greens",
+              "title": "🥬 Organic Greens"
+            }
+          ]
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "prod_16",
+              "title": "Ooty Red Carrot (₹80/kg)"
+            },
+            {
+              "id": "prod_29",
+              "title": "Fresh Orange Carrot (₹75/kg)"
+            },
+            {
+              "id": "prod_15",
+              "title": "Regular Carrot (₹70/kg)"
+            },
+            {
+              "id": "prod_34",
+              "title": "Organic Tomatoes (₹40/kg)"
+            },
+            {
+              "id": "prod_21",
+              "title": "Farm Fresh Potato (₹40/kg)"
+            },
+            {
+              "id": "prod_19",
+              "title": "Beetroot (₹45/kg)"
+            }
+          ]
+        },
+        "quantities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          },
+          "__example__": [
+            {
+              "id": "qty_1",
+              "title": "1 kg (or bunch)"
+            },
+            {
+              "id": "qty_2",
+              "title": "2 kg"
+            },
+            {
+              "id": "qty_3",
+              "title": "3 kg"
+            },
+            {
+              "id": "qty_5",
+              "title": "5 kg (Family Pack)"
+            }
+          ]
+        },
+        "selected_category": {
+          "type": "string",
+          "__example__": "cat_veg"
+        },
+        "selected_product": {
+          "type": "string",
+          "__example__": "prod_16"
+        },
+        "selected_quantity": {
+          "type": "string",
+          "__example__": "qty_1"
+        },
+        "unit_price": {
+          "type": "string",
+          "__example__": "₹ 80.00/kg"
+        },
+        "subtotal": {
+          "type": "string",
+          "__example__": "₹ 80.00"
+        },
+        "delivery_fee": {
+          "type": "string",
+          "__example__": "₹ 5.00"
+        },
+        "total_amount": {
+          "type": "string",
+          "__example__": "₹ 85.00"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "products_form",
+            "init-values": {
+              "category": "${data.selected_category}",
+              "product": "${data.selected_product}",
+              "quantity": "${data.selected_quantity}"
+            },
+            "children": [
+              {
+                "type": "Image",
+                "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80",
+                "height": 130,
+                "scale-type": "cover"
+              },
+              {
+                "type": "TextHeading",
+                "text": "Farm Fresh Produce"
+              },
+              {
+                "type": "TextBody",
+                "text": "Handpicked organic harvest delivered fresh from local farms. Choose your item below:"
+              },
+              {
+                "type": "Dropdown",
+                "label": "Produce Category",
+                "required": true,
+                "name": "category",
+                "data-source": "${data.categories}",
+                "on-select-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "category": "${form.category}",
+                    "product": "${form.product}",
+                    "quantity": "${form.quantity}"
+                  }
+                }
+              },
+              {
+                "type": "Dropdown",
+                "label": "Select Product",
+                "required": true,
+                "name": "product",
+                "data-source": "${data.products}",
+                "on-select-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "category": "${form.category}",
+                    "product": "${form.product}",
+                    "quantity": "${form.quantity}"
+                  }
+                }
+              },
+              {
+                "type": "Dropdown",
+                "label": "Select Quantity",
+                "required": true,
+                "name": "quantity",
+                "data-source": "${data.quantities}",
+                "on-select-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "category": "${form.category}",
+                    "product": "${form.product}",
+                    "quantity": "${form.quantity}"
+                  }
+                }
+              },
+              {
+                "type": "TextCaption",
+                "text": "UNIT RATE"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.unit_price}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "ESTIMATED TOTAL (INCL. ₹5 DELIVERY)"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.total_amount}"
+              },
+              {
+                "type": "Footer",
+                "label": "Proceed to Delivery",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "category": "${form.category}",
+                    "product": "${form.product}",
+                    "quantity": "${form.quantity}",
+                    "continue_to_delivery": true,
+                    "customer_name": ""
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "DELIVERY",
+      "title": "Delivery & Payment",
+      "data": {
+        "product_id": {
+          "type": "string",
+          "__example__": "prod_16"
+        },
+        "product_name": {
+          "type": "string",
+          "__example__": "Ooty Red Carrot"
+        },
+        "quantity": {
+          "type": "string",
+          "__example__": "1 kg (or bunch)"
+        },
+        "unit_price": {
+          "type": "string",
+          "__example__": "₹ 80.00/kg"
+        },
+        "subtotal": {
+          "type": "string",
+          "__example__": "₹ 80.00"
+        },
+        "delivery_fee": {
+          "type": "string",
+          "__example__": "₹ 5.00"
+        },
+        "total_amount": {
+          "type": "string",
+          "__example__": "₹ 85.00"
+        },
+        "payment_mode": {
+          "type": "string",
+          "__example__": "COD"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "delivery_form",
+            "init-values": {
+              "payment_mode": "${data.payment_mode}"
+            },
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Delivery Details"
+              },
+              {
+                "type": "TextCaption",
+                "text": "SELECTED HARVEST"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.product_name}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "QUANTITY"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.quantity}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "TOTAL PAYABLE"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.total_amount}"
+              },
+              {
+                "type": "TextInput",
+                "label": "Full Name",
+                "name": "customer_name",
+                "required": true,
+                "input-type": "text"
+              },
+              {
+                "type": "TextInput",
+                "label": "Phone Number",
+                "name": "delivery_phone",
+                "required": true,
+                "input-type": "number"
+              },
+              {
+                "type": "TextInput",
+                "label": "Delivery Address",
+                "name": "delivery_address",
+                "required": true,
+                "input-type": "text"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "label": "Payment Method",
+                "required": true,
+                "name": "payment_mode",
+                "data-source": [
+                  {
+                    "id": "COD",
+                    "title": "Cash on Delivery (COD)",
+                    "description": "Pay cash to the delivery rider"
+                  },
+                  {
+                    "id": "UPI",
+                    "title": "UPI on Delivery",
+                    "description": "Scan QR code using GPay / PhonePe / Paytm on delivery"
+                  }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Review Summary",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "product_id": "${data.product_id}",
+                    "product_name": "${data.product_name}",
+                    "quantity": "${data.quantity}",
+                    "unit_price": "${data.unit_price}",
+                    "subtotal": "${data.subtotal}",
+                    "delivery_fee": "${data.delivery_fee}",
+                    "total_amount": "${data.total_amount}",
+                    "customer_name": "${form.customer_name}",
+                    "delivery_phone": "${form.delivery_phone}",
+                    "delivery_address": "${form.delivery_address}",
+                    "payment_mode": "${form.payment_mode}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "SUMMARY",
+      "title": "Order Summary",
+      "data": {
+        "product_id": {
+          "type": "string",
+          "__example__": "prod_16"
+        },
+        "product_name": {
+          "type": "string",
+          "__example__": "Ooty Red Carrot"
+        },
+        "quantity": {
+          "type": "string",
+          "__example__": "1 kg (or bunch)"
+        },
+        "unit_price": {
+          "type": "string",
+          "__example__": "₹ 80.00/kg"
+        },
+        "subtotal": {
+          "type": "string",
+          "__example__": "₹ 80.00"
+        },
+        "delivery_fee": {
+          "type": "string",
+          "__example__": "₹ 5.00"
+        },
+        "total_amount": {
+          "type": "string",
+          "__example__": "₹ 85.00"
+        },
+        "customer_name": {
+          "type": "string",
+          "__example__": "Swathi Kumar"
+        },
+        "delivery_address": {
+          "type": "string",
+          "__example__": "12, Green Avenue, Anna Nagar, Chennai"
+        },
+        "delivery_phone": {
+          "type": "string",
+          "__example__": "9876543210"
+        },
+        "payment_mode": {
+          "type": "string",
+          "__example__": "Cash on Delivery (COD)"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "summary_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Confirm Your Farm Order"
+              },
+              {
+                "type": "TextCaption",
+                "text": "ITEM DETAILS"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.product_name}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "QUANTITY"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.quantity}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "UNIT RATE"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.unit_price}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "RECIPIENT NAME"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.customer_name}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "DELIVERY ADDRESS"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.delivery_address}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "CONTACT PHONE"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.delivery_phone}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "PAYMENT METHOD"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.payment_mode}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "ITEM SUBTOTAL"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.subtotal}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "DELIVERY FEE"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.delivery_fee}"
+              },
+              {
+                "type": "TextCaption",
+                "text": "FINAL TOTAL AMOUNT"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.total_amount}"
+              },
+              {
+                "type": "Footer",
+                "label": "Confirm Order",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "product_id": "${data.product_id}",
+                    "product_name": "${data.product_name}",
+                    "quantity": "${data.quantity}",
+                    "subtotal": "${data.subtotal}",
+                    "delivery_fee": "${data.delivery_fee}",
+                    "total_amount": "${data.total_amount}",
+                    "customer_name": "${data.customer_name}",
+                    "delivery_address": "${data.delivery_address}",
+                    "delivery_phone": "${data.delivery_phone}",
+                    "payment_mode": "${data.payment_mode}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "COMPLETE",
+      "title": "Order Placed!",
+      "data": {
+        "order_id": {
+          "type": "string",
+          "__example__": "1042"
+        },
+        "message": {
+          "type": "string",
+          "__example__": "Order #1042 confirmed! Fresh produce is packed and rider is on the way."
+        }
+      },
+      "terminal": true,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "complete_form",
+            "children": [
+              {
+                "type": "Image",
+                "src": "https://img.icons8.com/color/240/000000/checked--v1.png",
+                "height": 90,
+                "scale-type": "contain"
+              },
+              {
+                "type": "TextHeading",
+                "text": "Order Confirmed!"
+              },
+              {
+                "type": "TextCaption",
+                "text": "ORDER NUMBER"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "${data.order_id}"
+              },
+              {
+                "type": "TextBody",
+                "text": "${data.message}"
+              },
+              {
+                "type": "Footer",
+                "label": "Done",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

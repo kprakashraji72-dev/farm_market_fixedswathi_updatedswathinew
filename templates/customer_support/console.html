@@ -1,0 +1,652 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Support Console | Fresh Trace{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Support Console Modern Aesthetics & Alignment */
+.sc-hero {
+    background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+    border-radius: 1rem;
+    color: #ffffff;
+}
+
+.sc-kpi-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sc-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.06);
+}
+
+.sc-filter-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+.sc-table-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.sc-table th {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+}
+
+.sc-table td {
+    padding: 1rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+}
+
+.sc-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.sc-ticket-title {
+    color: #0f172a;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.sc-ticket-title:hover {
+    color: #0f766e;
+}
+
+.sc-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.live-pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10b981;
+    animation: livePulse 1.8s infinite;
+}
+@keyframes livePulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.toast-container-live {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1080;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 380px;
+}
+.live-toast {
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{# Real-Time Toast Notification Container #}
+<div class="toast-container-live" id="liveToastContainer"></div>
+
+<div class="d-flex min-vh-100" style="background:#f8fafc; max-width:100vw; overflow-x:hidden;">
+    {% include 'support_sidebar.html' %}
+    
+    <div class="flex-grow-1" style="min-width:0; max-width:100%; overflow-x:hidden;">
+
+        {# Mobile Top Navigation #}
+        <div class="d-lg-none d-flex align-items-center justify-content-between p-2 p-sm-3 bg-white border-bottom sticky-top shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-teal btn-sm rounded-pill d-inline-flex align-items-center gap-1.5 fw-bold shadow-sm ft-sidebar-toggle" style="border-color:#0f766e; color:#0f766e;" data-bs-toggle="offcanvas" data-bs-target="#supportSidebar" aria-controls="supportSidebar">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Menu</span>
+                </button>
+                <span class="fw-bold text-dark small">Support Console</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <a href="{% url 'customer_support:reports' %}" class="btn btn-light btn-sm rounded-pill border shadow-sm fw-semibold text-dark px-2.5">
+                    <i class="fa-solid fa-chart-pie me-1" style="color:#0f766e;"></i> Analytics
+                </a>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-light btn-sm rounded-circle border shadow-sm flex-shrink-0" title="My Account" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-user text-muted extra-small"></i>
+                </a>
+            </div>
+        </div>
+
+        {# Main Content Body #}
+        <div class="p-3 p-md-4 pb-5 mb-4 pb-lg-3 mb-lg-0">
+
+            {# Hero Banner Header #}
+            <div class="sc-hero p-4 mb-4 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-3 bg-white text-teal shadow-sm flex-shrink-0" style="width: 52px; height: 52px; color: #0f766e;">
+                            <i class="fa-solid fa-headset fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                <h2 class="mb-0 fw-bold text-white fs-4">Customer Support Console</h2>
+                                <span id="wsConsoleStatusBadge" class="badge bg-white text-teal rounded-pill px-2.5 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" style="color: #0f766e;">
+                                    <span class="live-pulse-dot" id="wsConsoleDot"></span>
+                                    <span id="wsConsoleText">Live Stream Connected</span>
+                                </span>
+                            </div>
+                            <p class="mb-0 text-white-50 small">Manage inquiries, delivery concerns, refund tickets, and agent response queues.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" id="toggleSoundBtn" class="btn btn-light btn-sm rounded-pill px-3 py-2 fw-semibold text-dark shadow-sm d-inline-flex align-items-center gap-1.5" title="Toggle audio alerts">
+                            <i class="fa-solid fa-volume-high text-teal" id="soundIcon" style="color:#0f766e;"></i>
+                            <span>Sound Alerts: On</span>
+                        </button>
+                        <a href="{% url 'customer_support:reports' %}" class="btn btn-light btn-sm rounded-pill px-3 py-2 fw-bold text-dark shadow-sm d-inline-flex align-items-center gap-1.5">
+                            <i class="fa-solid fa-chart-pie text-teal" style="color:#0f766e;"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {# 4 Key KPI Stat Cards #}
+            <div class="row g-3 mb-4">
+                {# Card 1: Total Tickets #}
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="sc-kpi-card p-3 shadow-sm h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Total Tickets</span>
+                            <h3 class="fw-bold text-dark mb-0 fs-4" id="metricTotalCount">{{ total_tickets }}</h3>
+                            <span class="extra-small text-muted">All-time inquiries</span>
+                        </div>
+                        <div class="sc-avatar bg-primary-subtle text-primary">
+                            <i class="fa-solid fa-ticket fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {# Card 2: Open Tickets #}
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="sc-kpi-card p-3 shadow-sm h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-warning extra-small fw-bold text-uppercase d-block mb-1">Open Tickets</span>
+                            <h3 class="fw-bold text-warning mb-0 fs-4" id="metricOpenCount">{{ open_tickets }}</h3>
+                            <span class="extra-small text-muted">Awaiting action</span>
+                        </div>
+                        <div class="sc-avatar bg-warning-subtle text-warning">
+                            <i class="fa-solid fa-circle-dot fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {# Card 3: In Progress #}
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="sc-kpi-card p-3 shadow-sm h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-info extra-small fw-bold text-uppercase d-block mb-1">In Progress</span>
+                            <h3 class="fw-bold text-info mb-0 fs-4" id="metricInProgressCount">{{ in_progress_tickets }}</h3>
+                            <span class="extra-small text-muted">Being handled</span>
+                        </div>
+                        <div class="sc-avatar bg-info-subtle text-info">
+                            <i class="fa-solid fa-spinner fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {# Card 4: Resolved Today #}
+                <div class="col-xl-3 col-sm-6 col-12">
+                    <div class="sc-kpi-card p-3 shadow-sm h-100 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-success extra-small fw-bold text-uppercase d-block mb-1">Resolved Today</span>
+                            <h3 class="fw-bold text-success mb-0 fs-4">{{ resolved_today }}</h3>
+                            <span class="extra-small text-muted">Completed today</span>
+                        </div>
+                        <div class="sc-avatar bg-success-subtle text-success">
+                            <i class="fa-solid fa-circle-check fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Search & Filter Toolbar #}
+            <div class="sc-filter-card p-3 shadow-sm mb-4">
+                <form method="get" class="row g-2 align-items-center">
+                    {# Search Input #}
+                    <div class="col-xl-4 col-lg-4 col-md-6 col-12">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-start-0 rounded-end-pill py-2" placeholder="Search ticket #, subject, customer, order #...">
+                        </div>
+                    </div>
+
+                    {# Status Filter #}
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-6">
+                        <select name="status" class="form-select form-select-sm rounded-pill py-2" onchange="this.form.submit()">
+                            <option value="">All Statuses</option>
+                            <option value="open" {% if current_status == 'open' %}selected{% endif %}>Open</option>
+                            <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="resolved" {% if current_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if current_status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+
+                    {# Category Filter #}
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-6">
+                        <select name="category" class="form-select form-select-sm rounded-pill py-2" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            <option value="delivery_issue" {% if current_category == 'delivery_issue' %}selected{% endif %}>Delivery Issue</option>
+                            <option value="payment_issue" {% if current_category == 'payment_issue' %}selected{% endif %}>Payment Issue</option>
+                            <option value="product_quality" {% if current_category == 'product_quality' %}selected{% endif %}>Product Quality</option>
+                            <option value="account_issue" {% if current_category == 'account_issue' %}selected{% endif %}>Account Issue</option>
+                            <option value="other" {% if current_category == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    {# Assigned Filter #}
+                    <div class="col-xl-2 col-lg-2 col-md-6 col-6">
+                        <select name="assigned" class="form-select form-select-sm rounded-pill py-2" onchange="this.form.submit()">
+                            <option value="">All Agents</option>
+                            <option value="me" {% if current_assigned == 'me' %}selected{% endif %}>Assigned to Me</option>
+                            <option value="unassigned" {% if current_assigned == 'unassigned' %}selected{% endif %}>Unassigned</option>
+                            {% for staff in staff_members %}
+                                <option value="{{ staff.id }}" {% if current_assigned == staff.id|stringformat:"s" %}selected{% endif %}>{{ staff.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    {# Filter & Reset Buttons #}
+                    <div class="col-xl-2 col-lg-2 col-md-6 col-6 d-flex align-items-center gap-1.5">
+                        <button type="submit" class="btn btn-teal btn-sm rounded-pill px-3 py-2 fw-bold text-white flex-grow-1" style="background:#0f766e;">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                        {% if current_status or current_category or current_assigned or search_query %}
+                            <a href="{% url 'customer_support:console' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-2 text-dark" title="Reset all filters">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            {# Tickets List Table Card #}
+            <div class="sc-table-card shadow-sm mb-4">
+                {# Card Header #}
+                <div class="p-3 bg-white border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold text-dark mb-0 fs-6">
+                            <i class="fa-solid fa-list-check text-teal me-1.5" style="color: #0f766e;"></i>
+                            Support Queue (<span id="ticketListCount">{{ tickets.count }}</span>)
+                        </h6>
+                        {% if current_status %}
+                            <span class="badge bg-secondary-subtle text-dark rounded-pill extra-small fw-semibold">Status: {{ current_status }}</span>
+                        {% endif %}
+                        {% if current_category %}
+                            <span class="badge bg-secondary-subtle text-dark rounded-pill extra-small fw-semibold">Category: {{ current_category }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="extra-small text-muted">Showing current live ticket feed</span>
+                </div>
+
+                {# Table View #}
+                <div class="table-responsive">
+                    <table class="table sc-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;" class="ps-3">ID</th>
+                                <th style="min-width: 180px;">Customer</th>
+                                <th style="min-width: 280px;">Subject &amp; Inquiry</th>
+                                <th style="min-width: 120px;">Status</th>
+                                <th style="min-width: 180px;">Assigned Agent</th>
+                                <th style="min-width: 140px;">Created / Activity</th>
+                                <th class="text-end pe-3" style="min-width: 130px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTableBody">
+                            {% for ticket in tickets %}
+                            <tr id="ticket-card-{{ ticket.id }}">
+                                {# ID #}
+                                <td class="ps-3">
+                                    <span class="badge bg-dark text-white rounded-pill px-2.5 py-1 extra-small fw-bold">
+                                        #{{ ticket.id }}
+                                    </span>
+                                </td>
+
+                                {# Customer Info #}
+                                <td>
+                                    <div class="overflow-hidden">
+                                        <span class="fw-bold text-dark d-block text-truncate small">{{ ticket.user.get_full_name|default:ticket.user.username }}</span>
+                                        <div class="d-flex align-items-center gap-1 extra-small text-muted">
+                                            {% if ticket.user.email %}
+                                                <a href="mailto:{{ ticket.user.email }}" class="text-decoration-none text-muted text-truncate d-inline-block" style="max-width: 170px;" title="{{ ticket.user.email }}">
+                                                    <i class="fa-solid fa-envelope me-1 text-muted"></i>{{ ticket.user.email }}
+                                                </a>
+                                            {% else %}
+                                                <span>No email</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {# Subject, Category & Order #}
+                                <td>
+                                    <div>
+                                        <a href="{% url 'customer_support:detail' ticket.id %}" class="sc-ticket-title d-block mb-1">
+                                            {{ ticket.subject }}
+                                        </a>
+                                        <p class="text-muted extra-small mb-1.5 line-clamp-1 lh-sm" style="display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                                            {{ ticket.message }}
+                                        </p>
+                                        <div class="d-flex flex-wrap align-items-center gap-1.5">
+                                            <span class="badge bg-secondary-subtle text-dark rounded-pill extra-small fw-semibold">
+                                                {{ ticket.get_category_display }}
+                                            </span>
+                                            {% if ticket.order %}
+                                                <span class="badge bg-primary-subtle text-primary rounded-pill extra-small fw-semibold">
+                                                    <i class="fa-solid fa-bag-shopping me-1"></i> Order #{{ ticket.order.id }} (₹{{ ticket.order.total_amount }})
+                                                </span>
+                                            {% endif %}
+                                            {% if ticket.replies.count > 0 %}
+                                                <span class="badge bg-light text-muted border rounded-pill extra-small" id="reply-count-{{ ticket.id }}">
+                                                    <i class="fa-solid fa-comments me-1"></i> {{ ticket.replies.count }} repl{{ ticket.replies.count|pluralize:"y,ies" }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {# Status Badge #}
+                                <td>
+                                    {% if ticket.status == 'open' %}
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill extra-small fw-bold px-2.5 py-1">
+                                            <i class="fa-solid fa-circle-dot me-1 text-warning"></i> Open
+                                        </span>
+                                    {% elif ticket.status == 'in_progress' %}
+                                        <span class="badge bg-info-subtle text-primary border border-info-subtle rounded-pill extra-small fw-bold px-2.5 py-1">
+                                            <i class="fa-solid fa-spinner me-1 text-info"></i> In Progress
+                                        </span>
+                                    {% elif ticket.status == 'resolved' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small fw-bold px-2.5 py-1">
+                                            <i class="fa-solid fa-check-circle me-1 text-success"></i> Resolved
+                                        </span>
+                                    {% elif ticket.status == 'closed' %}
+                                        <span class="badge bg-secondary-subtle text-muted border rounded-pill extra-small fw-bold px-2.5 py-1">
+                                            <i class="fa-solid fa-lock me-1"></i> Closed
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                {# Assigned Agent & Reassign #}
+                                <td>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        {% if ticket.assigned_to %}
+                                            <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 extra-small fw-semibold">
+                                                <i class="fa-solid fa-user-shield text-teal me-1" style="color: #0f766e;"></i>{{ ticket.assigned_to.username }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1 extra-small fw-bold">
+                                                Unassigned
+                                            </span>
+                                        {% endif %}
+
+                                        {# Quick Reassign Dropdown #}
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm rounded-circle border p-0 d-inline-flex align-items-center justify-content-center text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Reassign Agent" style="width: 24px; height: 24px;">
+                                                <i class="fa-solid fa-ellipsis-vertical extra-small"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 border-0" style="min-width: 200px; z-index: 1050;">
+                                                <li><h6 class="dropdown-header text-uppercase extra-small fw-bold text-dark">Assign Support Agent</h6></li>
+                                                <li>
+                                                    <form method="post" action="{% url 'customer_support:reassign' ticket.id %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="assigned_to" value="">
+                                                        <button type="submit" class="dropdown-item rounded-3 py-1 extra-small text-danger fw-semibold">
+                                                            <i class="fa-solid fa-user-minus me-1"></i> -- Unassign --
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li><hr class="dropdown-divider my-1"></li>
+                                                {% for staff in staff_members %}
+                                                <li>
+                                                    <form method="post" action="{% url 'customer_support:reassign' ticket.id %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="assigned_to" value="{{ staff.id }}">
+                                                        <button type="submit" class="dropdown-item rounded-3 py-1 extra-small text-dark {% if ticket.assigned_to_id == staff.id %}fw-bold bg-light text-teal{% endif %}">
+                                                            <i class="fa-solid fa-user-check me-1 text-muted"></i> {{ staff.username }}
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {# Created Date / Activity #}
+                                <td>
+                                    <span class="d-block small fw-semibold text-dark">{{ ticket.created_at|date:"M d, Y" }}</span>
+                                    <span class="extra-small text-muted">{{ ticket.created_at|timesince }} ago</span>
+                                </td>
+
+                                {# Action Button #}
+                                <td class="text-end pe-3">
+                                    <a href="{% url 'customer_support:detail' ticket.id %}" class="btn btn-teal btn-sm rounded-pill px-3 py-1 fw-bold text-white shadow-sm" style="background:#0f766e; font-size: 0.8rem;">
+                                        Manage <i class="fa-solid fa-arrow-right ms-1"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr id="noTicketsPlaceholder">
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                            <i class="fa-solid fa-ticket fa-2x text-muted"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark mb-1">No Support Tickets Found</h6>
+                                        <p class="text-muted small mb-0">No open or assigned customer support tickets match the current filters.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>{# /padding wrapper #}
+    </div>{# /flex-grow-1 #}
+</div>{# /d-flex #}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const wsConsoleStatusBadge = document.getElementById('wsConsoleStatusBadge');
+    const wsConsoleDot = document.getElementById('wsConsoleDot');
+    const wsConsoleText = document.getElementById('wsConsoleText');
+    const liveToastContainer = document.getElementById('liveToastContainer');
+    const toggleSoundBtn = document.getElementById('toggleSoundBtn');
+    const soundIcon = document.getElementById('soundIcon');
+    const metricOpenCount = document.getElementById('metricOpenCount');
+    const metricTotalCount = document.getElementById('metricTotalCount');
+
+    let soundEnabled = true;
+    let socket = null;
+    let reconnectTimer = null;
+
+    // Web Audio Chime generator
+    function playNotificationChime() {
+        if (!soundEnabled) return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+
+            // Tone 1
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            gain1.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.35);
+
+            // Tone 2
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+            gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.12);
+            gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(ctx.currentTime + 0.12);
+            osc2.stop(ctx.currentTime + 0.55);
+        } catch (e) {
+            // Audio context policy
+        }
+    }
+
+    if (toggleSoundBtn) {
+        toggleSoundBtn.addEventListener('click', function () {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                toggleSoundBtn.innerHTML = '<i class="fa-solid fa-volume-high text-teal" id="soundIcon" style="color:#0f766e;"></i> <span>Sound Alerts: On</span>';
+            } else {
+                toggleSoundBtn.innerHTML = '<i class="fa-solid fa-volume-xmark text-muted" id="soundIcon"></i> <span>Sound Alerts: Off</span>';
+            }
+        });
+    }
+
+    function showLiveToast(title, body, url) {
+        playNotificationChime();
+
+        const toast = document.createElement('div');
+        toast.className = 'card border-0 rounded-4 p-3 bg-white border-start border-4 border-success live-toast shadow-lg';
+        toast.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="fw-bold text-dark extra-small text-uppercase">
+                    <i class="fa-solid fa-bell text-success me-1"></i> ${title}
+                </span>
+                <button type="button" class="btn-close extra-small" aria-label="Close" style="font-size: 0.65rem;"></button>
+            </div>
+            <p class="text-dark small mb-2 lh-sm">${body}</p>
+            ${url ? `<a href="${url}" class="btn btn-sm btn-outline-success rounded-pill extra-small fw-bold py-0.5 px-2.5 align-self-start">View Ticket</a>` : ''}
+        `;
+
+        const closeBtn = toast.querySelector('.btn-close');
+        closeBtn.addEventListener('click', () => toast.remove());
+
+        liveToastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(50px)';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 6000);
+    }
+
+    function initConsoleWebSocket() {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsUrl = `${wsProtocol}${window.location.host}/ws/support/console/`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function () {
+            if (wsConsoleDot) wsConsoleDot.style.backgroundColor = '#10b981';
+            if (wsConsoleText) wsConsoleText.textContent = 'Live Stream Connected';
+            if (wsConsoleStatusBadge) {
+                wsConsoleStatusBadge.className = 'badge bg-white text-teal rounded-pill px-2.5 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm';
+            }
+        };
+
+        socket.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'ticket_created' && data.ticket) {
+                    const t = data.ticket;
+                    showLiveToast(
+                        `New Ticket #${t.id} Submitted`,
+                        `<strong>${t.customer}</strong> opened inquiry: "${t.subject}"`,
+                        `/support-console/tickets/${t.id}/`
+                    );
+
+                    if (metricOpenCount) {
+                        metricOpenCount.textContent = parseInt(metricOpenCount.textContent || '0') + 1;
+                    }
+                    if (metricTotalCount) {
+                        metricTotalCount.textContent = parseInt(metricTotalCount.textContent || '0') + 1;
+                    }
+                } else if (data.event === 'new_reply') {
+                    if (!data.is_staff) {
+                        showLiveToast(
+                            `Customer Reply on #${data.ticket_id}`,
+                            `<strong>@${data.sender}:</strong> ${data.message_preview}`,
+                            `/support-console/tickets/${data.ticket_id}/`
+                        );
+                    }
+                }
+            } catch (err) {
+                console.error('Error handling console WebSocket:', err);
+            }
+        };
+
+        socket.onclose = function () {
+            if (wsConsoleDot) wsConsoleDot.style.backgroundColor = '#f59e0b';
+            if (wsConsoleText) wsConsoleText.textContent = 'Reconnecting...';
+            if (wsConsoleStatusBadge) {
+                wsConsoleStatusBadge.className = 'badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm';
+            }
+            clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(initConsoleWebSocket, 3500);
+        };
+
+        socket.onerror = function (err) {
+            console.warn('Console WebSocket error:', err);
+            socket.close();
+        };
+    }
+
+    initConsoleWebSocket();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Tracking Overview{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>#admin-tracking-map { height: 500px; border-radius: 0.5rem; }</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+        
+        {# Management Hero Banner #}
+        <div class="ft-mgmt-hero blue d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div>
+                    <h2 class="mb-1">Live Fleet &amp; Order Tracking</h2>
+                    <p class="mb-0">Real-time GPS delivery routes, active driver statuses, and customer dispatches.</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="ft-mini-stat">
+                    <div class="num">{{ active_deliveries.count }}</div>
+                    <div class="label">Live Dispatches</div>
+                </div>
+                <div class="ft-mini-stat">
+                    <div class="num">{{ riders.count }}</div>
+                    <div class="label">Total Riders</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-tracking-map" class="mb-4 shadow-sm border"></div>
+
+        <h5>Active Orders <span class="text-muted small">(confirmed &amp; out for delivery)</span></h5>
+        <div class="table-responsive mb-4">
+            <table class="table bg-white shadow-sm align-middle">
+                <thead><tr><th>Order</th><th>Customer</th><th>Driver</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for order in active_deliveries %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.customer.username }}</td>
+                        <td>{{ order.driver.username }}</td>
+                        <td><span class="badge bg-primary text-uppercase">{{ order.get_status_display }}</span></td>
+                        <td><a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-success">View on Map</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No active orders right now.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h5>Riders <span class="text-muted small">(all drivers, live status)</span></h5>
+        <div class="table-responsive">
+            <table class="table bg-white shadow-sm align-middle">
+                <thead><tr><th>Driver</th><th>Verified</th><th>Online</th><th>Last Seen</th><th>Active Deliveries</th></tr></thead>
+                <tbody>
+                    {% for rider in riders %}
+                    <tr>
+                        <td>{{ rider.get_full_name|default:rider.username }}</td>
+                        <td>
+                            {% if rider.is_verified %}<span class="badge bg-success">Verified</span>
+                            {% else %}<span class="badge bg-secondary">Unverified</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if rider.location.is_online %}<span class="badge bg-success"><i class="fa-solid fa-circle-dot"></i> Online</span>
+                            {% elif rider.location %}<span class="badge bg-warning text-dark">Offline</span>
+                            {% else %}<span class="badge bg-light text-muted border">No location shared yet</span>{% endif %}
+                        </td>
+                        <td>{% if rider.location %}{{ rider.location.updated_at|timesince }} ago{% else %}—{% endif %}</td>
+                        <td>{{ rider.active_order_count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No drivers on the platform yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Plot every rider who has ever shared a location — not just those
+    // mid-delivery — so the admin sees the whole fleet at a glance.
+    const map = L.map('admin-tracking-map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+
+    const RIDER_LOCATIONS_URL = "{% url 'dashboard:rider_locations_api' %}";
+    const markers = {};
+    let hasFitBounds = false;
+
+    function refreshAll() {
+        fetch(RIDER_LOCATIONS_URL)
+            .then(res => res.json())
+            .then(data => {
+                const seenIds = new Set();
+                data.riders.forEach(rider => {
+                    seenIds.add(rider.driver_id);
+                    const label = rider.order_id
+                        ? `${rider.driver_name} — Order #${rider.order_id}`
+                        : `${rider.driver_name} — ${rider.is_online ? 'available' : 'offline'}`;
+
+                    if (!markers[rider.driver_id]) {
+                        markers[rider.driver_id] = L.marker([rider.latitude, rider.longitude])
+                            .addTo(map)
+                            .bindPopup(label);
+                    } else {
+                        markers[rider.driver_id].setLatLng([rider.latitude, rider.longitude]);
+                        markers[rider.driver_id].setPopupContent(label);
+                    }
+                });
+
+                // drop markers for riders no longer returned (shouldn't usually happen)
+                Object.keys(markers).forEach(id => {
+                    if (!seenIds.has(Number(id))) {
+                        map.removeLayer(markers[id]);
+                        delete markers[id];
+                    }
+                });
+
+                if (!hasFitBounds && data.riders.length) {
+                    const group = L.featureGroup(Object.values(markers));
+                    map.fitBounds(group.getBounds().pad(0.3));
+                    hasFitBounds = true;
+                }
+            });
+    }
+    refreshAll();
+    setInterval(refreshAll, 6000);
+</script>
+{% endblock %}
+

@@ -1,0 +1,660 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}WhatsApp Follow-Ups | Admin Console | Fresh Trace{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background-color: #f8fafc;">
+    {% include 'sidebar.html' %}
+
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Page Heading & Quick Actions #}
+        <div class="ft-mgmt-hero green d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 shadow-sm" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border-radius: 1rem; padding: 1.5rem 2rem;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon" style="background: rgba(255,255,255,0.2); width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
+                    <i class="fa-brands fa-whatsapp text-white"></i>
+                </div>
+                <div>
+                    <h2 class="mb-1 text-white fw-bold">WhatsApp Follow-Up &amp; Outreach</h2>
+                    <p class="mb-0 text-white-50 small">Track customer interactive messages, monitor replies, and manage 12-hour automated or manual reminder dispatches.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'dashboard:whatsapp_followups' %}" class="btn btn-light rounded-pill px-3 py-2 fw-semibold shadow-sm text-success">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Refresh Table
+                </a>
+                <button type="button" class="btn btn-warning rounded-pill px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#simulateModal">
+                    <i class="fa-solid fa-flask me-1"></i> Simulate Test Message
+                </button>
+                <button type="button" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold shadow-sm" id="checkWebhookBtn">
+                    <i class="fa-solid fa-stethoscope me-1"></i> Check Webhook Status
+                </button>
+            </div>
+        </div>
+
+        {# ── Webhook Status Alert (shown when Check button clicked) ── #}
+        <div id="webhookStatusAlert" class="alert rounded-4 shadow-sm mb-4 d-none" role="alert"></div>
+
+        {# Metric Stat Cards #}
+        <div class="row g-3 mb-4">
+            {# Card 1: Total Tracked #}
+            <div class="col-xl-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 4px solid #6366f1 !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-xs fw-bold text-muted text-uppercase mb-1">Total Tracked</div>
+                                <div class="h4 mb-0 fw-bold text-dark">{{ stats.total }}</div>
+                                <div class="extra-small text-muted mt-1">Interactive messages sent</div>
+                            </div>
+                            <div class="bg-indigo-subtle text-indigo p-3 rounded-circle" style="background: #e0e7ff; color: #4338ca;">
+                                <i class="fa-solid fa-comments fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 2: Customer Replied #}
+            <div class="col-xl-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 4px solid #10b981 !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-xs fw-bold text-muted text-uppercase mb-1">Customer Replied</div>
+                                <div class="h4 mb-0 fw-bold text-success">{{ stats.replied }}</div>
+                                <div class="extra-small text-muted mt-1"><i class="fa-solid fa-check text-success me-1"></i>Follow-up not needed</div>
+                            </div>
+                            <div class="p-3 rounded-circle" style="background: #d1fae5; color: #059669;">
+                                <i class="fa-solid fa-reply-all fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 3: Reminder Sent #}
+            <div class="col-xl-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 4px solid #3b82f6 !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-xs fw-bold text-muted text-uppercase mb-1">Reminder Sent</div>
+                                <div class="h4 mb-0 fw-bold text-primary">{{ stats.sent }}</div>
+                                <div class="extra-small text-muted mt-1">Meta template delivered</div>
+                            </div>
+                            <div class="p-3 rounded-circle" style="background: #dbeafe; color: #2563eb;">
+                                <i class="fa-solid fa-paper-plane fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 4: Pending Follow-Up #}
+            <div class="col-xl-3 col-sm-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100" style="border-left: 4px solid #f59e0b !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-xs fw-bold text-muted text-uppercase mb-1">Pending Follow-Up</div>
+                                <div class="h4 mb-0 fw-bold text-warning">{{ stats.pending }}</div>
+                                <div class="extra-small text-muted mt-1">
+                                    {% if stats.due_12h > 0 %}
+                                        <strong class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ stats.due_12h }} due for 12h reminder</strong>
+                                    {% else %}
+                                        Awaiting reply / within 12h
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-circle" style="background: #fef3c7; color: #d97706;">
+                                <i class="fa-solid fa-hourglass-half fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Search & Filter Card #}
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-3">
+                <div class="row g-3 align-items-center justify-content-between">
+                    {# Filter Tabs #}
+                    <div class="col-md-7">
+                        <div class="nav nav-pills gap-1">
+                            <a href="?status=all{% if q %}&q={{ q }}{% endif %}" class="nav-link rounded-pill py-1.5 px-3 small fw-semibold {% if status_filter == 'all' %}active bg-success text-white{% else %}text-muted bg-light{% endif %}">
+                                All ({{ stats.total }})
+                            </a>
+                            <a href="?status=pending{% if q %}&q={{ q }}{% endif %}" class="nav-link rounded-pill py-1.5 px-3 small fw-semibold {% if status_filter == 'pending' %}active bg-warning text-dark{% else %}text-muted bg-light{% endif %}">
+                                Pending ({{ stats.pending }})
+                            </a>
+                            <a href="?status=replied{% if q %}&q={{ q }}{% endif %}" class="nav-link rounded-pill py-1.5 px-3 small fw-semibold {% if status_filter == 'replied' %}active bg-success text-white{% else %}text-muted bg-light{% endif %}">
+                                Replied ({{ stats.replied }})
+                            </a>
+                            <a href="?status=sent{% if q %}&q={{ q }}{% endif %}" class="nav-link rounded-pill py-1.5 px-3 small fw-semibold {% if status_filter == 'sent' %}active bg-primary text-white{% else %}text-muted bg-light{% endif %}">
+                                Reminder Sent ({{ stats.sent }})
+                            </a>
+                        </div>
+                    </div>
+
+                    {# Search Form #}
+                    <div class="col-md-5">
+                        <form method="get" class="d-flex gap-2">
+                            {% if status_filter != 'all' %}
+                                <input type="hidden" name="status" value="{{ status_filter }}">
+                            {% endif %}
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 rounded-start-pill text-muted ps-3">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </span>
+                                <input type="search" name="q" value="{{ q }}" placeholder="Search customer, phone, order #..." class="form-control border-start-0 rounded-end-pill form-control-sm py-2">
+                            </div>
+                            {% if q %}
+                                <a href="?status={{ status_filter }}" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center" title="Clear search">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Follow-Up Records Table Card #}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-list-check text-success"></i> WhatsApp Outreach &amp; Follow-Up Queue
+                </h6>
+                <span class="text-muted extra-small">Showing {{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }} of {{ page_obj.paginator.count }} records</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover">
+                    <thead class="bg-light text-muted extra-small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="min-width: 180px;">Customer Name</th>
+                            <th>Phone Number</th>
+                            <th>Related Order</th>
+                            <th>Interactive Message (Sent)</th>
+                            <th class="text-center" style="min-width: 140px;">Customer Reply</th>
+                            <th>Meta Message Status</th>
+                            <th class="text-end pe-4" style="min-width: 200px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fu in page_obj %}
+                        <tr id="followup-row-{{ fu.id }}">
+                            {# Customer Name #}
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white extra-small shadow-sm" style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981, #059669); flex-shrink: 0;">
+                                        {{ fu.customer_name|default:fu.phone_number|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ fu.customer_name|default:"Customer" }}</div>
+                                        <div class="extra-small text-muted">ID: #{{ fu.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            {# Phone Number #}
+                            <td>
+                                <a href="https://wa.me/{{ fu.phone_number }}" target="_blank" class="text-decoration-none fw-semibold text-dark d-inline-flex align-items-center gap-1.5" title="Open chat on WhatsApp">
+                                    <i class="fa-brands fa-whatsapp text-success fs-6"></i>
+                                    +{{ fu.phone_number }}
+                                </a>
+                            </td>
+
+                            {# Related Order #}
+                            <td>
+                                {% if fu.related_order %}
+                                    <a href="{% url 'dashboard:order_management' %}?q={{ fu.related_order.id }}" class="badge bg-light text-dark border text-decoration-none fw-semibold py-1.5 px-2 rounded-pill">
+                                        <i class="fa-solid fa-receipt text-primary me-1"></i> Order #{{ fu.related_order.id }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted extra-small">—</span>
+                                {% endif %}
+                            </td>
+
+                            {# Interactive Message Sent Time #}
+                            <td>
+                                <div class="fw-semibold text-dark small">{{ fu.interactive_message_sent_at|date:"M d, Y h:i A" }}</div>
+                                <div class="extra-small text-muted">
+                                    <i class="fa-solid fa-clock-rotate-left me-1"></i>{{ fu.interactive_message_sent_at|timesince }} ago
+                                </div>
+                            </td>
+
+                            {# Customer Reply: 1 if replied, 0 if not #}
+                            <td class="text-center reply-text-cell">
+                                {% if fu.customer_replied %}1{% else %}0{% endif %}
+                            </td>
+
+                            {# Meta Message Status #}
+                            <td class="status-cell">
+                                {% if fu.customer_replied %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1">
+                                        <i class="fa-solid fa-check-double"></i> Not needed — replied
+                                    </span>
+                                {% elif fu.followup_template_sent %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1">
+                                        <i class="fa-solid fa-paper-plane"></i> Sent ✓
+                                    </span>
+                                    {% if fu.followup_template_sent_at %}
+                                        <div class="extra-small text-muted mt-0.5">Sent {{ fu.followup_template_sent_at|date:"M d, h:i A" }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    {% if fu.is_due_for_followup %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Not sent (>12h overdue)
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1">
+                                            <i class="fa-solid fa-clock"></i> Not sent
+                                        </span>
+                                    {% endif %}
+                                    <div class="extra-small text-muted mt-0.5">Elapsed: {{ fu.hours_since_sent|floatformat:1 }}h / 12h</div>
+                                {% endif %}
+                            </td>
+
+                            {# Action Button #}
+                            <td class="text-end pe-4 action-cell">
+                                {% if fu.customer_replied %}
+                                    <button type="button" class="btn btn-sm btn-light text-muted rounded-pill px-3 py-1 extra-small fw-semibold border" disabled>
+                                        <i class="fa-solid fa-circle-check text-success me-1"></i> Done (Replied)
+                                    </button>
+                                {% elif fu.followup_template_sent %}
+                                    <button type="button" class="btn btn-sm btn-light text-muted rounded-pill px-3 py-1 extra-small fw-semibold border" disabled>
+                                        <i class="fa-solid fa-check text-primary me-1"></i> Already Sent
+                                    </button>
+                                {% else %}
+                                    <form method="post" action="{% url 'dashboard:whatsapp_followup_send_now' fu.id %}" class="send-reminder-form d-inline" data-followup-id="{{ fu.id }}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill fw-semibold shadow-sm px-3 py-1 extra-small send-btn btn-zoom" title="Override 12h wait and send reminder template immediately">
+                                            <i class="fa-solid fa-paper-plane me-1"></i> Send reminder now
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <div class="py-4">
+                                    <div class="bg-light rounded-circle d-inline-flex p-3 mb-3 text-muted">
+                                        <i class="fa-brands fa-whatsapp fa-3x"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark">No WhatsApp follow-ups in this queue</h6>
+                                    <p class="small text-muted mb-0">Follow-up tracking rows are automatically populated when customer orders are placed or interactive messages are dispatched.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Pagination Controls #}
+            {% if page_obj.has_other_pages %}
+            <div class="card-footer bg-white border-top py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="small text-muted">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </div>
+                <nav aria-label="Followups page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link rounded-start-pill" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link rounded-start-pill">Previous</span></li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                                <li class="page-item active"><span class="page-link bg-success border-success">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link rounded-end-pill" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link rounded-end-pill">Next</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{# Interactive Instant Reminder JS Handling #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ── Send Reminder Now (AJAX) ────────────────────────────────────────────
+    const forms = document.querySelectorAll('.send-reminder-form');
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = form.querySelector('.send-btn');
+            if (!btn || btn.disabled) return;
+
+            const fuId = form.dataset.followupId;
+            const originalHtml = btn.innerHTML;
+
+            if (!confirm('Are you sure you want to send the WhatsApp reminder template right now?')) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Sending...';
+
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(function(res) {
+                return res.json().then(function(data) {
+                    return { status: res.status, data: data };
+                });
+            })
+            .then(function(resObj) {
+                if (resObj.status === 200 && resObj.data.success) {
+                    const row = document.getElementById('followup-row-' + fuId);
+                    if (row) {
+                        const statusCell = row.querySelector('.status-cell');
+                        const actionCell = row.querySelector('.action-cell');
+
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1"><i class="fa-solid fa-paper-plane"></i> Sent ✓</span>' +
+                                '<div class="extra-small text-muted mt-0.5">' + (resObj.data.sent_at || 'Just now') + '</div>';
+                        }
+
+                        if (actionCell) {
+                            actionCell.innerHTML = '<div class="d-inline-flex align-items-center gap-1.5">' +
+                                '<button type="button" class="btn btn-sm btn-light text-primary rounded-pill px-2.5 py-1 extra-small fw-semibold border" disabled>' +
+                                '<i class="fa-solid fa-check text-primary me-1"></i> Sent' +
+                                '</button></div>';
+                        }
+                    }
+                    showToast('success', resObj.data.message || 'Meta Message sent successfully!');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    alert('Error: ' + (resObj.data.message || 'Failed to send reminder.'));
+                }
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                alert('Network error while dispatching reminder: ' + err);
+            });
+        });
+    });
+
+    // ── Live Auto-Refresh: Poll for new customer replies every 20s ──────────
+    const POLL_INTERVAL = 20000; // 20 seconds
+    const REPLIES_API   = '/whatsapp/replies/latest/?limit=100';
+
+    // Track which row IDs already show a reply so we don't re-animate them
+    const knownRepliedIds = new Set();
+    document.querySelectorAll('[id^="followup-row-"]').forEach(function(row) {
+        const replyCell = row.querySelector('.reply-text-cell');
+        if (replyCell && replyCell.textContent.trim() === '1') {
+            const rowId = row.id.replace('followup-row-', '');
+            knownRepliedIds.add(parseInt(rowId, 10));
+        }
+    });
+
+    function pollReplies() {
+        fetch(REPLIES_API, { headers: { 'Accept': 'application/json' } })
+        .then(function(res) { return res.json(); })
+        .then(function(json) {
+            if (!json.replies) return;
+            let newCount = 0;
+            json.replies.forEach(function(r) {
+                if (knownRepliedIds.has(r.id)) return; // already shown
+
+                const row = document.getElementById('followup-row-' + r.id);
+                if (!row) return;
+
+                knownRepliedIds.add(r.id);
+                newCount++;
+
+                // Update the Customer Reply cell to just 1 or 0
+                const replyCell = row.querySelector('.reply-text-cell');
+                if (replyCell) {
+                    replyCell.textContent = r.customer_replied ? '1' : '0';
+                }
+
+                // Update status cell
+                const statusCell = row.querySelector('.status-cell');
+                if (statusCell) {
+                    statusCell.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1">
+                        <i class="fa-solid fa-check-double"></i> Not needed — replied
+                    </span>`;
+                }
+
+                // Update action cell
+                const actionCell = row.querySelector('.action-cell');
+                if (actionCell) {
+                    actionCell.innerHTML = `<button type="button" class="btn btn-sm btn-light text-muted rounded-pill px-3 py-1 extra-small fw-semibold border" disabled>
+                        <i class="fa-solid fa-circle-check text-success me-1"></i> Done (Replied)
+                    </button>`;
+                }
+
+                // Highlight the row
+                row.style.transition = 'background 0.5s';
+                row.style.background = '#f0fdf4';
+                setTimeout(() => { row.style.background = ''; }, 3000);
+            });
+
+            if (newCount > 0) {
+                // Update the stat card counter
+                const repliedCard = document.querySelector('.h4.mb-0.fw-bold.text-success');
+                if (repliedCard) {
+                    repliedCard.textContent = json.count;
+                }
+                showToast('success', `💬 ${newCount} new customer repl${newCount > 1 ? 'ies' : 'y'} received!`);
+                updateLiveIndicator(true);
+            }
+        })
+        .catch(function() {
+            // Silent fail — polling will retry next interval
+        });
+    }
+
+    // Show a live indicator dot in the header
+    function updateLiveIndicator(hasNew) {
+        const dot = document.getElementById('wa-live-dot');
+        if (!dot) return;
+        if (hasNew) {
+            dot.className = 'badge bg-success rounded-pill ms-2 extra-small';
+            dot.textContent = 'LIVE ●';
+            setTimeout(() => {
+                dot.className = 'badge bg-secondary rounded-pill ms-2 extra-small opacity-50';
+                dot.textContent = 'polling…';
+            }, 4000);
+        }
+    }
+
+    // Toast helper
+    function showToast(type, message) {
+        const notice = document.createElement('div');
+        const color  = type === 'success' ? 'alert-success' : 'alert-danger';
+        notice.className = `alert ${color} alert-dismissible fade show position-fixed bottom-0 end-0 m-4 shadow-lg rounded-4`;
+        notice.style.zIndex = '99999';
+        notice.style.maxWidth = '380px';
+        notice.innerHTML = `<i class="fa-solid fa-circle-check me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(notice);
+        setTimeout(() => { if (notice.parentNode) notice.parentNode.removeChild(notice); }, 6000);
+    }
+
+    // Start polling immediately then repeat every 20s
+    pollReplies();
+    setInterval(pollReplies, POLL_INTERVAL);
+
+    // Show live dot in header
+    const refreshBtn = document.querySelector('.ft-mgmt-hero .btn-light');
+    if (refreshBtn) {
+        const dot = document.createElement('span');
+        dot.id = 'wa-live-dot';
+        dot.className = 'badge bg-secondary rounded-pill ms-2 extra-small opacity-50';
+        dot.textContent = 'polling…';
+        refreshBtn.parentElement.appendChild(dot);
+    }
+
+    // ── Check Webhook Status button ─────────────────────────────────────────
+    const checkBtn = document.getElementById('checkWebhookBtn');
+    const statusAlert = document.getElementById('webhookStatusAlert');
+    if (checkBtn && statusAlert) {
+        checkBtn.addEventListener('click', function() {
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Checking…';
+            fetch('/whatsapp/debug/', { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(function(d) {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = '<i class="fa-solid fa-stethoscope me-1"></i> Check Webhook Status';
+                const tokenOk  = d.access_token_set;
+                const phoneOk  = d.phone_number_id !== 'NOT SET';
+                const verifyOk = d.verify_token_set;
+                const allOk    = tokenOk && phoneOk && verifyOk;
+                statusAlert.className = `alert rounded-4 shadow-sm mb-4 ${allOk ? 'alert-success' : 'alert-warning'}`;
+                statusAlert.innerHTML = `
+                    <div class="fw-bold mb-2"><i class="fa-solid fa-stethoscope me-2"></i>Webhook Diagnostic</div>
+                    <div class="row g-2 small">
+                        <div class="col-sm-4"><span class="${verifyOk?'text-success':'text-danger'}">${verifyOk?'✅':'❌'} Verify Token</span></div>
+                        <div class="col-sm-4"><span class="${phoneOk?'text-success':'text-danger'}">${phoneOk?'✅':'❌'} Phone Number ID: <code>${d.phone_number_id}</code></span></div>
+                        <div class="col-sm-4"><span class="${tokenOk?'text-success':'text-danger'}">${tokenOk?'✅':'❌'} Access Token</span></div>
+                        <div class="col-12 mt-2">
+                            <strong>DB:</strong> ${d.db_stats.total_followups} total | ${d.db_stats.replied} replied | ${d.db_stats.pending} pending<br>
+                            <strong>Phone numbers in DB:</strong> <code>${d.phone_numbers_in_db.join(', ')}</code>
+                        </div>
+                        <div class="col-12 mt-1 text-muted">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Webhook URL to register in Meta:
+                            <code>https://&lt;your-ngrok-url&gt;.ngrok-free.app/webhook/whatsapp/</code>
+                        </div>
+                    </div>`;
+                statusAlert.classList.remove('d-none');
+            })
+            .catch(function() {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = '<i class="fa-solid fa-stethoscope me-1"></i> Check Webhook Status';
+                statusAlert.className = 'alert alert-danger rounded-4 shadow-sm mb-4';
+                statusAlert.textContent = 'Could not reach debug endpoint. Is the server running?';
+                statusAlert.classList.remove('d-none');
+            });
+        });
+    }
+
+    // ── Simulate Test Message form ──────────────────────────────────────────
+    const simForm = document.getElementById('simulateForm');
+    if (simForm) {
+        simForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn  = simForm.querySelector('button[type=submit]');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Sending…';
+            const fd = new FormData(simForm);
+            fetch('/whatsapp/simulate/', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(function(d) {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                if (d.success) {
+                    showToast('success', '🧪 Simulated: ' + d.message);
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('simulateModal'));
+                    if (modal) modal.hide();
+                    setTimeout(pollReplies, 600);
+                } else {
+                    alert('Error: ' + (d.error || 'Unknown error'));
+                }
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                alert('Network error: ' + err);
+            });
+        });
+    }
+});
+</script>
+
+{# ── Simulate Test Message Modal ──────────────────────────────────────── #}
+<div class="modal fade" id="simulateModal" tabindex="-1" aria-labelledby="simulateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg border-0">
+            <div class="modal-header bg-warning-subtle border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="simulateModalLabel">
+                    <i class="fa-solid fa-flask text-warning me-2"></i>Simulate Incoming WhatsApp Message
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="small text-muted mb-3">
+                    <i class="fa-solid fa-circle-info text-info me-1"></i>
+                    Use this to <strong>test the webhook pipeline locally</strong> without needing ngrok or Meta to send an event.
+                    It will find the matching follow-up row by phone number and mark it as <strong>Replied</strong>.
+                </p>
+                <form id="simulateForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Customer Phone Number</label>
+                        <input type="text" name="phone" class="form-control rounded-3"
+                               placeholder="918807856058  (digits only, no +)"
+                               value="918807856058" required>
+                        <div class="form-text">Use the same number stored in the Follow-Up table.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Customer Name</label>
+                        <input type="text" name="name" class="form-control rounded-3" placeholder="Customer name" value="vishva">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Reply Message</label>
+                        <textarea name="message" class="form-control rounded-3" rows="3"
+                                  placeholder="Type the simulated customer reply…">I received my order! Thank you.</textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning fw-bold rounded-3 py-2">
+                            <i class="fa-solid fa-paper-plane me-2"></i>Send Simulated Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <small class="text-muted">
+                    <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>
+                    For development/testing only. Not sent to actual WhatsApp.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

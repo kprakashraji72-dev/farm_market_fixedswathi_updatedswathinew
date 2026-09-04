@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Support Staff | Fresh Trace Console{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background:#f8fafc; max-width:100vw; overflow-x:hidden;">
+    {% include 'support_sidebar.html' %}
+    
+    <div class="flex-grow-1" style="min-width:0; max-width:100%; overflow-x:hidden;">
+
+        {# Mobile Top Navigation #}
+        <div class="d-lg-none d-flex align-items-center justify-content-between p-2 p-sm-3 bg-white border-bottom sticky-top">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-teal btn-sm rounded-pill d-inline-flex align-items-center gap-1 fw-bold shadow-sm ft-sidebar-toggle" style="border-color:#0f766e; color:#0f766e;" data-bs-toggle="offcanvas" data-bs-target="#supportSidebar" aria-controls="supportSidebar">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Menu</span>
+                </button>
+                <a href="{% url 'customer_support:console' %}" class="btn btn-light btn-sm rounded-pill border shadow-sm fw-semibold text-dark">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Console
+                </a>
+            </div>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-light btn-sm rounded-circle border shadow-sm flex-shrink-0" title="My Account">
+                <i class="fa-solid fa-user text-muted"></i>
+            </a>
+        </div>
+
+        {# Main Content Body #}
+        <div class="p-2 p-sm-3 p-md-4 pb-5 mb-4 pb-lg-3 mb-lg-0">
+
+            {# Page Hero Banner #}
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #0f766e, #115e59);">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-3 bg-white text-teal shadow-sm flex-shrink-0" style="width: 52px; height: 52px; color: #0f766e;">
+                            <i class="fa-solid fa-users-gear fa-2x"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-1 fw-bold text-white">Manage Support Staff</h2>
+                            <p class="mb-0 text-white-50">Onboard new customer support personnel and manage active agent assignments.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'customer_support:console' %}" class="btn btn-light rounded-pill px-3 py-2 fw-semibold shadow-sm text-dark">
+                            <i class="fa-solid fa-ticket me-1" style="color: #0f766e;"></i> Support Queue
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {# Left Column: Onboard New Agent Form #}
+                <div class="col-lg-5 col-12">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                        <h5 class="fw-bold text-dark mb-1">
+                            <i class="fa-solid fa-user-plus text-teal me-2" style="color: #0f766e;"></i>Onboard New Support Agent
+                        </h5>
+                        <p class="text-muted extra-small mb-3">Create an authenticated Support Staff account. An email notice will be sent automatically.</p>
+
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Username <span class="text-danger">*</span></label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger extra-small mt-1">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Staff Email Address <span class="text-danger">*</span></label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger extra-small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark">First Name</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark">Last Name</label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Password <span class="text-danger">*</span></label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="text-danger extra-small mt-1">{{ form.password.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-dark">Confirm Password <span class="text-danger">*</span></label>
+                                {{ form.confirm_password }}
+                                {% if form.confirm_password.errors %}
+                                    <div class="text-danger extra-small mt-1">{{ form.confirm_password.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="btn btn-teal w-100 rounded-pill py-2.5 fw-bold text-white shadow-sm" style="background: #0f766e;">
+                                <i class="fa-solid fa-user-check me-1"></i> Create Support Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {# Right Column: Active Staff Directory Table #}
+                <div class="col-lg-7 col-12">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                <i class="fa-solid fa-headset text-teal me-2" style="color: #0f766e;"></i>Support Personnel Directory ({{ staff_members.count }})
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-muted extra-small text-uppercase">
+                                    <tr>
+                                        <th class="ps-3 py-3">Agent</th>
+                                        <th>Email</th>
+                                        <th>Assigned Tickets</th>
+                                        <th>Status</th>
+                                        <th class="text-end pe-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for staff in staff_members %}
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width: 32px; height: 32px; font-size: 0.8rem; background: #0f766e;">
+                                                    {{ staff.username|slice:":1"|upper }}
+                                                </div>
+                                                <div>
+                                                    <span class="fw-bold text-dark d-block small">{{ staff.get_full_name|default:staff.username }}</span>
+                                                    <span class="extra-small text-muted">@{{ staff.username }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="small">{{ staff.email|default:"Not provided" }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 extra-small fw-semibold">
+                                                {{ staff.assigned_tickets_count }} assigned
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if staff.is_active %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small fw-bold">
+                                                    <i class="fa-solid fa-circle-check me-1"></i> Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill extra-small fw-bold">
+                                                    <i class="fa-solid fa-circle-xmark me-1"></i> Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            <form method="post" action="{% url 'customer_support:toggle_staff_status' staff.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to {% if staff.is_active %}deactivate{% else %}activate{% endif %} this staff account?');">
+                                                {% csrf_token %}
+                                                {% if staff.is_active %}
+                                                    <button type="submit" class="btn btn-outline-danger btn-xs rounded-pill px-2.5 py-1 extra-small fw-semibold" title="Deactivate Agent (Preserves ticket history)">
+                                                        <i class="fa-solid fa-user-slash me-1"></i> Deactivate
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn btn-outline-success btn-xs rounded-pill px-2.5 py-1 extra-small fw-semibold" title="Reactivate Agent">
+                                                        <i class="fa-solid fa-user-check me-1"></i> Reactivate
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted small">
+                                            No support staff accounts created yet. Use the form on the left to add an agent.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>{# /padding wrapper #}
+    </div>{# /flex-grow-1 #}
+</div>{# /d-flex #}
+{% endblock %}

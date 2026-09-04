@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<div class="container">
+    <h3 class="mb-4"><i class="fa-solid fa-truck-fast"></i> Checkout</h3>
+    <div class="row g-4">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5>Delivery Details</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.delivery_latitude }}
+                        {{ form.delivery_longitude }}
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address</label>
+                            {{ form.delivery_address }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            {{ form.delivery_phone }}
+                        </div>
+                        <div class="alert alert-light border rounded-3 p-2 small text-muted mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-location-crosshairs text-success"></i>
+                            <span id="checkout-geo-status">Detecting delivery GPS coordinates...</span>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+                            <i class="fa-solid fa-lock me-1"></i> Place Order &amp; Confirm
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5>Order Summary</h5>
+                    <ul class="list-group list-group-flush">
+                        {% for item in cart_items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold text-dark">{{ item.name }} × {{ item.quantity }}</span>
+                                {% if item.farm %}
+                                    <span class="text-muted extra-small d-block"><i class="fa-solid fa-wheat-awn text-success me-1"></i>{{ item.farm.name }}{% if item.farm.location %} &bull; {{ item.farm.location }}{% endif %}</span>
+                                {% elif item.product.farm %}
+                                    <span class="text-muted extra-small d-block"><i class="fa-solid fa-wheat-awn text-success me-1"></i>{{ item.product.farm.name }}{% if item.product.farm.location %} &bull; {{ item.product.farm.location }}{% endif %}</span>
+                                {% endif %}
+                            </div>
+                            <span class="fw-bold text-success">₹{{ item.line_total }}</span>
+                        </li>
+                        {% endfor %}
+                        <li class="list-group-item d-flex justify-content-between fw-bold">
+                            <span>Subtotal</span><span>₹{{ cart_subtotal }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between text-muted">
+                            <span>Delivery fee</span><span>₹5.00</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const latInput = document.getElementById('id_delivery_latitude');
+        const lngInput = document.getElementById('id_delivery_longitude');
+        const statusEl = document.getElementById('checkout-geo-status');
+
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
+                    if (lngInput) lngInput.value = pos.coords.longitude.toFixed(6);
+                    if (statusEl) {
+                        statusEl.innerHTML = '<span class="text-success"><i class="fa-solid fa-check-circle me-1"></i> Delivery GPS location captured accurately</span>';
+                    }
+                },
+                function(err) {
+                    // Fallback to default coordinates
+                    if (latInput && !latInput.value) latInput.value = '13.050000';
+                    if (lngInput && !lngInput.value) lngInput.value = '80.212000';
+                    if (statusEl) {
+                        statusEl.innerHTML = '<span class="text-muted"><i class="fa-solid fa-info-circle me-1"></i> Delivery address saved (standard dispatch)</span>';
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+            );
+        } else {
+            if (latInput && !latInput.value) latInput.value = '13.050000';
+            if (lngInput && !lngInput.value) lngInput.value = '80.212000';
+        }
+    });
+</script>
+{% endblock %}
+

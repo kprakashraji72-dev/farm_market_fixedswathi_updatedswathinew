@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Support Analytics & Reports | Fresh Trace{% endblock %}
+
+{% block extra_head %}
+{# Include Chart.js from CDN #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background-color: #f8fafc;">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        
+        {# Mobile Sidebar Toggle #}
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold ft-sidebar-toggle shadow-sm">
+                <i class="fa-solid fa-bars"></i> <span>Menu</span>
+            </button>
+            <a href="{% url 'staff_support:dashboard' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Support Queue
+            </a>
+        </div>
+
+        {# Page Heading Hero Banner #}
+        <div class="ft-mgmt-hero indigo d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #4338ca); color: white;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3 bg-white shadow-sm flex-shrink-0" style="width: 52px; height: 52px; color: #4f46e5;">
+                    <i class="fa-solid fa-chart-pie fa-2x"></i>
+                </div>
+                <div>
+                    <h2 class="mb-1 fw-bold text-white">Support Analytics &amp; Reports</h2>
+                    <p class="mb-0 text-white-50">Resolution metrics, 30-day ticket trends, category breakdowns, and repeat issue monitoring.</p>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'staff_support:dashboard' %}" class="btn btn-light rounded-pill px-3 py-2 fw-semibold shadow-sm text-dark">
+                    <i class="fa-solid fa-ticket me-1 text-primary"></i> Manage Tickets
+                </a>
+            </div>
+        </div>
+
+        {# Top KPI Metric Cards #}
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-12">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 d-flex flex-row align-items-center gap-3">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-ticket fs-5"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs fw-bold text-muted text-uppercase d-block mb-1">Total Lifetime Tickets</span>
+                        <h4 class="fw-black text-dark mb-0">{{ total_tickets }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 d-flex flex-row align-items-center gap-3">
+                    <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-circle-check fs-5"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs fw-bold text-success text-uppercase d-block mb-1">Total Resolved</span>
+                        <h4 class="fw-black text-success mb-0">{{ resolved_count }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 d-flex flex-row align-items-center gap-3">
+                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-stopwatch fs-5"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs fw-bold text-info text-uppercase d-block mb-1">Avg Resolution Time</span>
+                        <h4 class="fw-black text-dark mb-0">{{ avg_resolution_hours }} <span class="fs-6 fw-semibold text-muted">hours</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Charts Row 1: Category & Status Breakdowns #}
+        <div class="row g-4 mb-4">
+            {# Category Breakdown #}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-layer-group text-primary me-2"></i>Tickets by Category
+                    </h5>
+                    <div style="height: 260px; position: relative;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {# Status Breakdown #}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-pie-chart text-success me-2"></i>Tickets by Current Status
+                    </h5>
+                    <div style="height: 260px; position: relative;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Chart Row 2: 30-Day Trend #}
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <h5 class="fw-bold text-dark mb-3">
+                <i class="fa-solid fa-chart-line text-indigo me-2"></i>30-Day Support Volume Trend
+            </h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        {# Top Customers Table (Repeat Issue Monitoring) #}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Top Customers by Ticket Volume (Repeat Issue Flagging)
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted extra-small text-uppercase">
+                        <tr>
+                            <th class="ps-3 py-3">Customer</th>
+                            <th>Email</th>
+                            <th>Total Tickets</th>
+                            <th>Total Store Orders</th>
+                            <th class="text-end pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cust in top_customers %}
+                        <tr>
+                            <td class="ps-3 fw-bold text-dark">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white bg-primary" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ cust.username|slice:":1"|upper }}
+                                    </div>
+                                    <span>{{ cust.get_full_name|default:cust.username }}</span>
+                                </div>
+                            </td>
+                            <td>{{ cust.email|default:"Not provided" }}</td>
+                            <td>
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1 fw-bold">
+                                    {{ cust.ticket_count }} tickets
+                                </span>
+                            </td>
+                            <td class="fw-semibold text-dark">{{ cust.orders.count }} orders</td>
+                            <td class="text-end pe-3">
+                                <a href="{% url 'staff_support:dashboard' %}?q={{ cust.username }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+                                    View Tickets <i class="fa-solid fa-arrow-right ms-1"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                No support ticket records found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{# Chart.js Initialization #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Category Chart
+    const categoryLabels = {{ category_labels_json|safe }};
+    const categoryValues = {{ category_values_json|safe }};
+    
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: categoryLabels,
+            datasets: [{
+                data: categoryValues,
+                backgroundColor: ['#0f766e', '#4f46e5', '#f59e0b', '#ef4444', '#64748b'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // 2. Status Chart
+    const statusLabels = {{ status_labels_json|safe }};
+    const statusValues = {{ status_values_json|safe }};
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'pie',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusValues,
+                backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#94a3b8'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // 3. 30-Day Trend Chart
+    const trendLabels = {{ trend_labels_json|safe }};
+    const trendValues = {{ trend_values_json|safe }};
+
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [{
+                label: 'New Tickets',
+                data: trendValues,
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

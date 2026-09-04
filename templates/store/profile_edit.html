@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit Profile | Fresh Trace{% endblock %}
+
+{% block extra_css %}
+<style>
+.ft-edit-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.ft-form-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.ft-avatar-preview-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 0.9rem;
+}
+.ft-avatar-preview-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+.ft-avatar-preview-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="{% if request.user.role == 'driver' %}d-flex min-vh-100{% endif %}" style="background-color: #f8fafc;">
+    {% if request.user.role == 'driver' %}
+        {% include 'driver_sidebar.html' %}
+    {% endif %}
+
+    <div class="flex-grow-1" style="min-width: 0; max-width: 100%; overflow-x: hidden;">
+
+        {# ── Driver Mobile Topbar (only for drivers on mobile) ── #}
+        {% if request.user.role == 'driver' %}
+        <div class="ft-mobile-topbar d-flex d-lg-none align-items-center justify-content-between gap-2 mb-3 bg-white p-2 px-3 border-bottom shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-1 fw-bold shadow-sm"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#driverSidebar"
+                        aria-controls="driverSidebar">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Menu</span>
+                </button>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-bold">
+                <i class="fa-solid fa-pen me-1"></i>Edit Profile
+            </span>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-light btn-sm rounded-circle border shadow-sm flex-shrink-0" title="Back to Profile">
+                <i class="fa-solid fa-arrow-left text-muted"></i>
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="container py-3 py-md-4 {% if request.user.role == 'driver' %}pb-5 mb-4 pb-lg-3 mb-lg-0{% endif %}" style="max-width: 680px;">
+
+            {# Header Bar #}
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">Edit Profile</h4>
+                    <span class="text-muted extra-small">Update your name, contact information, and profile picture</span>
+                </div>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="fa-solid fa-xmark me-1"></i> Cancel
+                </a>
+            </div>
+
+            {# ── Edit Form Card ── #}
+            <div class="ft-edit-card overflow-hidden">
+                <div class="p-3 p-md-4 border-bottom bg-light d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-user-pen text-primary fs-5"></i>
+                        <span class="fw-bold text-dark">Profile Information</span>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 text-uppercase fw-bold" style="font-size: 0.7rem;">
+                        {{ request.user.get_role_display|default:request.user.role }}
+                    </span>
+                </div>
+
+                <div class="p-3 p-md-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {# Avatar Preview & File Input #}
+                        <div class="mb-4">
+                            <label class="ft-form-label"><i class="fa-solid fa-image text-muted"></i> Profile Photo</label>
+                            <div class="ft-avatar-preview-box mb-2">
+                                {% if request.user.profile_image %}
+                                    <img src="{{ request.user.profile_image.url }}" alt="{{ request.user.username }}" class="ft-avatar-preview-img">
+                                {% else %}
+                                    <div class="ft-avatar-preview-placeholder">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1" style="min-width:0;">
+                                    <span class="d-block fw-semibold text-dark small mb-1">Choose a new photo</span>
+                                    {{ form.profile_image }}
+                                </div>
+                            </div>
+                            {% for e in form.profile_image.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# First Name & Last Name #}
+                        <div class="row g-2 g-md-3 mb-3">
+                            <div class="col-12 col-sm-6">
+                                <label class="ft-form-label"><i class="fa-solid fa-user text-muted"></i> First Name</label>
+                                {{ form.first_name }}
+                                {% for e in form.first_name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="ft-form-label"><i class="fa-solid fa-user text-muted"></i> Last Name</label>
+                                {{ form.last_name }}
+                                {% for e in form.last_name.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        {# Email #}
+                        <div class="mb-3">
+                            <label class="ft-form-label"><i class="fa-solid fa-envelope text-muted"></i> Email Address <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Phone Number #}
+                        <div class="mb-3">
+                            <label class="ft-form-label"><i class="fa-solid fa-phone text-muted"></i> Mobile Phone</label>
+                            {{ form.phone_number }}
+                            {% for e in form.phone_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Address #}
+                        <div class="mb-4">
+                            <label class="ft-form-label"><i class="fa-solid fa-location-dot text-danger"></i> Operating / Delivery Address</label>
+                            {{ form.address }}
+                            {% for e in form.address.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Actions #}
+                        <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-3 border-top">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold order-2 order-sm-1">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm order-1 order-sm-2">
+                                <i class="fa-solid fa-check me-1"></i> Save Changes
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>{# /container #}
+    </div>{# /flex-grow-1 #}
+</div>{# /d-flex #}
+{% endblock %}
+

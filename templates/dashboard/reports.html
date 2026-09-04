@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+        
+        {# Management Hero Banner #}
+        <div class="ft-mgmt-hero purple d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div>
+                    <h2 class="mb-1">Marketplace Analytics &amp; Reports</h2>
+                    <p class="mb-0">Revenue overview, orders distribution, and top-selling farm produce.</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="ft-mini-stat">
+                    <div class="num">₹{{ total_revenue }}</div>
+                    <div class="label">Total Revenue</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted extra-small text-uppercase fw-bold">Total Revenue</small><h3 class="fw-bold text-success mb-0 mt-1">₹{{ total_revenue }}</h3></div></div></div>
+            <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted extra-small text-uppercase fw-bold">Total Farms</small><h3 class="fw-bold text-dark mb-0 mt-1">{{ total_farms }}</h3></div></div></div>
+            <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted extra-small text-uppercase fw-bold">Categories</small><h3 class="fw-bold text-dark mb-0 mt-1">{{ total_categories }}</h3></div></div></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <h5>Orders by Status</h5>
+                <table class="table bg-white shadow-sm">
+                    <thead><tr><th>Status</th><th>Count</th></tr></thead>
+                    <tbody>
+                        {% for row in orders_by_status %}
+                        <tr><td>{{ row.status }}</td><td>{{ row.count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5>Top Selling Products</h5>
+                <table class="table bg-white shadow-sm">
+                    <thead><tr><th>Product</th><th>Units Sold</th></tr></thead>
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr><td>{{ product.name }}</td><td>{{ product.total_sold|default:0 }}</td></tr>
+                        {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted">No sales yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,551 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Console | Fresh Trace{% endblock %}
+
+{% block content %}
+<div class="d-flex min-vh-100" style="background-color: #f8fafc;">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Page Heading & Quick Actions #}
+        <div class="ft-mgmt-hero purple d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-gauge"></i></div>
+                <div>
+                    <h2 class="mb-1">Marketplace Overview Dashboard</h2>
+                    <p class="mb-0">Live farm produce analytics, warehouse stock inventory, partner compliance, and sales logistics.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'dashboard:inventory_products' %}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold shadow-sm text-white">
+                    <i class="fa-solid fa-plus me-1"></i> Add Produce
+                </a>
+                <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold shadow-sm">
+                    <i class="fa-solid fa-chart-line me-1"></i> Sales Report
+                </a>
+            </div>
+        </div>
+
+        {# ============ 4 KEY METRIC CARDS (ROW 1) ============ #}
+        <div class="row g-3 mb-4">
+            
+            {# Card 1: Total Revenue #}
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 border-left-primary shadow-sm h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                    Total Produce Sales
+                                </div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">₹{{ total_revenue|default:"0.00" }}</div>
+                                <div class="extra-small text-muted mt-1">{{ total_orders }} customer orders</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fa-solid fa-indian-rupee-sign fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 2: Live Stock & Products #}
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 border-left-success shadow-sm h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                    Active Produce Catalog
+                                </div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ total_products }} Products</div>
+                                <div class="extra-small text-muted mt-1">Est. value: ₹{{ total_inventory_value|floatformat:2 }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fa-solid fa-boxes-stacked fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 3: Logistics & Deliveries #}
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 border-left-info shadow-sm h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                                    Delivery Fleet
+                                </div>
+                                <div class="row align-items-center g-0">
+                                    <div class="col-auto">
+                                        <div class="h5 mb-0 me-3 fw-bold text-gray-800">{{ out_for_delivery }} In Transit</div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="progress progress-sm me-2" style="height: 8px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {% if total_orders %}{% widthratio out_for_delivery total_orders 100 %}{% else %}0{% endif %}%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="extra-small text-muted mt-1">{{ total_drivers }} verified delivery drivers</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fa-solid fa-truck-fast fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Card 4: Approvals & KYC #}
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 border-left-warning shadow-sm h-100 py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                                    Approvals &amp; Compliance
+                                </div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">
+                                    {{ pending_product_approvals|add:pending_driver_verifications|add:pending_farmer_verifications|add:pending_damage_reviews }} Pending
+                                </div>
+                                <div class="extra-small text-muted mt-1">Partner &amp; produce reviews</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fa-solid fa-shield-halved fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {# ============ ACTION REQUIRED ALERTS ============ #}
+        {% if pending_driver_verifications or pending_farmer_verifications or pending_product_approvals or pending_damage_reviews or drivers_renewal_due_soon or farmers_cert_expiring_soon %}
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
+                <strong class="text-dark">Action Required on Partner Accounts &amp; Inventory</strong>
+            </div>
+            <div class="row g-2 small">
+                {% if pending_product_approvals %}
+                <div class="col-md-6">
+                    <a href="{% url 'dashboard:inventory_products' %}" class="alert-link text-dark text-decoration-none d-block p-2 bg-white rounded border">
+                        <i class="fa-solid fa-boxes-stacked text-warning me-1"></i> <strong>{{ pending_product_approvals }} Produce Item{{ pending_product_approvals|pluralize }}</strong> awaiting store price &amp; approval &rarr;
+                    </a>
+                </div>
+                {% endif %}
+                {% if pending_driver_verifications %}
+                <div class="col-md-6">
+                    <a href="{% url 'dashboard:driver_management' %}" class="alert-link text-dark text-decoration-none d-block p-2 bg-white rounded border">
+                        <i class="fa-solid fa-truck text-primary me-1"></i> <strong>{{ pending_driver_verifications }} Driver{{ pending_driver_verifications|pluralize }}</strong> submitted KYC documents &rarr;
+                    </a>
+                </div>
+                {% endif %}
+                {% if pending_farmer_verifications %}
+                <div class="col-md-6">
+                    <a href="{% url 'dashboard:farmer_management' %}" class="alert-link text-dark text-decoration-none d-block p-2 bg-white rounded border">
+                        <i class="fa-solid fa-seedling text-success me-1"></i> <strong>{{ pending_farmer_verifications }} Farmer{{ pending_farmer_verifications|pluralize }}</strong> awaiting ISO certificate verification &rarr;
+                    </a>
+                </div>
+                {% endif %}
+                {% if pending_damage_reviews %}
+                <div class="col-md-6">
+                    <a href="{% url 'dashboard:damage_review' %}" class="alert-link text-dark text-decoration-none d-block p-2 bg-white rounded border">
+                        <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i> <strong>{{ pending_damage_reviews }} Spoilage Report{{ pending_damage_reviews|pluralize }}</strong> filed by staff &rarr;
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# ============ CHARTS ROW (ROW 2 - 100% REAL LIVE PRODUCT DATA) ============ #}
+        <div class="row g-4 mb-4">
+
+            {# Bar / Line Graph: Live Stock & Valuation of Our Products #}
+            <div class="col-xl-8 col-lg-7">
+                <div class="card border-0 shadow-sm mb-4 h-100">
+                    {# Card Header #}
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-white border-bottom">
+                        <div>
+                            <h6 class="m-0 fw-bold text-primary"><i class="fa-solid fa-boxes-stacked me-1"></i> Our Products Inventory Stock &amp; Valuation</h6>
+                            <small class="text-muted extra-small">Live warehouse stock units and retail inventory value (₹)</small>
+                        </div>
+                        <a href="{% url 'dashboard:inventory_products' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 extra-small fw-semibold">
+                            Manage Stock &rarr;
+                        </a>
+                    </div>
+                    {# Card Body #}
+                    <div class="card-body p-3">
+                        <div class="chart-area" style="height: 320px;">
+                            <canvas id="myProductBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Donut / Circle Chart: Category Distribution of Our Products #}
+            <div class="col-xl-4 col-lg-5">
+                <div class="card border-0 shadow-sm mb-4 h-100">
+                    {# Card Header #}
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-white border-bottom">
+                        <div>
+                            <h6 class="m-0 fw-bold text-primary"><i class="fa-solid fa-chart-pie me-1"></i> Produce Category Breakdown</h6>
+                            <small class="text-muted extra-small">Real catalog product share</small>
+                        </div>
+                        <a href="{% url 'dashboard:inventory_categories' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 extra-small fw-semibold">
+                            Categories
+                        </a>
+                    </div>
+                    {# Card Body #}
+                    <div class="card-body p-3 d-flex flex-column justify-content-between">
+                        <div class="chart-pie pt-2 pb-2" style="height: 220px;">
+                            <canvas id="myCategoryPieChart"></canvas>
+                        </div>
+                        
+                        {# Dynamic Legend based on Real Categories #}
+                        <div class="mt-3 text-center small">
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                {% for item in category_legend_items %}
+                                <span class="badge bg-light text-dark border px-2 py-1">
+                                    <i class="fa-solid fa-circle me-1" style="color: {{ item.color }};"></i>
+                                    {{ item.name }}: {{ item.count }} ({{ item.percentage }}%)
+                                </span>
+                                {% empty %}
+                                <span class="text-muted">No products cataloged yet.</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {# ============ OUR LIVE PRODUCE CATALOG OVERVIEW ============ #}
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-carrot text-success fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Live Warehouse Produce Inventory</h5>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dashboard:inventory_products' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                        View All {{ total_products }} Products &rarr;
+                    </a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Produce Item</th>
+                            <th>Category</th>
+                            <th>Origin Farm</th>
+                            <th>Unit Retail Price</th>
+                            <th>Current Stock</th>
+                            <th class="pe-3 text-end">Total Valuation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in our_products %}
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if product.image %}
+                                    <img src="{{ product.image.url }}" class="rounded-3 shadow-sm flex-shrink-0"
+                                        style="width:38px;height:38px;object-fit:cover;" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="ft-avatar-sm flex-shrink-0" style="background:#ccfbf1; color:#0f766e; width:38px; height:38px; border-radius:8px;">
+                                        <i class="fa-solid fa-leaf"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-bold text-dark d-block">{{ product.name|title }}</span>
+                                        <small class="text-muted extra-small">ID: #{{ product.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border extra-small px-2 py-1">
+                                    {{ product.category.name|default:"General"|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="small text-dark fw-semibold"><i class="fa-solid fa-tractor text-success me-1"></i>{{ product.farm.name }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">₹{{ product.price }} / {{ product.unit }}</span>
+                            </td>
+                            <td>
+                                {% if product.stock_quantity > 10 %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">
+                                    {{ product.stock_quantity }} {{ product.unit }}
+                                </span>
+                                {% elif product.stock_quantity > 0 %}
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-1 rounded-pill fw-bold">
+                                    {{ product.stock_quantity }} {{ product.unit }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold">
+                                    Out of Stock
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="pe-3 text-end fw-bold text-primary">
+                                {{ product.stock_quantity|floatformat:0 }} &times; ₹{{ product.price }} = 
+                                <span class="text-success">₹{% widthratio product.stock_quantity 1 product.price as prod_val %}{{ prod_val|default:"0.00" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-boxes-stacked text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No produce added yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# ============ RECENT ORDERS TABLE ============ #}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header py-3 bg-white border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="m-0 fw-bold text-primary"><i class="fa-solid fa-receipt me-1"></i> Recent Customer Orders</h6>
+                <a href="{% url 'dashboard:order_management' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    View All Orders &rarr;
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th class="text-end">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td class="fw-bold text-dark">#{{ order.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ft-avatar-sm" style="background:#e0e7ff; color:#3730a3;">
+                                        {{ order.customer.username|slice:":1"|upper }}
+                                    </div>
+                                    <span class="fw-semibold text-dark">{{ order.customer.username }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ order.get_status_display }}</span>
+                            </td>
+                            <td class="text-end fw-bold text-success">₹{{ order.total_amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-receipt text-muted opacity-50 mb-2" style="font-size:2rem;"></i>
+                                <p class="mb-0">No customer orders recorded yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{# Chart.js Library #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+// ========================================================
+// REAL LIVE PRODUCTS & CATEGORIES ANALYTICS (CHART.JS)
+// ========================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Real Data from Django Backend
+    const productNames = {{ product_names_json|safe }};
+    const productStocks = {{ product_stocks_json|safe }};
+    const productValues = {{ product_values_json|safe }};
+    const productPrices = {{ product_prices_json|safe }};
+    const productUnits = {{ product_units_json|safe }};
+
+    const categoryLabels = {{ category_labels_json|safe }};
+    const categoryCounts = {{ category_counts_json|safe }};
+
+    // Color Palette
+    const palette = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#6f42c1', '#fd7e14', '#20c997'];
+
+    // --- 1. Product Stock & Valuation Chart (Real Products) ---
+    const ctxBar = document.getElementById("myProductBarChart");
+    if (ctxBar) {
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: productNames.length ? productNames : ["No Products"],
+                datasets: [
+                    {
+                        label: "Live Stock Quantity",
+                        backgroundColor: "rgba(78, 115, 223, 0.85)",
+                        hoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                        borderColor: "#4e73df",
+                        borderRadius: 6,
+                        data: productStocks.length ? productStocks : [0],
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: "Total Valuation (₹)",
+                        backgroundColor: "rgba(28, 200, 138, 0.85)",
+                        hoverBackgroundColor: "rgba(28, 200, 138, 1)",
+                        borderColor: "#1cc88a",
+                        borderRadius: 6,
+                        data: productValues.length ? productValues : [0],
+                        yAxisID: 'y1',
+                    }
+                ],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 14,
+                            font: { size: 12, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#334155",
+                        titleColor: '#0f172a',
+                        titleFont: { size: 13, weight: 'bold' },
+                        borderColor: '#e2e8f0',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            afterTitle: function(context) {
+                                const idx = context[0].dataIndex;
+                                if (productPrices[idx] !== undefined) {
+                                    return 'Price: ₹' + productPrices[idx] + ' / ' + (productUnits[idx] || 'unit');
+                                }
+                                return '';
+                            },
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                    const idx = context.dataIndex;
+                                    return 'Stock: ' + context.raw + ' ' + (productUnits[idx] || 'units');
+                                } else {
+                                    return 'Total Valuation: ₹' + Number(context.raw).toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { weight: '600' } }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Stock Quantity',
+                            font: { size: 11, weight: '600' }
+                        },
+                        grid: {
+                            color: "rgb(241, 245, 249)",
+                            drawBorder: false
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Total Value (₹)',
+                            font: { size: 11, weight: '600' }
+                        },
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- 2. Doughnut / Circle Chart: Real Produce Categories ---
+    const ctxPie = document.getElementById("myCategoryPieChart");
+    if (ctxPie) {
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels.length ? categoryLabels : ["No Categories"],
+                datasets: [{
+                    data: categoryCounts.length ? categoryCounts : [1],
+                    backgroundColor: palette.slice(0, categoryLabels.length || 1),
+                    hoverBackgroundColor: palette.slice(0, categoryLabels.length || 1),
+                    hoverBorderColor: "rgba(255, 255, 255, 1)",
+                    borderWidth: 2
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#334155",
+                        titleColor: '#0f172a',
+                        titleFont: { size: 13, weight: 'bold' },
+                        borderColor: '#e2e8f0',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total ? Math.round((context.raw / total) * 100) : 0;
+                                return ' ' + context.label + ': ' + context.raw + ' items (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '72%',
+            },
+        });
+    }
+});
+</script>
+{% endblock %}

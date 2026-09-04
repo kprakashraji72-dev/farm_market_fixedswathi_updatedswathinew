@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}User Management | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner #}
+        <div class="ft-mgmt-hero purple d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <h2 class="mb-1">User Account Management</h2>
+                    <p class="mb-0">Manage customer profiles, driver accounts, grower credentials, and access statuses.</p>
+                </div>
+            </div>
+            <div class="ft-mini-stat">
+                <div class="num">{{ page_obj.paginator.count }}</div>
+                <div class="label">Total Users</div>
+            </div>
+        </div>
+
+        {# Role Filter Toolbar #}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-filter"></i> Filter Role:</span>
+                    <a href="{% url 'dashboard:user_management' %}" class="btn btn-sm rounded-pill {% if not role_filter %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+                        All Users
+                    </a>
+                    {% for value, label in roles %}
+                    <a href="?role={{ value }}" class="btn btn-sm rounded-pill {% if role_filter == value %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+                        {{ label }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH USERS TABLE ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-address-book text-purple me-2" style="color:#7c3aed;"></i>Registered Users Directory</h5>
+                <span class="badge bg-purple-soft rounded-pill">{{ page_obj.paginator.count }} Records</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 180px;">User Account</th>
+                            <th style="min-width: 200px;">Email</th>
+                            <th style="min-width: 120px;">Role</th>
+                            <th style="min-width: 100px;">Status</th>
+                            <th style="min-width: 130px;">Joined</th>
+                            <th class="text-end" style="min-width: 200px;">Account Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ft-avatar-sm" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
+                                        {{ u.username|slice:":1"|upper }}
+                                    </div>
+                                    <span class="fw-bold text-dark">{{ u.username }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ u.email|default:"—" }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border text-uppercase extra-small">{{ u.get_role_display }}</span>
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle extra-small"><i class="fa-solid fa-check me-1"></i>Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle extra-small"><i class="fa-solid fa-ban me-1"></i>Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ u.date_joined|date:"M d, Y" }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <form method="post" action="{% url 'dashboard:user_toggle_active' u.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm rounded-pill px-3 py-1 extra-small fw-semibold {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                                            {% if u.is_active %}<i class="fa-solid fa-user-slash me-1"></i>Deactivate{% else %}<i class="fa-solid fa-user-check me-1"></i>Activate{% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'dashboard:user_reset_password' u.id %}" class="d-inline"
+                                          onsubmit="return confirm('Reset password for {{ u.username }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 extra-small text-dark fw-semibold" title="Generate new password">
+                                            <i class="fa-solid fa-key me-1"></i>Reset Pass
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-users text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">No users found for selected role.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% include 'components/pagination.html' with page_obj=page_obj %}
+
+    </div>
+</div>
+{% endblock %}
+

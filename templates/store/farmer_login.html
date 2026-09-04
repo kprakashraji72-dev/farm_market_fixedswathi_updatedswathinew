@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Farmer Login{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 mt-4" style="border-top: 4px solid #c77a1a;">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-1" style="color:#c77a1a;"><i class="fa-solid fa-tractor"></i> Farmer Login</h3>
+                    <p class="text-center text-muted small mb-4">For farm & seller partners only</p>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            {{ form.username }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            {{ form.password }}
+                        </div>
+                        <button type="submit" class="btn w-100 text-white" style="background:#c77a1a;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login
+                        </button>
+                    </form>
+                    <p class="text-center mt-3 mb-1">
+                        New farm partner? <a href="{% url 'accounts:farmer_register' %}">Apply here</a>
+                    </p>
+                    <p class="text-center mb-0">
+                        <a href="{% url 'accounts:login' %}">Not a farmer? Customer/Admin login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

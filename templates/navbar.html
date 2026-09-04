@@ -1,0 +1,241 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top py-2"
+    style="border-color: #e2ece5 !important; box-shadow: 0 2px 12px rgba(6, 78, 59, 0.05);">
+    <div class="container-fluid px-2 px-sm-3 px-xl-4 d-flex align-items-center justify-content-between">
+        {# Brand Logo #}
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold me-2 me-xl-3 text-nowrap"
+            href="{% url 'store:home' %}" style="color: #064e3b; font-size: 1.2rem;">
+            <div class="d-flex align-items-center justify-content-center rounded-3 text-white shadow-sm flex-shrink-0"
+                style="width: 34px; height: 34px; background: linear-gradient(135deg, #059669, #047857);">
+                <i class="fa-solid fa-leaf"></i>
+            </div>
+            <span>Fresh Trace</span>
+        </a>
+
+        {# Mobile Toggler #}
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+            data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars-staggered text-success fs-5"></i>
+        </button>
+
+        {# Main Navigation Content #}
+        <div class="collapse navbar-collapse" id="mainNav">
+            {# Left Nav Links #}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ft-single-line-nav gap-1 align-items-lg-center">
+                {# 1. Home #}
+                <li class="nav-item">
+                    <a class="nav-link px-2 px-xxl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small {% if request.resolver_match.url_name == 'home' %}text-success bg-light{% else %}text-dark{% endif %}"
+                        href="{% url 'store:home' %}">
+                        <i class="fa-solid fa-house text-success"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+
+                {# 2. Shop Produce #}
+                <li class="nav-item">
+                    <a class="nav-link px-2 px-xxl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small {% if request.resolver_match.url_name == 'product_list' %}text-success bg-light{% else %}text-dark{% endif %}"
+                        href="{% url 'inventory:product_list' %}">
+                        <i class="fa-solid fa-basket-shopping text-success"></i>
+                        <span>Shop Produce</span>
+                    </a>
+                </li>
+
+                {# 3. Product Delivery #}
+                <li class="nav-item">
+                    <a class="nav-link px-2 px-xxl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small {% if request.resolver_match.url_name == 'track_lookup' %}text-success bg-light{% else %}text-dark{% endif %}"
+                        href="{% url 'orders:track_lookup' %}">
+                        <i class="fa-solid fa-truck-fast text-success"></i>
+                        <span>Product Delivery</span>
+                    </a>
+                </li>
+
+                {# 4. My Orders #}
+                <li class="nav-item">
+                    {% if user.is_authenticated and user.role == 'customer' %}
+                    <a class="nav-link px-2 px-xxl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small {% if request.resolver_match.url_name == 'my_orders' %}text-success bg-light{% else %}text-dark{% endif %}"
+                        href="{% url 'orders:my_orders' %}">
+                        <i class="fa-solid fa-bag-shopping text-success"></i>
+                        <span>My Orders</span>
+                    </a>
+                    {% else %}
+                    <a class="nav-link px-2 px-xxl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-dark"
+                        href="{% if user.is_authenticated %}{% url 'orders:track_lookup' %}{% else %}{% url 'accounts:login' %}?next={% url 'orders:my_orders' %}{% endif %}">
+                        <i class="fa-solid fa-bag-shopping text-success"></i>
+                        <span>My Orders</span>
+                    </a>
+                    {% endif %}
+                </li>
+
+                {# 5. Support #}
+                <li class="nav-item">
+                    <a class="nav-link px-2 px-xxl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small {% if 'support' in request.path %}text-success bg-light{% else %}text-dark{% endif %}"
+                        href="{% url 'support:create' %}">
+                        <i class="fa-solid fa-headset text-success"></i>
+                        <span>Support</span>
+                    </a>
+                </li>
+            </ul>
+
+            {# Right User & Cart Area #}
+            <ul class="navbar-nav align-items-lg-center ft-single-line-nav ft-nav-right gap-2 ms-lg-auto">
+                {% if user.is_authenticated %}
+                    {# User Account Link #}
+                    <li class="nav-item">
+                        {% if user.role == 'customer' %}
+                        <a class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-dark" href="{% url 'accounts:profile' %}">
+                            <i class="fa-solid fa-user text-secondary"></i>
+                            <span>{{ user.first_name|default:user.username }}</span>
+                        </a>
+                        {% elif user.role == 'driver' %}
+                        <a class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-primary" href="{% url 'tracking:driver_dashboard' %}">
+                            <i class="fa-solid fa-truck-fast text-primary"></i>
+                            <span>Driver Console</span>
+                        </a>
+                        {% elif user.role == 'farmer' %}
+                        <a class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-dark" href="{% url 'dashboard:farmer_home' %}">
+                            <i class="fa-solid fa-seedling text-success"></i>
+                            <span>Farmer Dashboard</span>
+                        </a>
+                        {% elif user.role == 'support_staff' %}
+                        <a class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-teal" style="color:#0f766e;" href="{% url 'customer_support:console' %}">
+                            <i class="fa-solid fa-headset text-teal" style="color:#0f766e;"></i>
+                            <span>Support Console</span>
+                        </a>
+                        {% elif user.role == 'admin' %}
+                        <a class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-dark" href="{% url 'dashboard:home' %}">
+                            <i class="fa-solid fa-shield-halved text-success"></i>
+                            <span>Admin</span>
+                        </a>
+                        {% elif user.role == 'employee' %}
+                        <a class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-dark" href="{% url 'dashboard:home' %}">
+                            <i class="fa-solid fa-id-badge text-teal" style="color:#0f766e;"></i>
+                            <span>Staff</span>
+                        </a>
+                        {% endif %}
+                    </li>
+
+                    {# Log Out Link #}
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'accounts:logout' %}" class="m-0 p-0">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link px-2 px-xl-3 py-1.5 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 small text-danger border-0 bg-transparent text-start">
+                                <i class="fa-solid fa-right-from-bracket text-danger"></i>
+                                <span>Log Out</span>
+                            </button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-1.5 fw-semibold small text-dark" href="{% url 'accounts:login' %}">Log In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-success rounded-pill px-3 py-1.5 fw-semibold small shadow-sm text-white btn-zoom"
+                            href="{% url 'accounts:register' %}">
+                            Sign Up
+                        </a>
+                    </li>
+                {% endif %}
+
+                {# Cart Dropdown #}
+                <li class="nav-item dropdown dropdown-cart position-relative">
+                    <a class="btn btn-outline-success rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-2 position-relative shadow-sm btn-zoom dropdown-toggle no-caret cart-icon-wrap"
+                        href="{% url 'orders:cart_detail' %}"
+                        id="navCartIcon"
+                        data-cart-dropdown-btn="navCartDropdownBtn"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        aria-expanded="false"
+                        title="Shopping Cart">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="fw-semibold small">Cart</span>
+                        <span class="badge bg-success rounded-pill px-2 cart-count-badge cart-badge" id="cartBadgeCount">{{ cart_count|default:0 }}</span>
+                    </a>
+
+                    {# Dropdown Menu #}
+                    <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-0 cart-dropdown-menu"
+                        id="navCartDropdownMenu"
+                        aria-labelledby="navCartIcon"
+                        style="width: 350px; max-width: 90vw; z-index: 1065; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.08);">
+                        
+                        {# Header #}
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2.5 bg-light border-bottom rounded-top-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-basket-shopping text-success"></i>
+                                <span class="fw-bold text-dark small">My Cart (<span class="dropdown-cart-count">{{ cart_count }}</span>)</span>
+                            </div>
+                            <a href="{% url 'orders:cart_detail' %}" class="extra-small text-success fw-semibold text-decoration-none">
+                                View Full Cart <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+
+                        {# Empty State #}
+                        <div id="nav-cart-empty" class="text-center py-4 px-3 {% if nav_cart_items %}d-none{% endif %}">
+                            <div class="mx-auto mb-2 text-success opacity-50 fs-3">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+                            <p class="text-muted small mb-2">Your cart is empty</p>
+                            <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 extra-small fw-semibold">
+                                Browse Produce
+                            </a>
+                        </div>
+
+                        {# Items List Container #}
+                        <div id="nav-cart-items-wrapper" class="{% if not nav_cart_items %}d-none{% endif %}">
+                            <div id="nav-cart-items-list" class="p-2" style="max-height: 260px; overflow-y: auto;">
+                                {% for item in nav_cart_items %}
+                                <div class="d-flex align-items-center gap-2 p-2 border-bottom border-light rounded-3 position-relative nav-cart-item" data-item-key="{{ item.key }}" style="transition: background 0.15s ease;">
+                                    {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{{ item.name }}" class="rounded-3 border flex-shrink-0" style="width: 42px; height: 42px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded-3 bg-light border d-flex align-items-center justify-content-center flex-shrink-0 text-muted" style="width: 42px; height: 42px;">
+                                        <i class="fa-solid fa-leaf text-success"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex-grow-1 min-w-0" style="min-width: 0;">
+                                        <h6 class="mb-0 text-dark small text-truncate fw-semibold lh-sm" title="{{ item.name }}">{{ item.name }}</h6>
+                                        <div class="d-flex align-items-center justify-content-between mt-1">
+                                            <span class="text-muted extra-small">{{ item.quantity }} × ₹{{ item.unit_price }}</span>
+                                            <span class="fw-bold text-success small">₹{{ item.line_total }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {# Footer Summary & Actions #}
+                            <div class="p-3 bg-light border-top rounded-bottom-4">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="text-muted small fw-semibold">Subtotal</span>
+                                    <span class="fw-bold text-dark fs-6">₹<span id="nav-cart-subtotal-val">{{ nav_cart_subtotal }}</span></span>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'orders:checkout' %}" class="btn btn-success btn-sm rounded-pill fw-bold shadow-sm py-1.5 d-flex align-items-center justify-content-center gap-1.5">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <span>Proceed to Checkout</span>
+                                    </a>
+                                    <a href="{% url 'orders:cart_detail' %}" class="btn btn-outline-secondary btn-sm rounded-pill extra-small fw-semibold">
+                                        View & Edit Cart
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+.dropdown-cart .no-caret::after {
+    display: none !important;
+}
+.nav-cart-item:hover {
+    background-color: #f8fafc;
+}
+.extra-small {
+    font-size: 0.78rem;
+}
+</style>

@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% block title %}Become a Delivery Partner{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mt-4 border-top border-4 border-primary">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-1"><i class="fa-solid fa-truck-fast text-primary"></i> Become a Delivery Partner</h3>
+                    <p class="text-center text-muted small mb-4">Sign up and submit your KYC documents — an admin verifies you before you can log in.</p>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3">Account details</h6>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Username</label>
+                                {{ form.username }}
+                                {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Email</label>
+                                {{ form.email }}
+                                {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% for e in form.phone_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Address</label>
+                                {{ form.address }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Password</label>
+                                {{ form.password1 }}
+                                {% for e in form.password1.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label">Confirm Password</label>
+                                {{ form.password2 }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3"><i class="fa-solid fa-id-card"></i> 2. Identity &amp; Age Verification</h6>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark" for="id_date_of_birth">
+                                    Date of Birth <span class="text-danger">*</span> <span class="badge bg-primary-subtle text-primary ms-1">Must be 18+</span>
+                                </label>
+                                {{ form.date_of_birth }}
+                                <div id="dob-feedback" class="mt-1"></div>
+                                {% for e in form.date_of_birth.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark">Aadhar Number <span class="text-danger">*</span></label>
+                                {{ form.aadhar_number }}
+                                {% for e in form.aadhar_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-12">
+                                <label class="form-label fw-semibold text-dark">Upload Aadhar Card <span class="text-danger">*</span></label>
+                                {{ form.aadhar_document }}
+                                <div class="form-text">Upload a clear photo or scan (PDF/JPG/PNG, max 5 MB).</div>
+                                {% for e in form.aadhar_document.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                        </div>
+
+                        <div id="driving-license-underage-notice" class="d-none alert alert-warning border-0 shadow-sm rounded-3 my-3 small">
+                            <i class="fa-solid fa-triangle-exclamation text-warning me-2 fs-6 align-middle"></i>
+                            <strong>Driving License Hidden:</strong> You must be at least 18 years old to hold a driving license and apply as a delivery driver. Driving license fields are hidden for applicants under 18.
+                        </div>
+
+                        <div id="driving-license-section" class="d-none">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3 mt-3"><i class="fa-solid fa-id-badge"></i> 3. Driving License</h6>
+                            <div class="row">
+                                <div class="mb-3 col-md-4">
+                                    <label class="form-label fw-semibold text-dark">License Number <span class="text-danger">*</span></label>
+                                    {{ form.license_number }}
+                                    {% for e in form.license_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                                </div>
+                                <div class="mb-3 col-md-4">
+                                    <label class="form-label fw-semibold text-dark">Upload License <span class="text-danger">*</span></label>
+                                    {{ form.license_document }}
+                                    {% for e in form.license_document.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                                </div>
+                                <div class="mb-3 col-md-4">
+                                    <label class="form-label fw-semibold text-dark">License Expiry Date</label>
+                                    {{ form.license_expiry_date }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3 mt-3"><i class="fa-solid fa-motorcycle"></i> 4. Vehicle</h6>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark">Vehicle Number <span class="text-danger">*</span></label>
+                                {{ form.vehicle_number }}
+                                {% for e in form.vehicle_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark">Vehicle RC / Registration (optional)</label>
+                                {{ form.vehicle_document }}
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3 mt-3"><i class="fa-solid fa-rotate"></i> 5. Renewal Details</h6>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark">Renewal Amount (last license/vehicle renewal, ₹)</label>
+                                {{ form.renewal_amount }}
+                                <div class="form-text">How much you paid the last time you renewed your license or vehicle registration.</div>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label class="form-label fw-semibold text-dark">Next Renewal Due Date</label>
+                                {{ form.renewal_due_date }}
+                            </div>
+                        </div>
+
+                        <div id="form-age-block-alert" class="d-none alert alert-danger border-0 shadow-sm rounded-3 my-3">
+                            <i class="fa-solid fa-ban me-2 fs-5 align-middle"></i>
+                            <strong>Permission Denied:</strong> Drivers under 18 years old cannot register. Form submission is disabled.
+                        </div>
+
+                        <button type="submit" id="driverSubmitBtn" class="btn btn-primary w-100 mt-2 py-2 fw-semibold">
+                            <i class="fa-solid fa-user-check me-1"></i> Submit Application
+                        </button>
+                    </form>
+                    <p class="text-center mt-3 mb-0">
+                        Already a partner? <a href="{% url 'accounts:driver_login' %}">Driver Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dobInput = document.querySelector('input[name="date_of_birth"]');
+    const submitBtn = document.getElementById('driverSubmitBtn');
+    const dobFeedback = document.getElementById('dob-feedback');
+    const ageBlockAlert = document.getElementById('form-age-block-alert');
+    const licenseSection = document.getElementById('driving-license-section');
+    const licenseUnderageNotice = document.getElementById('driving-license-underage-notice');
+    const form = dobInput ? dobInput.closest('form') : null;
+
+    // Set max attribute on date input to today
+    if (dobInput) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dobInput.setAttribute('max', `${yyyy}-${mm}-${dd}`);
+
+        function calculateAge(birthDate) {
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function validateDriverAge() {
+            const val = dobInput.value;
+            if (!val) {
+                dobFeedback.innerHTML = '';
+                dobInput.classList.remove('is-invalid', 'is-valid');
+                if (ageBlockAlert) ageBlockAlert.classList.add('d-none');
+                if (licenseSection) licenseSection.classList.add('d-none');
+                if (licenseUnderageNotice) licenseUnderageNotice.classList.add('d-none');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-secondary');
+                    submitBtn.classList.add('btn-primary');
+                }
+                return null;
+            }
+
+            const birthDate = new Date(val);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (isNaN(birthDate.getTime())) {
+                dobFeedback.innerHTML = '<span class="text-danger small"><i class="fa-solid fa-circle-exclamation me-1"></i>Invalid date format.</span>';
+                dobInput.classList.add('is-invalid');
+                dobInput.classList.remove('is-valid');
+                if (licenseSection) licenseSection.classList.add('d-none');
+                if (licenseUnderageNotice) licenseUnderageNotice.classList.add('d-none');
+                return false;
+            }
+
+            if (birthDate > today) {
+                dobFeedback.innerHTML = '<div class="alert alert-danger py-2 px-3 my-2 rounded-3 small"><i class="fa-solid fa-circle-exclamation me-1"></i>Date of birth cannot be in the future.</div>';
+                dobInput.classList.add('is-invalid');
+                dobInput.classList.remove('is-valid');
+                if (licenseSection) licenseSection.classList.add('d-none');
+                if (licenseUnderageNotice) licenseUnderageNotice.classList.add('d-none');
+                if (ageBlockAlert) ageBlockAlert.classList.remove('d-none');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('btn-secondary');
+                    submitBtn.classList.remove('btn-primary');
+                }
+                return false;
+            }
+
+            const age = calculateAge(birthDate);
+
+            if (age < 18) {
+                dobFeedback.innerHTML = `
+                    <div class="alert alert-danger border-0 shadow-sm py-2 px-3 my-2 rounded-3 small">
+                        <i class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                        <strong>Age: ${age} years old — Permission Denied.</strong><br>
+                        You must be at least 18 years old to register as a delivery driver. Form cannot be submitted.
+                    </div>
+                `;
+                dobInput.classList.add('is-invalid');
+                dobInput.classList.remove('is-valid');
+                if (licenseSection) licenseSection.classList.add('d-none');
+                if (licenseUnderageNotice) licenseUnderageNotice.classList.remove('d-none');
+                if (ageBlockAlert) {
+                    ageBlockAlert.innerHTML = `<i class="fa-solid fa-ban me-2 fs-5 align-middle"></i><strong>Permission Denied:</strong> Driver age is ${age} years. Drivers under 18 are not permitted. Driving license fields hidden and submit is disabled.`;
+                    ageBlockAlert.classList.remove('d-none');
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('btn-secondary');
+                    submitBtn.classList.remove('btn-primary');
+                }
+                return false;
+            } else {
+                dobFeedback.innerHTML = `
+                    <div class="text-success small fw-semibold mt-1">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i>
+                        Age: ${age} years old (Eligible for delivery partner registration).
+                    </div>
+                `;
+                dobInput.classList.remove('is-invalid');
+                dobInput.classList.add('is-valid');
+                if (licenseSection) licenseSection.classList.remove('d-none');
+                if (licenseUnderageNotice) licenseUnderageNotice.classList.add('d-none');
+                if (ageBlockAlert) ageBlockAlert.classList.add('d-none');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-secondary');
+                    submitBtn.classList.add('btn-primary');
+                }
+                return true;
+            }
+        }
+
+        dobInput.addEventListener('input', validateDriverAge);
+        dobInput.addEventListener('change', validateDriverAge);
+        dobInput.addEventListener('blur', validateDriverAge);
+
+        // Run validation on initial load if date is already populated
+        if (dobInput.value) {
+            validateDriverAge();
+        }
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const isValid = validateDriverAge();
+                if (isValid === false) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dobInput.focus();
+                    if (ageBlockAlert) ageBlockAlert.classList.remove('d-none');
+                    return false;
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

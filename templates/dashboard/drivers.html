@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Driver Management | Admin Console{% endblock %}
+
+{% block content %}
+<div class="d-flex">
+    {% include 'sidebar.html' %}
+    
+    <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+        {# Mobile Sidebar Toggle #}
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex d-lg-none align-items-center gap-2 fw-semibold mb-3 ft-sidebar-toggle shadow-sm">
+            <i class="fa-solid fa-bars"></i> <span>Menu</span>
+        </button>
+
+        {# Management Hero Banner with Add Driver Action #}
+        <div class="ft-mgmt-hero blue d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ft-mgmt-icon"><i class="fa-solid fa-truck"></i></div>
+                <div>
+                    <h2 class="mb-1">Driver Management</h2>
+                    <p class="mb-0">Review KYC documents, verify delivery partners, monitor license renewals, and register delivery drivers.</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="d-flex gap-2">
+                    <div class="ft-mini-stat">
+                        <div class="num">{{ drivers.count }}</div>
+                        <div class="label">Total Drivers</div>
+                    </div>
+                    <div class="ft-mini-stat">
+                        <div class="num">{{ drivers_verified_count }}</div>
+                        <div class="label">Verified</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold text-white shadow-sm" id="toggleAddDriverBtn">
+                    <i class="fa-solid fa-user-plus me-1"></i> Add New Driver
+                </button>
+            </div>
+        </div>
+
+        {# ============ LANDSCAPE FORMAT: ADD DRIVER FORM ============ #}
+        <div class="ft-landscape-form-card blue {% if not form.errors %}d-none{% endif %} mb-4" id="addDriverCard">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-id-card text-primary fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Register Delivery Driver Partner (Landscape Format)</h5>
+                </div>
+                <button type="button" class="btn-close" id="closeAddDriverBtn" aria-label="Close form"></button>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {# Section 1: Account Credentials #}
+                        <div class="col-12"><h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-user text-primary me-1"></i> 1. Driver Account Details</h6></div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Username <span class="text-danger">*</span></label>
+                            {{ form.username }}
+                            {% for e in form.username.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Email Address <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Mobile Phone <span class="text-danger">*</span></label>
+                            {{ form.phone_number }}
+                            {% for e in form.phone_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Password <span class="text-danger">*</span></label>
+                            {{ form.password1 }}
+                            {% for e in form.password1.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Confirm Password <span class="text-danger">*</span></label>
+                            {{ form.password2 }}
+                            {% for e in form.password2.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Operating Address / City</label>
+                            {{ form.address }}
+                            {% for e in form.address.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Section 2: KYC & Compliance Documents #}
+                        <div class="col-12 pt-3 border-top"><h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-file-shield text-primary me-1"></i> 2. KYC Verification Documents &amp; Age Eligibility</h6></div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Date of Birth <span class="text-danger">* (Must be 18+)</span></label>
+                            {{ form.date_of_birth }}
+                            <div id="admin-dob-feedback" class="mt-1"></div>
+                            {% for e in form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Aadhar / National ID Number <span class="text-danger">*</span></label>
+                            {{ form.aadhar_number }}
+                            {% for e in form.aadhar_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Aadhar Document (PDF / Image) <span class="text-danger">*</span></label>
+                            {{ form.aadhar_document }}
+                            {% for e in form.aadhar_document.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div id="admin-driving-license-underage-notice" class="col-12 d-none alert alert-warning border-0 shadow-sm rounded-3 py-2 px-3 my-2 small">
+                            <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+                            <strong>Driving License Hidden:</strong> Driving license fields are hidden because the driver is under 18 years old.
+                        </div>
+
+                        <div id="admin-driving-license-section" class="col-12 d-none p-0">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold small text-dark">Driving License Number <span class="text-danger">*</span></label>
+                                    {{ form.license_number }}
+                                    {% for e in form.license_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold small text-dark">Driving License Document (PDF / Image) <span class="text-danger">*</span></label>
+                                    {{ form.license_document }}
+                                    {% for e in form.license_document.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Section 3: Vehicle & Renewal Details #}
+                        <div class="col-12 pt-3 border-top"><h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-motorcycle text-primary me-1"></i> 3. Vehicle &amp; Insurance Details</h6></div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Vehicle Number / Plate <span class="text-danger">*</span></label>
+                            {{ form.vehicle_number }}
+                            {% for e in form.vehicle_number.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Vehicle Registration Document</label>
+                            {{ form.vehicle_document }}
+                            {% for e in form.vehicle_document.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-2">
+                            <label class="form-label fw-semibold small text-dark">Renewal Due Date</label>
+                            {{ form.renewal_due_date }}
+                            {% for e in form.renewal_due_date.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-2">
+                            <label class="form-label fw-semibold small text-dark">Renewal Fee (₹)</label>
+                            {{ form.renewal_amount }}
+                            {% for e in form.renewal_amount.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        {# Actions #}
+                        <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="cancelAddDriverBtn">Cancel</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold text-white shadow-sm">
+                                <i class="fa-solid fa-user-plus me-1"></i> Register Driver Account
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ============ FULL-WIDTH DRIVER DIRECTORY TABLE ============ #}
+        <div class="ft-table-card">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-truck-ramp-box text-primary fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Delivery Partners Directory</h5>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-2">{{ drivers.count }} Registered</span>
+                </div>
+
+                <form method="get" class="d-flex gap-2" style="max-width: 400px; width: 100%;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search driver by name, phone, license, vehicle...">
+                    </div>
+                    {% if query %}<a href="{% url 'dashboard:driver_management' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 170px;">Driver</th>
+                            <th style="min-width: 190px;">Contact Info</th>
+                            <th style="min-width: 320px;">KYC &amp; Vehicle Credentials</th>
+                            <th style="min-width: 160px;">Renewal Status</th>
+                            <th class="text-end" style="min-width: 120px;">KYC Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in drivers %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="ft-avatar-sm" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);">
+                                        {{ u.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-dark d-block">{{ u.username }}</span>
+                                        <span class="badge {% if u.is_verified %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %} extra-small">
+                                            {% if u.is_verified %}<i class="fa-solid fa-circle-check"></i> Verified{% else %}<i class="fa-solid fa-clock"></i> Pending{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div class="text-dark"><i class="fa-solid fa-envelope text-muted me-1"></i>{{ u.email|default:"—" }}</div>
+                                    <div class="text-muted extra-small"><i class="fa-solid fa-phone text-muted me-1"></i>{{ u.phone_number|default:"—" }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if u.driver_kyc %}
+                                    <div class="small">
+                                        <div class="d-flex flex-wrap gap-1 mb-1">
+                                            {% if u.driver_kyc.date_of_birth %}
+                                                <span class="badge bg-primary-subtle text-primary border">
+                                                    <i class="fa-solid fa-cake-candles me-1"></i>DOB: {{ u.driver_kyc.date_of_birth|date:"d M Y" }} ({{ u.driver_kyc.age }} yrs)
+                                                </span>
+                                            {% endif %}
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fa-solid fa-id-card text-primary me-1"></i>DL: {{ u.driver_kyc.license_number }}
+                                                {% if u.driver_kyc.license_document %}
+                                                    <a href="{{ u.driver_kyc.license_document.url }}" target="_blank" class="ms-1 text-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                                {% endif %}
+                                            </span>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fa-solid fa-fingerprint text-success me-1"></i>Aadhar: {{ u.driver_kyc.aadhar_number }}
+                                                {% if u.driver_kyc.aadhar_document %}
+                                                    <a href="{{ u.driver_kyc.aadhar_document.url }}" target="_blank" class="ms-1 text-success"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fa-solid fa-motorcycle text-info me-1"></i>Vehicle: {{ u.driver_kyc.vehicle_number }}
+                                                {% if u.driver_kyc.vehicle_document %}
+                                                    <a href="{{ u.driver_kyc.vehicle_document.url }}" target="_blank" class="ms-1 text-info"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted extra-small">No KYC documents on file</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.driver_kyc and u.driver_kyc.renewal_due_date %}
+                                    <div class="small">
+                                        <div>Due: <strong>{{ u.driver_kyc.renewal_due_date }}</strong></div>
+                                        {% if u.driver_kyc.is_renewal_due_soon %}
+                                            <span class="badge bg-danger">Due Within 30 Days</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-muted border">Up to date</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted extra-small">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'dashboard:driver_toggle_verified' u.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm rounded-pill px-3 fw-semibold {% if u.is_verified %}btn-outline-success{% else %}btn-warning text-dark{% endif %}">
+                                        {% if u.is_verified %}<i class="fa-solid fa-check me-1"></i> Verified{% else %}<i class="fa-solid fa-circle-check me-1"></i> Verify Partner{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="fa-solid fa-truck-ramp-box text-muted opacity-50 mb-2" style="font-size:2.5rem;"></i>
+                                <p class="mb-0">{% if query %}No delivery partners match "{{ query }}".{% else %}No drivers registered yet.{% endif %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAddDriverBtn');
+    const closeBtn = document.getElementById('closeAddDriverBtn');
+    const cancelBtn = document.getElementById('cancelAddDriverBtn');
+    const addCard = document.getElementById('addDriverCard');
+
+    function toggleForm() {
+        if (addCard.classList.contains('d-none')) {
+            addCard.classList.remove('d-none');
+            addCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            toggleBtn.innerHTML = '<i class="fa-solid fa-minus me-1"></i> Hide Form';
+        } else {
+            addCard.classList.add('d-none');
+            toggleBtn.innerHTML = '<i class="fa-solid fa-user-plus me-1"></i> Add New Driver';
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleForm);
+    if (closeBtn) closeBtn.addEventListener('click', toggleForm);
+    if (cancelBtn) cancelBtn.addEventListener('click', toggleForm);
+
+    // DOB age validation in admin form
+    const adminDob = addCard ? addCard.querySelector('input[name="date_of_birth"]') : null;
+    const adminForm = addCard ? addCard.querySelector('form') : null;
+    const adminFeedback = document.getElementById('admin-dob-feedback');
+    const adminSubmit = addCard ? addCard.querySelector('button[type="submit"]') : null;
+    const adminLicenseSection = document.getElementById('admin-driving-license-section');
+    const adminLicenseUnderageNotice = document.getElementById('admin-driving-license-underage-notice');
+
+    if (adminDob) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        adminDob.setAttribute('max', `${yyyy}-${mm}-${dd}`);
+
+        function checkAdminAge() {
+            const val = adminDob.value;
+            if (!val) {
+                if (adminFeedback) adminFeedback.innerHTML = '';
+                adminDob.classList.remove('is-invalid', 'is-valid');
+                if (adminLicenseSection) adminLicenseSection.classList.add('d-none');
+                if (adminLicenseUnderageNotice) adminLicenseUnderageNotice.classList.add('d-none');
+                if (adminSubmit) adminSubmit.disabled = false;
+                return null;
+            }
+            const birthDate = new Date(val);
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            if (birthDate > now) {
+                if (adminFeedback) adminFeedback.innerHTML = '<span class="text-danger extra-small"><i class="fa-solid fa-circle-exclamation me-1"></i>Date cannot be in the future.</span>';
+                adminDob.classList.add('is-invalid');
+                adminDob.classList.remove('is-valid');
+                if (adminLicenseSection) adminLicenseSection.classList.add('d-none');
+                if (adminLicenseUnderageNotice) adminLicenseUnderageNotice.classList.add('d-none');
+                if (adminSubmit) adminSubmit.disabled = true;
+                return false;
+            }
+
+            let age = now.getFullYear() - birthDate.getFullYear();
+            const m = now.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (age < 18) {
+                if (adminFeedback) {
+                    adminFeedback.innerHTML = `<span class="text-danger extra-small fw-bold"><i class="fa-solid fa-ban me-1"></i>Age: ${age} yrs (Under 18 not allowed - License hidden & Submit disabled)</span>`;
+                }
+                adminDob.classList.add('is-invalid');
+                adminDob.classList.remove('is-valid');
+                if (adminLicenseSection) adminLicenseSection.classList.add('d-none');
+                if (adminLicenseUnderageNotice) adminLicenseUnderageNotice.classList.remove('d-none');
+                if (adminSubmit) adminSubmit.disabled = true;
+                return false;
+            } else {
+                if (adminFeedback) {
+                    adminFeedback.innerHTML = `<span class="text-success extra-small fw-semibold"><i class="fa-solid fa-check me-1"></i>Age: ${age} yrs (Eligible)</span>`;
+                }
+                adminDob.classList.remove('is-invalid');
+                adminDob.classList.add('is-valid');
+                if (adminLicenseSection) adminLicenseSection.classList.remove('d-none');
+                if (adminLicenseUnderageNotice) adminLicenseUnderageNotice.classList.add('d-none');
+                if (adminSubmit) adminSubmit.disabled = false;
+                return true;
+            }
+        }
+
+        adminDob.addEventListener('input', checkAdminAge);
+        adminDob.addEventListener('change', checkAdminAge);
+        adminDob.addEventListener('blur', checkAdminAge);
+
+        if (adminDob.value) checkAdminAge();
+
+        if (adminForm) {
+            adminForm.addEventListener('submit', function(e) {
+                if (checkAdminAge() === false) {
+                    e.preventDefault();
+                    adminDob.focus();
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}
+
