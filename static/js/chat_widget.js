@@ -59,7 +59,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Format simple markdown into HTML
     function formatMarkdown(text) {
         if (!text) return '';
-        let escaped = text
+
+        // Strip model tool-call tokens and internal action syntax
+        let sanitized = text
+            .replace(/<\|.*?\|>/g, '')
+            .replace(/\[ACTION\[[^\]]*\]\([^)]*\)\]/gi, '')
+            .replace(/\[ACTION:ADD_TO_CART:?\s*\{.*?\}\s*\]/gi, '')
+            .replace(/\[ACTION.*?\]/gi, '')
+            .replace(/\[?ADD_TO_CART\([^)]*\)\]?/gi, '')
+            .trim();
+
+        if (!sanitized) return '';
+
+        let escaped = sanitized
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');

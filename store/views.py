@@ -159,12 +159,13 @@ def chat_message_view(request):
         "If the customer asks to add an item to their cart or buy produce (e.g. 'add 2 carrots to cart', 'buy 1 kg apples', 'add tomato', 'add all products'):\n"
         "1. Identify the matching item_ref number from the products list above.\n"
         "2. Include the action tag in your response: [ACTION:ADD_TO_CART:{\"product_id\": <item_ref_number>, \"quantity\": <qty>}]\n"
-        "3. Respond with a cheerful confirmation that the item and quantity have been added to their cart with total price details!\n\n"
+        "3. Accompany it with a cheerful confirmation that the item and quantity have been added to their cart with total price details!\n\n"
         "IMPORTANT PRESENTATION RULES:\n"
-        "1. NEVER mention or show raw product IDs, item_ref numbers, or database keys to the customer. Only use clean product names (e.g. 'Fresh Organic Carrots'), prices, and farm names.\n"
-        "2. Give concise, warm, helpful, and natural responses.\n"
-        "3. Only quote prices, stocks, and order statuses based strictly on the context provided above.\n"
-        "4. If asking about delivery, refer to their specific recent order ETA if available."
+        "1. NEVER output raw tool tokens or tags like <|tool_call_start|>, <|tool_call_end|>, or [ACTION...]. Always write natural, friendly English to the customer.\n"
+        "2. NEVER mention or show raw product IDs, item_ref numbers, or database keys to the customer. Only use clean product names (e.g. 'Fresh Organic Carrots'), prices, and farm names.\n"
+        "3. Give concise, warm, helpful, and natural responses.\n"
+        "4. Only quote prices, stocks, and order statuses based strictly on the context provided above.\n"
+        "5. If asking about delivery, refer to their specific recent order ETA if available."
     )
 
     history = request.session.get('chat_history', [])
@@ -249,13 +250,14 @@ def chat_message_view(request):
     # --- Process Add to Cart Intent ---
     added_item_info = None
     cart = Cart(request)
-    action_match = re.search(r'\[ACTION:ADD_TO_CART:\s*(\{.*?\})\s*\]', reply or '', re.DOTALL)
     product_to_add = None
     quantity_to_add = 1
 
-    if action_match:
+    # 1. Check for JSON format: [ACTION:ADD_TO_CART:{"product_id": 31, "quantity": 1}]
+    json_action_match = re.search(r'ADD_TO_CART[^\(\{]*[:\s]*(\{[^}]*\})', reply or '', re.DOTALL | re.IGNORECASE)
+    if json_action_match:
         try:
-            action_data = json.loads(action_match.group(1))
+            action_data = json.loads(json_action_match.group(1))
             pid = action_data.get('product_id')
             quantity_to_add = max(1, int(action_data.get('quantity', 1)))
             if pid:
@@ -263,7 +265,23 @@ def chat_message_view(request):
         except Exception:
             pass
 
-    # Fallback intent extraction across all database products if user clearly commanded to add to cart
+    # 2. Check for tool-call / kwargs format: <|tool_call_start|>[ACTION[ADD_TO_CART](product_id='31', quantity=1)]<|tool_call_end|>
+    if not product_to_add:
+        call_action_match = re.search(r'ADD_TO_CART[^)]*?\(([^)]*)\)', reply or '', re.DOTALL | re.IGNORECASE)
+        if call_action_match:
+            try:
+                args_str = call_action_match.group(1)
+                p_m = re.search(r'product_id\s*=\s*[\'\"]?(\d+)[\'\"]?', args_str, re.IGNORECASE)
+                q_m = re.search(r'quantity\s*=\s*[\'\"]?(\d+)[\'\"]?', args_str, re.IGNORECASE)
+                pid = p_m.group(1) if p_m else None
+                if q_m:
+                    quantity_to_add = max(1, int(q_m.group(1)))
+                if pid:
+                    product_to_add = Product.objects.filter(LIVE_APPROVED_PRODUCT_Q, id=pid, is_active=True).first()
+            except Exception:
+                pass
+
+    # 3. Fallback intent extraction across all database products if user clearly commanded to add to cart
     if not product_to_add and any(verb in user_lower for verb in ['add', 'buy', 'cart', 'put in cart', 'purchase']):
         best_match = None
         best_len = 0
@@ -285,6 +303,19 @@ def chat_message_view(request):
             except ValueError:
                 quantity_to_add = 1
 
+    # Strip action tags, tool-call tokens (<|...|>), and internal IDs from user reply
+    if reply:
+        reply = re.sub(r'<\|.*?\|>', '', reply, flags=re.DOTALL)
+        reply = re.sub(r'\[ACTION\[[^\]]*\]\([^)]*\)\]', '', reply, flags=re.IGNORECASE | re.DOTALL)
+        reply = re.sub(r'\[ACTION:ADD_TO_CART:?\s*\{.*?\}\s*\]', '', reply, flags=re.IGNORECASE | re.DOTALL)
+        reply = re.sub(r'\[ACTION:ADD_TO_CART:?[^\]]*\]', '', reply, flags=re.IGNORECASE | re.DOTALL)
+        reply = re.sub(r'\[?ADD_TO_CART\([^)]*\)\]?', '', reply, flags=re.IGNORECASE | re.DOTALL)
+        reply = re.sub(r'\[ACTION.*?\]', '', reply, flags=re.IGNORECASE | re.DOTALL)
+        reply = re.sub(r'\[\s*(PRODUCT_ID|item_ref|ID|Ref)\s*:\s*\d+\s*\]', '', reply, flags=re.IGNORECASE)
+        reply = re.sub(r'\(\s*(Product\s*ID|item_ref|Ref|ID)\s*:\s*\d+\s*\)', '', reply, flags=re.IGNORECASE)
+        reply = re.sub(r'\b(Product\s*ID|item_ref)\s*:\s*\d+\b', '', reply, flags=re.IGNORECASE)
+        reply = reply.strip()
+
     if product_to_add:
         if product_to_add.has_variants:
             v = product_to_add.variants.filter(is_active=True).first()
@@ -304,17 +335,13 @@ def chat_message_view(request):
             'cart_count': len(cart),
         }
 
-        # If reply didn't explicitly mention cart addition, make sure it is conveyed clearly
-        if 'cart' not in (reply or '').lower():
-            reply = f"🛒 Added {quantity_to_add} {product_to_add.unit} of **{product_to_add.name}** (₹{product_to_add.price}/{product_to_add.unit}) to your cart!\n\n" + (reply or '')
+        # Ensure a cheerful confirmation is always given
+        confirm_msg = f"🛒 Added {quantity_to_add} {product_to_add.unit} of **{product_to_add.name}** (₹{product_to_add.price}/{product_to_add.unit}) to your cart!"
+        if not reply or 'cart' not in reply.lower():
+            reply = f"{confirm_msg}\n\n{reply}".strip() if reply else confirm_msg
 
-    # Strip action tags and any internal product ID/ref tags from the final user reply
-    if reply:
-        reply = re.sub(r'\[ACTION:ADD_TO_CART:\s*\{.*?\}\s*\]', '', reply, flags=re.IGNORECASE)
-        reply = re.sub(r'\[\s*(PRODUCT_ID|item_ref|ID|Ref)\s*:\s*\d+\s*\]', '', reply, flags=re.IGNORECASE)
-        reply = re.sub(r'\(\s*(Product\s*ID|item_ref|Ref|ID)\s*:\s*\d+\s*\)', '', reply, flags=re.IGNORECASE)
-        reply = re.sub(r'\b(Product\s*ID|item_ref)\s*:\s*\d+\b', '', reply, flags=re.IGNORECASE)
-        reply = reply.strip()
+    if not reply:
+        reply = "I'm here to help! Could you please let me know which product you would like to explore or add?"
 
     # Update session history capped to 16 items (8 turns)
     history.append({"role": "user", "content": user_message})
