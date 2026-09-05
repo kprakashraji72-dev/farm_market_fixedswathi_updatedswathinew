@@ -427,8 +427,7 @@
         </a>
         <div class="d-flex align-items-center gap-2">
             <span class="badge bg-light text-dark border fw-bold fs-6">Ticket #{{ ticket.id }}</span>
-            <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-bold">{{ ticket.get_category_display
-                }}</span>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-bold">{{ ticket.get_category_display }}</span>
             <span id="ticketStatusBadge">
                 {% if ticket.status == 'open' %}
                 <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill fw-bold">
@@ -701,12 +700,10 @@
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <h6 class="fw-bold text-dark mb-0">Order #{{ ticket.order.id }}</h6>
-                    <span class="badge bg-success-subtle text-success rounded-pill fw-bold">₹{{
-                        ticket.order.total_amount }}</span>
+                    <span class="badge bg-success-subtle text-success rounded-pill fw-bold">₹{{ ticket.order.total_amount }}</span>
                 </div>
                 <p class="text-muted extra-small mb-2">
-                    Placed on {{ ticket.order.created_at|date:"M d, Y" }} • Status: <strong>{{
-                        ticket.order.get_status_display }}</strong>
+                    Placed on {{ ticket.order.created_at|date:"M d, Y" }} • Status: <strong>{{ ticket.order.get_status_display }}</strong>
                 </p>
                 <a href="{% url 'orders:track_order' ticket.order.id %}"
                     class="btn btn-outline-success btn-sm rounded-pill w-100 fw-bold">
@@ -723,8 +720,7 @@
                 <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
                     <li class="d-flex justify-content-between">
                         <span class="text-muted">Status:</span>
-                        <span class="fw-bold text-capitalize" id="sidebarStatusText">{{ ticket.get_status_display
-                            }}</span>
+                        <span class="fw-bold text-capitalize" id="sidebarStatusText">{{ ticket.get_status_display }}</span>
                     </li>
                     <li class="d-flex justify-content-between">
                         <span class="text-muted">Category:</span>
