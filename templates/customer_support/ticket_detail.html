@@ -986,6 +986,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (staffFileInput) staffFileInput.value = '';
             staffPreviewTray.classList.add('d-none');
         });
+    function formatTime(isoOrFormatted) {
+        if (!isoOrFormatted) {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return isoOrFormatted;
     }
 
     function appendMessageBubble(reply) {

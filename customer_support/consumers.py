@@ -8,6 +8,17 @@ from .models import SupportTicket, TicketReply
 User = get_user_model()
 
 
+def is_support_staff_user(user):
+    """Returns True if the user has staff or admin capabilities."""
+    if not user or not user.is_authenticated:
+        return False
+    return (
+        user.is_superuser
+        or getattr(user, 'is_staff', False)
+        or getattr(user, 'role', '') in ['support_staff', 'admin', 'employee']
+    )
+
+
 class TicketChatConsumer(AsyncWebsocketConsumer):
  
     async def connect(self):
@@ -35,7 +46,7 @@ class TicketChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
         # Notify other party that user is active
-        role_label = "Support Agent" if (self.user.is_superuser or getattr(self.user, 'role', '') in ['support_staff', 'admin']) else "Customer"
+        role_label = "Support Agent" if is_support_staff_user(self.user) else "Customer"
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -84,7 +95,7 @@ class TicketChatConsumer(AsyncWebsocketConsumer):
             if not message_text:
                 return
 
-            is_staff = self.user.is_superuser or getattr(self.user, 'role', '') in ['support_staff', 'admin']
+            is_staff = is_support_staff_user(self.user)
             reply_data = await self.save_ticket_reply(self.ticket_id, self.user, message_text, is_staff)
 
             if reply_data:
@@ -112,7 +123,7 @@ class TicketChatConsumer(AsyncWebsocketConsumer):
 
         elif action == 'typing':
             is_typing = bool(data.get('is_typing', False))
-            is_staff = self.user.is_superuser or getattr(self.user, 'role', '') in ['support_staff', 'admin']
+            is_staff = is_support_staff_user(self.user)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -126,7 +137,7 @@ class TicketChatConsumer(AsyncWebsocketConsumer):
             )
 
         elif action == 'status_update':
-            is_staff = self.user.is_superuser or getattr(self.user, 'role', '') in ['support_staff', 'admin']
+            is_staff = is_support_staff_user(self.user)
             if not is_staff:
                 return  # only staff can update status directly via websocket
 
@@ -205,7 +216,7 @@ class TicketChatConsumer(AsyncWebsocketConsumer):
     def check_ticket_access(self, user, ticket_id):
         try:
             ticket = SupportTicket.objects.get(pk=ticket_id)
-            if user.is_superuser or getattr(user, 'role', '') in ['support_staff', 'admin']:
+            if is_support_staff_user(user):
                 return True
             return ticket.user_id == user.id
         except SupportTicket.DoesNotExist:
@@ -244,6 +255,12 @@ class TicketChatConsumer(AsyncWebsocketConsumer):
                 'created_at_formatted': created_time_str,
                 'ticket_status': ticket.status,
                 'ticket_status_display': ticket.get_status_display(),
+                'attachment_url': None,
+                'attachment_name': None,
+                'is_image': False,
+                'is_pdf': False,
+                'file_size': None,
+                'file_icon': None,
             }
         except Exception:
             return None
@@ -284,7 +301,7 @@ class SupportConsoleConsumer(AsyncWebsocketConsumer):
             await self.close(code=4001)
             return
 
-        is_staff = self.user.is_superuser or getattr(self.user, 'role', '') in ['support_staff', 'admin']
+        is_staff = is_support_staff_user(self.user)
         if not is_staff:
             await self.close(code=4003)
             return

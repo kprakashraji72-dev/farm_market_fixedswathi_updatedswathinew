@@ -790,9 +790,8 @@
         const ticketId = "{{ ticket.id }}";
         const uploadUrl = "{% url 'support:upload_attachment' ticket.id %}";
         const currentUsername = "{{ request.user.username }}";
-        const currentUserId = {{ request.user.id }
-    };
-    const chatThread = document.getElementById('chatThread');
+        const currentUserId = "{{ request.user.id }}";
+        const chatThread = document.getElementById('chatThread');
     const chatForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
     const chatFileInput = document.getElementById('chatFileInput');
