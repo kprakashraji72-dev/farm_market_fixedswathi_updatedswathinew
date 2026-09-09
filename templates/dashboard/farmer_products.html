@@ -26,39 +26,41 @@
                     {% csrf_token %}
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Category</label>
+                            <label class="form-label fw-semibold">Category</label>
                             {{ form.category }}
+                            {% for error in form.category.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Name</label>
+                            <label class="form-label fw-semibold">Name</label>
                             {{ form.name }}
+                            {% for error in form.name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Your price (₹)</label>
+                            <label class="form-label fw-semibold">Your price (₹)</label>
                             {{ form.cost_price }}
+                            {% for error in form.cost_price.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">For how many units?</label>
-                            {{ form.bulk_quantity }}
-                            <div class="form-text">e.g. 1 and 22 = ₹1 for a lot of 22 pieces</div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Stock & Unit</label>
+                            <div class="input-group">
+                                {{ form.stock_quantity }}
+                                {{ form.unit }}
+                            </div>
+                            <div class="form-text">e.g. 50 Kilograms or 100 Pieces available in stock</div>
+                            {% for error in form.stock_quantity.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            {% for error in form.unit.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Unit</label>
-                            {{ form.unit }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Stock</label>
-                            {{ form.stock_quantity }}
-                        </div>
-
-                        <div class="col-md-8">
-                            <label class="form-label">Description</label>
-                            {{ form.description }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Image</label>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Image</label>
                             {{ form.image }}
+                            {% for error in form.image.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            {{ form.description }}
+                            {% for error in form.description.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                         </div>
 
                         <div class="col-12 form-check ps-4">
@@ -81,7 +83,7 @@
             {% for product in products %}
             <tr>
                 <td>
-                    {{ product.name }}
+                    <div class="fw-bold text-dark">{{ product.name }}</div>
                     {% if product.rejected_at %}
                     <span class="badge bg-danger ms-1"><i class="fa-solid fa-xmark"></i> Rejected</span>
                     {% if product.rejection_reason %}
@@ -94,10 +96,16 @@
                 <td>{{ product.category|default:"—" }}</td>
                 <td>
                     <span class="small">
-                        ₹{{ product.cost_price }}{% if product.bulk_quantity > 1 %} for {{ product.bulk_quantity }}{% endif %}
+                        ₹{{ product.cost_price }} <span class="text-muted">/ {{ product.get_unit_display }}</span>
+                        {% if product.bulk_quantity > 1 %}
+                        <span class="text-muted small d-block">(lot of {{ product.bulk_quantity }})</span>
+                        {% endif %}
                     </span>
                 </td>
-                <td>{{ product.stock_quantity }}</td>
+                <td>
+                    <span class="fw-semibold">{{ product.stock_quantity }}</span>
+                    <span class="text-muted small">{{ product.get_unit_display }}</span>
+                </td>
                 <td>
                     {% if product.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
                 </td>
@@ -113,7 +121,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="text-center text-muted">No products yet.</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4">No products yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -130,7 +138,10 @@
             <tr class="text-muted">
                 <td>{{ product.name }}</td>
                 <td>{{ product.category|default:"—" }}</td>
-                <td class="small">₹{{ product.cost_price }}{% if product.bulk_quantity > 1 %} for {{ product.bulk_quantity }}{% endif %}</td>
+                <td class="small">
+                    ₹{{ product.cost_price }} <span class="text-muted">/ {{ product.get_unit_display }}</span>
+                    {% if product.bulk_quantity > 1 %} (lot of {{ product.bulk_quantity }}){% endif %}
+                </td>
                 <td>
                     <form method="post" action="{% url 'dashboard:farmer_product_restore' product.id %}" class="d-inline">
                         {% csrf_token %}

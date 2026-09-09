@@ -40,6 +40,7 @@
         {% if not is_dashboard and '/dashboard/' not in request.path and '/support-console/' not in request.path and '/tracking/driver/' not in request.path and '/accounts/driver/' not in request.path and '/accounts/farmer/' not in request.path %}
             {% include 'footer.html' %}
             {% include 'components/chat_widget.html' %}
+            {% include 'components/mobile_bottom_nav.html' %}
         {% endif %}
     {% endblock %}
 

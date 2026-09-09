@@ -98,6 +98,25 @@
                             {% for e in form.image.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
                         </div>
 
+                        {# Freshness Intake Dates #}
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">
+                                <i class="fa-solid fa-calendar-day text-success me-1"></i>Harvest Date (Optional)
+                            </label>
+                            {{ form.harvest_date }}
+                            <div class="form-text extra-small text-muted">When crop was harvested (defaults to intake date if empty)</div>
+                            {% for e in form.harvest_date.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small text-dark">
+                                <i class="fa-solid fa-truck-ramp-box text-primary me-1"></i>Store Received Date (Optional)
+                            </label>
+                            {{ form.received_date }}
+                            <div class="form-text extra-small text-muted">When arrived at store (defaults to today if empty)</div>
+                            {% for e in form.received_date.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                        </div>
+
                         {# Row 3 #}
                         <div class="col-12 col-md-8">
                             <label class="form-label fw-semibold small text-dark">Produce Description</label>
@@ -174,7 +193,10 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="small text-muted"><i class="fa-solid fa-tractor text-success me-1"></i>{{ product.farm.name }}</span>
+                                <span class="small text-muted d-block"><i class="fa-solid fa-tractor text-success me-1"></i>{{ product.farm.name }}</span>
+                                <span class="badge bg-{{ product.freshness_badge.color }}-subtle text-{{ product.freshness_badge.color }} border border-{{ product.freshness_badge.color }}-subtle rounded-pill extra-small mt-1" title="Harvested: {{ product.effective_harvest_date|date:'M d, Y' }} | Received: {{ product.effective_received_date|date:'M d, Y' }}">
+                                    <i class="fa-solid fa-clock-rotate-left me-1"></i>{{ product.days_in_store }}d in store
+                                </span>
                             </td>
                             <td>
                                 {% if product.has_variants %}
@@ -387,6 +409,23 @@
                                                         <div class="col-12">
                                                             <label class="form-label fw-semibold small text-dark">Produce Description</label>
                                                             <textarea name="description" rows="2" class="form-control">{{ product.description }}</textarea>
+                                                        </div>
+
+                                                        {# Freshness & Intake Dates #}
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small text-dark">
+                                                                <i class="fa-solid fa-calendar-day text-success me-1"></i>Harvest Date
+                                                            </label>
+                                                            <input type="date" name="harvest_date" value="{{ product.harvest_date|date:'Y-m-d' }}" class="form-control">
+                                                            <div class="form-text extra-small text-muted">When crop was harvested from field</div>
+                                                        </div>
+
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small text-dark">
+                                                                <i class="fa-solid fa-truck-ramp-box text-primary me-1"></i>Store Received Date
+                                                            </label>
+                                                            <input type="date" name="received_date" value="{{ product.received_date|date:'Y-m-d' }}" class="form-control">
+                                                            <div class="form-text extra-small text-muted">When arrived at store (calculates days in store)</div>
                                                         </div>
 
                                                         {# Active Toggle #}

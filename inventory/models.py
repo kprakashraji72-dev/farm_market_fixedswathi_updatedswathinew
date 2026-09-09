@@ -4,6 +4,7 @@ Every Product belongs to exactly one Farm (per project requirement).
 """
 from django.db import models
 from django.utils.text import slugify
+from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
 
@@ -151,6 +152,16 @@ class Product(models.Model):
     rejected_at = models.DateTimeField(null=True, blank=True)
     rejection_reason = models.CharField(max_length=255, blank=True)
 
+    # Farm-to-Table Freshness tracking
+    harvest_date = models.DateField(
+        null=True, blank=True,
+        help_text='When this batch was harvested from the farm fields.'
+    )
+    received_date = models.DateField(
+        null=True, blank=True,
+        help_text='When this product arrived at our store / inventory warehouse.'
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -214,6 +225,55 @@ class Product(models.Model):
             if cheapest and cheapest.label:
                 return cheapest.label
         return self.unit or 'kg'
+
+    @property
+    def effective_received_date(self):
+        """Returns received_date, or falls back to created_at date."""
+        if self.received_date:
+            return self.received_date
+        if self.created_at:
+            return self.created_at.date()
+        return timezone.now().date()
+
+    @property
+    def effective_harvest_date(self):
+        """Returns harvest_date, or defaults to received_date / created_at date."""
+        if self.harvest_date:
+            return self.harvest_date
+        return self.effective_received_date
+
+    @property
+    def days_in_store(self):
+        """Number of days this product has been in the store since arrival."""
+        ref = self.effective_received_date
+        if ref:
+            delta = (timezone.now().date() - ref).days
+            return max(0, delta)
+        return 0
+
+    @property
+    def days_since_harvest(self):
+        """Number of days since field harvest."""
+        ref = self.effective_harvest_date
+        if ref:
+            delta = (timezone.now().date() - ref).days
+            return max(0, delta)
+        return 0
+
+    @property
+    def freshness_badge(self):
+        """Display badge for product freshness based on days in store."""
+        if not self.in_stock:
+            return {'label': 'Sold Out', 'color': 'secondary', 'subtext': 'Awaiting Next Fresh Batch'}
+        days = self.days_in_store
+        if days == 0:
+            return {'label': 'Arrived Today', 'color': 'success', 'subtext': 'Peak Garden Freshness'}
+        elif days <= 2:
+            return {'label': f'{days} Day{"s" if days > 1 else ""} Fresh', 'color': 'success', 'subtext': 'Peak Freshness'}
+        elif days <= 4:
+            return {'label': f'{days} Days in Store', 'color': 'info', 'subtext': 'Store Fresh'}
+        else:
+            return {'label': f'{days} Days in Store', 'color': 'warning', 'subtext': 'Standard Freshness'}
 
 
 class ProductVariant(models.Model):

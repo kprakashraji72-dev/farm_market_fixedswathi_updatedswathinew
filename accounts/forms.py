@@ -221,8 +221,21 @@ class FarmerRegistrationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if 'username' in self.fields:
+            self.fields['username'].max_length = 100
+            self.fields['username'].widget.attrs.update({
+                'maxlength': '100',
+                'placeholder': 'Enter farmer name / username (max 100 characters)',
+            })
+            self.fields['username'].help_text = 'Required. 100 characters or fewer.'
         for field in self.fields.values():
             field.widget.attrs.update({'class': BOOTSTRAP_INPUT})
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        if len(username) > 100:
+            raise forms.ValidationError('Username must not exceed 100 characters.')
+        return username
 
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number', '').strip()

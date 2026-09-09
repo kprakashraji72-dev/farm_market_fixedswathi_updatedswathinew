@@ -12,11 +12,17 @@
             <span>Fresh Trace</span>
         </a>
 
-        {# Mobile Toggler #}
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
-            data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="fa-solid fa-bars-staggered text-success fs-5"></i>
-        </button>
+        {# Mobile Right Quick Bar: Cart & Toggler #}
+        <div class="d-flex align-items-center gap-2 d-lg-none">
+            <a href="{% url 'orders:cart_detail' %}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 position-relative shadow-sm" title="View Cart">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="badge bg-success rounded-pill cart-count-badge" id="cartBadgeCountHeaderMobile">{{ cart_count|default:0 }}</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none p-1" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars-staggered text-success fs-5"></i>
+            </button>
+        </div>
 
         {# Main Navigation Content #}
         <div class="collapse navbar-collapse" id="mainNav">

@@ -14,17 +14,38 @@ class FarmForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if 'name' in self.fields:
+            self.fields['name'].max_length = 100
+            self.fields['name'].widget.attrs.update({
+                'maxlength': '100',
+                'placeholder': 'Official farm name (max 100 characters)',
+            })
         for name, field in self.fields.items():
             if not isinstance(field.widget, (forms.CheckboxInput,)):
                 field.widget.attrs.update({'class': 'form-control'})
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if len(name) > 100:
+            raise forms.ValidationError('Farm name must not exceed 100 characters.')
+        return name
 
 
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['farm', 'category', 'name', 'description', 'price', 'unit', 'stock_quantity', 'image', 'is_active']
+        fields = [
+            'farm', 'category', 'name', 'description', 'price', 'unit', 'stock_quantity',
+            'harvest_date', 'received_date', 'image', 'is_active'
+        ]
+        labels = {
+            'harvest_date': 'Harvest Date',
+            'received_date': 'Received at Store Date',
+        }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
+            'harvest_date': forms.DateInput(attrs={'type': 'date'}),
+            'received_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -52,34 +73,43 @@ class FarmerProductForm(forms.ModelForm):
     """Self-service product form for a farmer partner — the farm is fixed to
     their own farm by the view, so it's not exposed here.
 
-    Farmers do NOT set the customer-facing price directly (that field is
-    reserved for the admin — see dashboard.views.product_toggle_approved).
-    Instead they quote what they're charging (often a bulk/wholesale lot
-    price, e.g. "1 for 22 pieces") via cost_price + bulk_quantity, and an
-    admin turns that into a priced, marked-up retail listing on approval.
+    Farmers quote their wholesale price per unit (cost_price), available stock,
+    and measurement unit. Admin sets the retail listing price on approval.
     """
 
     class Meta:
         model = Product
-        fields = ['category', 'name', 'description', 'cost_price', 'bulk_quantity', 'unit', 'stock_quantity', 'image', 'is_active']
+        fields = ['category', 'name', 'cost_price', 'stock_quantity', 'unit', 'description', 'image', 'is_active']
         labels = {
-            'cost_price': 'Your price (₹)',
-            'bulk_quantity': 'For how many units?',
-        }
-        help_texts = {
-            'cost_price': 'What you charge for the quantity below — e.g. 1 for a bulk lot of 22 pieces.',
-            'bulk_quantity': 'Number of units that price covers. Use 1 if it\u2019s already a per-unit price.',
+            'cost_price': 'Your price per unit (₹)',
+            'stock_quantity': 'Available Stock',
+            'unit': 'Unit',
         }
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Optional details about harvest, quality, freshness...'}),
+            'stock_quantity': forms.NumberInput(attrs={'min': '0', 'placeholder': 'e.g. 50'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['cost_price'].required = True
+        if 'name' in self.fields:
+            self.fields['name'].max_length = 100
+            self.fields['name'].widget.attrs.update({
+                'maxlength': '100',
+                'placeholder': 'Produce name (max 100 characters)',
+            })
         for name, field in self.fields.items():
-            if not isinstance(field.widget, (forms.CheckboxInput,)):
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({'class': 'form-select'})
+            elif not isinstance(field.widget, (forms.CheckboxInput,)):
                 field.widget.attrs.update({'class': 'form-control'})
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if len(name) > 100:
+            raise forms.ValidationError('Product name must not exceed 100 characters.')
+        return name
 
 
 class CategoryForm(forms.ModelForm):

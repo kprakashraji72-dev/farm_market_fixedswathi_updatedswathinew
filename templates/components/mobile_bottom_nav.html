@@ -1,0 +1,78 @@
+{% load static %}
+{# Fresh Trace — Native App Style Mobile Bottom Navigation (Visible only on mobile < 768px) #}
+<nav class="ft-mobile-bottom-nav d-block d-md-none" aria-label="Mobile Navigation">
+    <div class="ft-mobile-nav-container">
+        {# 1. Home #}
+        <a href="{% url 'store:home' %}" class="ft-mobile-nav-item {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+            <div class="ft-mobile-nav-icon">
+                <i class="fa-solid fa-house"></i>
+            </div>
+            <span class="ft-mobile-nav-label">Home</span>
+        </a>
+
+        {# 2. Shop Produce #}
+        <a href="{% url 'inventory:product_list' %}" class="ft-mobile-nav-item {% if request.resolver_match.url_name == 'product_list' or 'inventory' in request.path %}is-active{% endif %}">
+            <div class="ft-mobile-nav-icon">
+                <i class="fa-solid fa-basket-shopping"></i>
+            </div>
+            <span class="ft-mobile-nav-label">Produce</span>
+        </a>
+
+        {# 3. Track Delivery #}
+        <a href="{% url 'orders:track_lookup' %}" class="ft-mobile-nav-item {% if request.resolver_match.url_name == 'track_lookup' or 'tracking' in request.path %}is-active{% endif %}">
+            <div class="ft-mobile-nav-icon">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <span class="ft-mobile-nav-label">Track</span>
+        </a>
+
+        {# 4. My Orders / Profile #}
+        {% if user.is_authenticated %}
+            {% if user.role == 'customer' %}
+            <a href="{% url 'orders:my_orders' %}" class="ft-mobile-nav-item {% if request.resolver_match.url_name == 'my_orders' %}is-active{% endif %}">
+                <div class="ft-mobile-nav-icon">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </div>
+                <span class="ft-mobile-nav-label">Orders</span>
+            </a>
+            {% elif user.role == 'driver' %}
+            <a href="{% url 'tracking:driver_dashboard' %}" class="ft-mobile-nav-item {% if 'driver' in request.path %}is-active{% endif %}">
+                <div class="ft-mobile-nav-icon text-primary">
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                </div>
+                <span class="ft-mobile-nav-label">Driver</span>
+            </a>
+            {% elif user.role == 'farmer' %}
+            <a href="{% url 'dashboard:farmer_home' %}" class="ft-mobile-nav-item {% if 'farmer' in request.path %}is-active{% endif %}">
+                <div class="ft-mobile-nav-icon text-success">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+                <span class="ft-mobile-nav-label">Farm</span>
+            </a>
+            {% else %}
+            <a href="{% url 'dashboard:home' %}" class="ft-mobile-nav-item {% if 'dashboard' in request.path %}is-active{% endif %}">
+                <div class="ft-mobile-nav-icon text-success">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span class="ft-mobile-nav-label">Admin</span>
+            </a>
+            {% endif %}
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="ft-mobile-nav-item {% if 'login' in request.path or 'register' in request.path %}is-active{% endif %}">
+            <div class="ft-mobile-nav-icon">
+                <i class="fa-regular fa-user"></i>
+            </div>
+            <span class="ft-mobile-nav-label">Sign In</span>
+        </a>
+        {% endif %}
+
+        {# 5. Cart with Live Badge Counter #}
+        <a href="{% url 'orders:cart_detail' %}" class="ft-mobile-nav-item ft-mobile-nav-cart {% if request.resolver_match.url_name == 'cart_detail' %}is-active{% endif %}">
+            <div class="ft-mobile-nav-icon position-relative">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="ft-mobile-cart-badge cart-count-badge" id="cartBadgeCountBottom">{{ cart_count|default:0 }}</span>
+            </div>
+            <span class="ft-mobile-nav-label">Cart</span>
+        </a>
+    </div>
+</nav>

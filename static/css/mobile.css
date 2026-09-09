@@ -14,10 +14,14 @@
         width: 100%;
     }
 
+    body:has(.ft-mobile-bottom-nav) main {
+        padding-bottom: 74px !important;
+    }
+
     .container,
     .container-fluid {
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
         max-width: 100%;
     }
 
@@ -27,8 +31,100 @@
     }
 
     .card-body {
-        padding: 0.9rem;
+        padding: 0.85rem;
     }
+}
+
+/* =========================================================
+   NATIVE APP STYLE MOBILE BOTTOM NAVIGATION
+   ========================================================= */
+.ft-mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1045;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid #e2ece5;
+    box-shadow: 0 -4px 20px rgba(6, 78, 59, 0.08);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ft-mobile-nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 58px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 0.25rem;
+}
+
+.ft-mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    color: #64748b;
+    flex: 1;
+    height: 100%;
+    transition: all 0.2s ease;
+    padding: 4px 0;
+    border-radius: 0.5rem;
+}
+
+.ft-mobile-nav-item:hover,
+.ft-mobile-nav-item:active {
+    color: #059669;
+}
+
+.ft-mobile-nav-item.is-active {
+    color: #059669;
+    font-weight: 700;
+}
+
+.ft-mobile-nav-icon {
+    font-size: 1.15rem;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.ft-mobile-nav-item.is-active .ft-mobile-nav-icon {
+    transform: translateY(-2px);
+    color: #059669;
+}
+
+.ft-mobile-nav-label {
+    font-size: 0.68rem;
+    line-height: 1.1;
+    margin-top: 2px;
+    letter-spacing: 0.2px;
+}
+
+.ft-mobile-cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background: #059669;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.12rem 0.36rem;
+    border-radius: 9999px;
+    min-width: 17px;
+    height: 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(5, 150, 105, 0.4);
+    border: 1.5px solid #ffffff;
 }
 
 
@@ -206,16 +302,97 @@
         font-size: 0.88rem !important;
     }
 
-    /* Hide floating badges on mobile (they overlap and overflow) */
-    .ft-floating-badge,
-    .ft-floating-badge-reverse {
-        display: none !important;
+    /* Hero visual asset & 3D card display on mobile */
+    .ft-hero-visual-col {
+        display: block !important;
+        width: 100% !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1rem !important;
     }
 
-    /* Hero right column image height */
-    .ft-hero-clean .col-lg-6 .rounded-4 img {
-        min-height: 200px !important;
-        max-height: 250px !important;
+    .ft-3d-scene {
+        padding: 24px 8px !important;
+        max-width: 440px !important;
+        margin: 0 auto !important;
+        perspective: none !important;
+    }
+
+    .ft-3d-card {
+        animation: ft3dMobileFloat 5s ease-in-out infinite !important;
+        transform: none !important;
+    }
+
+    @keyframes ft3dMobileFloat {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-6px);
+        }
+    }
+
+    .ft-3d-frame {
+        border-radius: 1.35rem !important;
+        box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.45) !important;
+        overflow: hidden !important;
+    }
+
+    .ft-3d-frame img.ft-hero-img {
+        width: 100% !important;
+        height: 235px !important;
+        min-height: 215px !important;
+        max-height: 255px !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+
+    /* Floating Badges proudly shown on mobile with crisp layout */
+    .ft-3d-badge-top {
+        display: flex !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 8px !important;
+        transform: translateY(-40%) !important;
+        padding: 0.35rem 0.68rem !important;
+        border-radius: 0.85rem !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(226, 236, 229, 0.95) !important;
+        background: #ffffff !important;
+        max-width: calc(65% - 10px) !important;
+        z-index: 6 !important;
+    }
+
+    .ft-3d-badge-bottom {
+        display: flex !important;
+        position: absolute !important;
+        bottom: 0 !important;
+        right: 8px !important;
+        transform: translateY(40%) !important;
+        padding: 0.35rem 0.68rem !important;
+        border-radius: 0.85rem !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(226, 236, 229, 0.95) !important;
+        background: #ffffff !important;
+        max-width: calc(65% - 10px) !important;
+        z-index: 6 !important;
+    }
+
+    .ft-badge-icon {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .ft-badge-title {
+        font-size: 0.78rem !important;
+        line-height: 1.15 !important;
+        white-space: nowrap !important;
+    }
+
+    .ft-badge-sub {
+        font-size: 0.65rem !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
     }
 
     /* Trust micro-stats */
@@ -229,6 +406,34 @@
     .ft-hero-clean h1.display-4,
     .ft-hero-clean .display-4 {
         font-size: 1.5rem !important;
+    }
+
+    .ft-3d-frame img.ft-hero-img {
+        height: 210px !important;
+    }
+
+    .ft-badge-icon {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .ft-3d-badge-top {
+        left: 4px !important;
+        padding: 0.3rem 0.55rem !important;
+    }
+
+    .ft-3d-badge-bottom {
+        right: 4px !important;
+        padding: 0.3rem 0.55rem !important;
+    }
+
+    .ft-badge-title {
+        font-size: 0.72rem !important;
+    }
+
+    .ft-badge-sub {
+        font-size: 0.62rem !important;
     }
 }
 

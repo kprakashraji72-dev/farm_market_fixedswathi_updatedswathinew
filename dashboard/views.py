@@ -483,6 +483,10 @@ def inventory_products(request):
             product.is_approved = True
             product.approved_at = timezone.now()
             product.approved_by = request.user if request.user.is_admin_role else None
+            if not product.received_date:
+                product.received_date = timezone.now().date()
+            if not product.harvest_date:
+                product.harvest_date = product.received_date
             product.save()
             messages.success(request, 'Product added.')
             return redirect('dashboard:inventory_products')
@@ -1006,12 +1010,12 @@ def farmer_products(request):
         if form.is_valid():
             product = form.save(commit=False)
             product.farm = farm
-            # Farmers quote cost_price/bulk_quantity, not the retail price —
-            # the admin sets the real customer-facing `price` when they
-            # approve it (see product_toggle_approved). Until then this is
-            # just a placeholder; it's never customer-visible while
-            # is_approved is False.
+            product.bulk_quantity = 1
             product.price = product.cost_price or 0
+            if not product.received_date:
+                product.received_date = timezone.now().date()
+            if not product.harvest_date:
+                product.harvest_date = product.received_date
             # Farmer-added products always need admin approval before they
             # go live on the customer-facing store — see
             # inventory.models.LIVE_APPROVED_PRODUCT_Q and

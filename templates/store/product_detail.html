@@ -80,6 +80,85 @@
                     {{ product.description|default:"Harvested naturally at optimal ripeness from verified local partner growers. Temperature-controlled delivery guarantees garden freshness." }}
                 </p>
 
+                {# Farm Freshness & Traceability Box #}
+                <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border: 1px solid #dcfce7 !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 extra-small fw-bold text-uppercase tracking-wider">
+                                    <i class="fa-solid fa-seedling me-1"></i> Farm Freshness &amp; Traceability
+                                </span>
+                            </div>
+                            <span class="badge bg-{{ product.freshness_badge.color }}-subtle text-{{ product.freshness_badge.color }} border border-{{ product.freshness_badge.color }}-subtle rounded-pill px-2.5 py-1 extra-small fw-bold">
+                                <i class="fa-solid fa-circle-check me-1"></i> {{ product.freshness_badge.label }}
+                            </span>
+                        </div>
+
+                        <div class="row g-1 g-sm-2 pt-1 text-dark">
+                            {# Harvest Date #}
+                            <div class="col-4">
+                                <div class="p-1.5 p-sm-2 bg-white rounded-3 border h-100 text-center text-sm-start" style="border-color: #e5e7eb !important;">
+                                    <div class="text-muted extra-small d-flex align-items-center justify-content-center justify-content-sm-start gap-1 mb-0.5" style="font-size: 0.65rem;">
+                                        <i class="fa-solid fa-calendar-day text-success"></i> <span>Harvested</span>
+                                    </div>
+                                    <div class="fw-bold small text-dark" style="font-size: 0.78rem;">
+                                        {{ product.effective_harvest_date|date:"M d, Y" }}
+                                    </div>
+                                    <div class="extra-small text-muted" style="font-size: 0.65rem;">
+                                        {% if product.days_since_harvest == 0 %}
+                                            <span class="text-success fw-semibold">Today</span>
+                                        {% elif product.days_since_harvest == 1 %}
+                                            <span class="text-success fw-semibold">1d ago</span>
+                                        {% else %}
+                                            {{ product.days_since_harvest }}d ago
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Delivered Date #}
+                            <div class="col-4">
+                                <div class="p-1.5 p-sm-2 bg-white rounded-3 border h-100 text-center text-sm-start" style="border-color: #e5e7eb !important;">
+                                    <div class="text-muted extra-small d-flex align-items-center justify-content-center justify-content-sm-start gap-1 mb-0.5" style="font-size: 0.65rem;">
+                                        <i class="fa-solid fa-truck-ramp-box text-primary"></i> <span>Dispatched</span>
+                                    </div>
+                                    <div class="fw-bold small text-dark" style="font-size: 0.78rem;">
+                                        {{ product.effective_received_date|date:"M d, Y" }}
+                                    </div>
+                                    <div class="extra-small text-muted" style="font-size: 0.65rem;">
+                                        To Store
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Days in Store #}
+                            <div class="col-4">
+                                <div class="p-1.5 p-sm-2 bg-white rounded-3 border h-100 text-center text-sm-start" style="border-color: #e5e7eb !important;">
+                                    <div class="text-muted extra-small d-flex align-items-center justify-content-center justify-content-sm-start gap-1 mb-0.5" style="font-size: 0.65rem;">
+                                        <i class="fa-solid fa-clock-rotate-left text-warning"></i> <span>Shelf Age</span>
+                                    </div>
+                                    <div class="fw-bold small text-dark" style="font-size: 0.78rem;">
+                                        {% if not product.in_stock %}
+                                            <span class="text-secondary fw-bold">Sold Out</span>
+                                        {% elif product.days_in_store == 0 %}
+                                            <span class="text-success fw-bold">Fresh</span>
+                                        {% else %}
+                                            {{ product.days_in_store }}d in Store
+                                        {% endif %}
+                                    </div>
+                                    <div class="extra-small text-muted" style="font-size: 0.65rem;">
+                                        {% if not product.in_stock %}
+                                            Awaiting
+                                        {% else %}
+                                            Optimal
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {# Price & Real-Time Calculation Container #}
                 <div class="p-3 bg-light rounded-4 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 border" style="border-color: #e2ece5 !important;">
                     <div class="d-flex align-items-baseline gap-2">

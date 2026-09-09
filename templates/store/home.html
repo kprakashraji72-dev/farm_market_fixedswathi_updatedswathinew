@@ -2,6 +2,87 @@
 {% load static %}
 {% block title %}Fresh Trace | Farm-Fresh Produce Delivered Direct{% endblock %}
 
+{% block extra_css %}
+<style>
+/* 3D Scene & Perspective Container */
+.ft-3d-scene {
+    perspective: 1200px;
+    transform-style: preserve-3d;
+    padding: 18px 10px;
+}
+
+.ft-3d-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+    animation: ft3dFloatingRotate 7s ease-in-out infinite;
+    will-change: transform;
+}
+
+.ft-3d-card.is-interacting {
+    animation: none !important;
+    transition: transform 0.08s ease-out, box-shadow 0.2s ease;
+}
+
+/* Continuous 3D Floating & Rotating Animation */
+@keyframes ft3dFloatingRotate {
+    0% {
+        transform: perspective(1200px) rotateY(-6deg) rotateX(3deg) translateY(0px);
+    }
+    50% {
+        transform: perspective(1200px) rotateY(6deg) rotateX(-3deg) translateY(-12px);
+    }
+    100% {
+        transform: perspective(1200px) rotateY(-6deg) rotateX(3deg) translateY(0px);
+    }
+}
+
+/* 3D Image Frame with Soft Depth Shadows */
+.ft-3d-frame {
+    border-radius: 1.75rem;
+    overflow: hidden;
+    box-shadow: 0 24px 50px -12px rgba(6, 78, 59, 0.45), 0 12px 28px -6px rgba(0, 0, 0, 0.25);
+    border: none;
+    position: relative;
+    background: #064e3b;
+    transform: translateZ(0px);
+}
+
+/* Dynamic Specular 3D Lighting Sheen */
+.ft-3d-glare {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 45% 15%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 65%);
+    mix-blend-mode: overlay;
+    border-radius: 1.75rem;
+    z-index: 2;
+}
+
+/* 3D Floating Badges popping into the foreground */
+.ft-3d-badge-top {
+    transform: translateZ(48px);
+    transition: transform 0.25s ease;
+}
+
+.ft-3d-badge-bottom {
+    transform: translateZ(48px);
+    transition: transform 0.25s ease;
+}
+
+.ft-3d-card:hover .ft-3d-badge-top {
+    transform: translateZ(64px) scale(1.04);
+}
+
+.ft-3d-card:hover .ft-3d-badge-bottom {
+    transform: translateZ(64px) scale(1.04);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {# ============ HERO SECTION WITH BACKGROUND IMAGE & KEN BURNS ZOOM EFFECT ============ #}
 <section class="ft-hero-clean position-relative text-white py-4 py-md-5 mb-4 mb-md-5 overflow-hidden">
@@ -63,33 +144,36 @@
                 </div>
             </div>
 
-            {# Right Column: Hero Visual Harvest Basket Asset with Floating Badges — Hidden on mobile #}
-            <div class="col-lg-6 d-none d-lg-block">
-                <div class="position-relative mx-auto" style="max-width: 520px;">
-                    {# Hero Harvest Basket Image Frame #}
-                    <div class="rounded-4 overflow-hidden shadow-lg border border-2 border-white" style="background: #064e3b;">
-                        <img src="{% static 'images/banners/farm_hero_basket.jpg' %}" alt="Fresh Organic Farm Harvest Basket" class="w-100 h-100 object-fit-cover hover-scale transition-all" style="min-height: 340px; max-height: 400px;" loading="eager">
-                    </div>
+            {# Right Column: Hero Visual Asset (Visible on Mobile & Desktop) #}
+            <div class="col-lg-6 col-12 d-block my-3 my-lg-0 ft-hero-visual-col">
+                <div class="ft-3d-scene mx-auto">
+                    <div class="ft-3d-card" id="ftHero3DCard">
+                        {# 3D Image Frame with Fresh Farm Harvest Artwork #}
+                        <div class="ft-3d-frame">
+                            <img src="{% static 'images/banners/farm_hero_basket.jpg' %}" alt="Fresh Organic Farm Harvest Basket" class="w-100 object-fit-cover ft-hero-img" loading="eager">
+                            <div class="ft-3d-glare"></div>
+                        </div>
 
-                    {# Floating Badge 1 (Top Left) #}
-                    <div class="position-absolute top-0 start-0 translate-middle-y ms-2 ms-md-n3 p-2 bg-white text-dark rounded-4 shadow-lg border d-flex align-items-center gap-2 ft-floating-badge" style="z-index: 5;">
-                        <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0" style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #047857);">
-                            <i class="fa-solid fa-seedling"></i>
+                        {# Floating Badge 1 (Top Left) #}
+                        <div class="position-absolute top-0 start-0 translate-middle-y ms-2 ms-md-0 p-2 bg-white text-dark rounded-4 shadow-lg border d-flex align-items-center gap-2 ft-3d-badge-top" style="z-index: 5;">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0 ft-badge-icon" style="background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35);">
+                                <i class="fa-solid fa-seedling"></i>
+                            </div>
+                            <div class="pe-2">
+                                <span class="d-block fw-bold small lh-1 text-dark ft-badge-title">100% Farm Fresh</span>
+                                <small class="text-muted extra-small ft-badge-sub">Harvested today</small>
+                            </div>
                         </div>
-                        <div class="pe-2">
-                            <span class="d-block fw-bold small lh-1 text-dark">100% Farm Fresh</span>
-                            <small class="text-muted extra-small">Harvested today</small>
-                        </div>
-                    </div>
 
-                    {# Floating Badge 2 (Bottom Right) #}
-                    <div class="position-absolute bottom-0 end-0 translate-middle-y me-2 me-md-n3 p-2 bg-white text-dark rounded-4 shadow-lg border d-flex align-items-center gap-2 ft-floating-badge-reverse" style="z-index: 5;">
-                        <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0" style="width: 40px; height: 40px; background: linear-gradient(135deg, #d97706, #b45309);">
-                            <i class="fa-solid fa-star"></i>
-                        </div>
-                        <div class="pe-2">
-                            <span class="d-block fw-bold small lh-1 text-dark">4.9/5 Quality</span>
-                            <small class="text-muted extra-small">Organic guaranteed</small>
+                        {# Floating Badge 2 (Bottom Right) #}
+                        <div class="position-absolute bottom-0 end-0 translate-middle-y me-2 me-md-0 p-2 bg-white text-dark rounded-4 shadow-lg border d-flex align-items-center gap-2 ft-3d-badge-bottom" style="z-index: 5;">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0 ft-badge-icon" style="background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35);">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div class="pe-2">
+                                <span class="d-block fw-bold small lh-1 text-dark ft-badge-title">4.9/5 Quality</span>
+                                <small class="text-muted extra-small ft-badge-sub">Organic guaranteed</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -347,4 +431,46 @@
     {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scene = document.querySelector('.ft-3d-scene');
+    const card = document.getElementById('ftHero3DCard');
+    if (!scene || !card) return;
+
+    // On touch/mobile devices, use lightweight CSS floating animation for best performance
+    if (window.innerWidth < 992 || window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+        return;
+    }
+
+    let bounds = scene.getBoundingClientRect();
+    window.addEventListener('resize', () => { bounds = scene.getBoundingClientRect(); });
+    window.addEventListener('scroll', () => { bounds = scene.getBoundingClientRect(); }, { passive: true });
+
+    scene.addEventListener('mouseenter', () => {
+        card.classList.add('is-interacting');
+        bounds = scene.getBoundingClientRect();
+    });
+
+    scene.addEventListener('mousemove', (e) => {
+        const x = e.clientX - bounds.left;
+        const y = e.clientY - bounds.top;
+        const centerX = bounds.width / 2;
+        const centerY = bounds.height / 2;
+
+        // Smooth 3D tilt calculation (-14deg to +14deg rotation)
+        const rotateY = ((x - centerX) / centerX) * 14;
+        const rotateX = -((y - centerY) / centerY) * 12;
+
+        card.style.transform = `perspective(1200px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
+    });
+
+    scene.addEventListener('mouseleave', () => {
+        card.classList.remove('is-interacting');
+        card.style.transform = '';
+    });
+});
+</script>
 {% endblock %}
